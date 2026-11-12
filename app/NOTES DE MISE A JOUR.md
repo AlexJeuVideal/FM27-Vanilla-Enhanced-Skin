@@ -6,6 +6,16 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v1.89 (12 novembre 2026)
+
+**App**
+- **Visages et logos en quelques clics** : deux nouvelles pages tout en haut du menu, « 🙂 Visages (DF11) » et « 🛡️ Logos (TCM27) », pour les packs qu'on conseille (DF11 Faces Classic Megapack et TCM27). Tu télécharges le pack sur leur site, tu le choisis dans l'app (.zip, .rar ou .7z, même en plusieurs morceaux, ou un dossier déjà décompressé), et l'app le décompresse et le range toute seule au bon endroit dans graphics, sans dossier en double et avec tous ses sous-dossiers. Les mises à jour mensuelles de DF11 se posent pareil, par-dessus. La page montre aussi ce qui est déjà dans graphics. Ce ne sont PAS nos packs : tous les droits sont réservés à leurs créateurs (TCMLogos.com, DF11 Faces), l'app ne contient aucun de leurs fichiers. Merci à eux !
+- **Tuto pour ajouter tes propres images** : en bas de ces deux pages, comment ajouter toi-même un visage ou un logo (ID, image, fichier config.xml avec un modèle prêt à copier).
+- **Dossier graphics ailleurs ?** Page « Dossier du jeu » et assistant d'installation : si tes Documents ou le dossier graphics de FM sont ailleurs (autre disque, OneDrive…), tu peux le choisir. Choisir Documents ou le dossier « Football Manager 27 » suffit, l'app retrouve graphics. Sert aussi aux photos des stades et aux trophées.
+
+**Affichage**
+- **Affichages Moyen et Petit en 1080p** (nouvelle catégorie « Affichage », à activer toi-même) : en dessous de la 2K, FM grise Moyen et Petit et ne réduit jamais l'interface. L'option les débloque, et l'interface rapetisse vraiment (Moyen 80 %, Petit 67 %, Grand ne change pas). Elle modifie le code de FM (GameAssembly.dll) : **à tes risques et périls**, ce n'est prévu ni par FM ni par le skin pour marcher, et la mise en page du skin est pensée pour Grand en 1080p (des écrans peuvent déborder). Windows seulement pour l'instant (pas encore Linux / Proton ni Mac). Après une mise à jour de FM, réinstalle le skin ; retirer l'option remet le fichier d'origine.
+
 ### v1.88 (12 novembre 2026)
 
 **Fiche joueur**
@@ -1023,6 +1033,16 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v1.89 (12 November 2026)
+
+**App**
+- **Faces and logos in a few clicks**: two new pages at the very top of the menu, « 🙂 Faces (DF11) » and « 🛡️ Logos (TCM27) », for the packs we recommend (DF11 Faces Classic Megapack and TCM27). Download the pack from their site, pick it in the app (.zip, .rar or .7z, even in several parts, or an already extracted folder), and the app extracts it and puts it in the right place in graphics by itself, with no double folder and all its subfolders. DF11's monthly updates go on top the same way. The page also shows what's already in graphics. These are NOT our packs: all rights are reserved to their creators (TCMLogos.com, DF11 Faces), the app contains none of their files. Thanks to them!
+- **Tutorial to add your own images**: at the bottom of both pages, how to add a face or a logo yourself (ID, image, config.xml file with a ready-to-copy template).
+- **graphics folder somewhere else?** « Game folder » page and setup wizard: if your Documents or FM's graphics folder are somewhere else (another drive, OneDrive…), you can pick it. Picking Documents or the « Football Manager 27 » folder is enough, the app finds graphics. Also used for stadium photos and trophies.
+
+**Display**
+- **Medium and Small displays at 1080p** (new « Display » category, to turn on yourself): below 2K, FM greys out Medium and Small and never scales the interface down. The option unlocks them, and the interface really gets smaller (Medium 80%, Small 67%, Large doesn't change). It modifies FM's code (GameAssembly.dll): **at your own risk**, it's not meant to work by FM or by the skin, and the skin's layout is made for Large at 1080p (some screens may overflow). Windows only for now (not yet Linux / Proton or Mac). After an FM update, reinstall the skin; turning the option off restores the original file.
 
 ### v1.88 (12 November 2026)
 

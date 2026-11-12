@@ -113,7 +113,9 @@ ENVELOPPES = (f"{PREFIXE}FM", f"{PREFIXE}HorsLarge")    # SIVisible autour du bl
 MARKER = os.path.join(backup.BACKUP_DIR, "rapport_recrutement_fm24.actif")
 # rapport du recruteur dans un message (onglet Recruteur-superviseur ; aussi l'onglet Rapport de la fiche ?) :
 # [ recommandation, niveau, efficacité, transferts | attributs (à la place de Pour / Contre) | Infos, matchs, comparaison ]
-VERSION_MESSAGE = 10                                 # v7 : sans l'efficacité tactique (plantage) ; v8 : colonne
+MAX_INFOS_MSG = 40.0                                 # message v11 : Infos à la largeur de son contenu, au plus 40 %
+#   (2026-11-12, le joueur, Medium / Small : vide entre Infos et le trait, la note serrée à droite)
+VERSION_MESSAGE = 11                                 # v7 : sans l'efficacité tactique (plantage) ; v8 : colonne
 #   de gauche qui défile (fiche > Rapports en Large : Pour / Contre sortaient de la tuile) ; v9 : Infos limité en
 #   largeur (PART_INFOS), textes à la ligne ; v10 (2026-11-11, le joueur : messages qui mettent du temps à
 #   s'afficher) : le rapport de FM n'est plus gardé caché (un SIVisible caché construit et lie quand même tout son
@@ -381,10 +383,15 @@ def infos(t, src, parent, index):
     return rm
 
 
-def limiter_infos(t, conteneur, rm):
+def limiter_infos(t, conteneur, rm, serre=False):
     """case Infos (rm : remapper de infos(), dans conteneur) limitée à PART_INFOS de la rangée : plus large que son
-    contenu, elle allait jusqu'à droite (largeur max de la fiche retirée) ; textes à la ligne dans leur case"""
-    t.styles.style(t, conteneur, {"flex-grow": PART_INFOS, "flex-shrink": 1, "flex-basis": 0, "min-width": 0})
+    contenu, elle allait jusqu'à droite (largeur max de la fiche retirée) ; textes à la ligne dans leur case.
+    serre (message v11) : largeur de son contenu, au plus MAX_INFOS_MSG % de la rangée (le reste à la note)"""
+    if serre:
+        t.styles.style(t, conteneur, {"flex-grow": 0, "flex-shrink": 1, "min-width": 0,
+                                      "max-width": {"unit": 2, "value": MAX_INFOS_MSG}})
+    else:
+        t.styles.style(t, conteneur, {"flex-grow": PART_INFOS, "flex-shrink": 1, "flex-basis": 0, "min-width": 0})
     for r in sous_arbre(t, rm):
         if r == conteneur:
             continue
@@ -692,7 +699,7 @@ def construire_message(t, src):
     haut = plain(t, droite, None, ["row-direction-normal", "align-self-stretch"])
     t.elem(haut)["m_RuleIndex"] = -1
     v = mode_visible(t, src, haut, 0, NOM_MSG_INFOS, OP_FM24, ["row-direction-normal"], MODE_MEDIUM)
-    limiter_infos(t, v, infos(t, src, v, None))
+    limiter_infos(t, v, infos(t, src, v, None), serre=True)   # v11 : plus de vide entre Infos et le trait
     t.clone(tv, v)
     reco = t.clone(cols[0], haut)
     t.sd(reco)["name"] = ""

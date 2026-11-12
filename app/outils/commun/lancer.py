@@ -358,7 +358,8 @@ def cmd_desinstaller():
     n = 0
     for nom, f in cat.FONCTIONS.items():
         if actif(nom):
-            if f.get("hors_jeu"):   # fichiers hors du jeu (vues) : pas remis par tout_d_origine, son script les retire
+            # fichiers hors des bundles (vues, GameAssembly.dll) : pas remis par tout_d_origine, son script les retire
+            if f.get("hors_jeu"):
                 lancer(nom, "retirer")
             if os.path.exists(marqueur(nom)):
                 os.remove(marqueur(nom))

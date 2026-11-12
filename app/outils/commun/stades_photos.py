@@ -91,13 +91,34 @@ def graphics_de_base():
 
 
 def nettoyer(chemin):
-    """guillemets, espaces, dossier des photos ou dossier FM 27 (qui contient graphics) -> dossier graphics"""
+    """guillemets, espaces, dossier des photos ou dossier FM 27 (qui contient graphics) -> dossier graphics.
+    2026-11-12 (page Dossier du jeu) : aussi un dossier DANS graphics (pack), le dossier Documents ou « Sports
+    Interactive » déplacés, ou un dossier FM 27 sans graphics (créé par enregistrer)"""
     c = (chemin or "").strip().strip('"').strip().rstrip("\\/")
     if os.path.basename(c).lower() in (DOSSIER.lower(), ANCIEN.lower()):
         c = os.path.dirname(c)
-    if os.path.basename(c).lower() != "graphics" and os.path.isdir(os.path.join(c, "graphics")):
-        c = os.path.join(c, "graphics")
+    morceaux = re.split(r"[\\/]", c)
+    bas = [m.lower() for m in morceaux]
+    if "graphics" in bas[:-1]:   # dossier d'un pack choisi au lieu de graphics : on remonte
+        i = len(bas) - 1 - bas[::-1].index("graphics")
+        c = os.sep.join(morceaux[:i + 1]) if i else c
+    if os.path.basename(c).lower() != "graphics":
+        for sous in (os.path.join("Sports Interactive", "Football Manager 27"), "Football Manager 27", ""):
+            fm = os.path.join(c, sous) if sous else c
+            if os.path.exists(os.path.join(fm, chemin_jeu.PROGRAMME)):
+                continue   # dossier du JEU (Steam) : pas celui de Documents
+            if os.path.isdir(os.path.join(fm, "graphics")) or (sous and os.path.isdir(fm)) or dossier_fm_de(fm):
+                return os.path.join(fm, "graphics")
     return c
+
+
+def dossier_fm_de(d):
+    """d ressemble au dossier de FM 27 de Documents (sans graphics) : games, preferences, skins, tactics…"""
+    try:
+        noms = {n.lower() for n in os.listdir(d)}
+    except OSError:
+        return False
+    return len(noms & {"games", "preferences", "skins", "tactics", "views", "editor data", "shortlists"}) >= 2
 
 
 def choisi():
@@ -149,6 +170,8 @@ def compte():
 def enregistrer(chemin):
     """chemin vide : retour au dossier de base ; renvoie le dossier graphics enregistré, ou None s'il n'existe pas"""
     c = nettoyer(chemin)
+    if c and not os.path.isdir(c) and os.path.basename(c).lower() == "graphics" and os.path.isdir(os.path.dirname(c)):
+        os.makedirs(c, exist_ok=True)   # dossier FM 27 choisi, graphics pas encore créé par FM
     if c and not os.path.isdir(c):
         return None
     os.makedirs(BACKUP_DIR, exist_ok=True)

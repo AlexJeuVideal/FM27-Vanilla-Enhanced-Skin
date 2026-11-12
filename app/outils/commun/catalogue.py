@@ -35,6 +35,8 @@ CATEGORIES = [
     ("vues", "Vues de tableaux d'AlexJeuVideal", "AlexJeuVideal's table views"),
     # 2026-11-07 : à la fin pour ne pas décaler les numéros du menu (29)
     ("separateur", "Séparateurs (tableaux)", "Separators (tables)"),
+    # 2026-11-12 : patch du code de FM (GameAssembly.dll), pas des bundles (30)
+    ("affichage", "Affichage (taille de l'interface)", "Display (interface size)"),
 ]
 PREMIER_NUMERO = 11
 
@@ -356,6 +358,25 @@ FONCTIONS = {
                                en="Colours of the top bar, its text, the secondary bar, the accent, the Tactics "
                                   "screen greens (header, panel, pitch), the tiles and the match (scoreboard, "
                                   "top-right buttons, squad strip, commentary bar)"),
+    # --- Affichage (2026-11-12, demande du joueur ; hors_jeu : GameAssembly.dll n'est pas remis par
+    #     tout_d_origine, son script retire le patch) ---
+    "echelle_1080p": dict(cat="affichage", facultatif=True, hors_jeu=True,
+                          fr="Affichages Moyen et Petit de FM en 1080p (et sous la 2K) : boutons débloqués et "
+                             "interface vraiment réduite (Moyen 80 %, Petit 67 %). Modifie le code de FM "
+                             "(GameAssembly.dll) : à tes risques et périls, ce n'est prévu ni par FM ni par le skin "
+                             "pour marcher. Windows seulement pour l'instant (pas encore Linux / Proton ni Mac)",
+                          en="FM's Medium and Small displays at 1080p (and below 2K): buttons unlocked and the "
+                             "interface really scaled down (Medium 80%, Small 67%). Modifies FM's code "
+                             "(GameAssembly.dll): at your own risk, it's not meant to work by FM or by the skin. "
+                             "Windows only for now (not yet Linux / Proton or Mac)",
+                          aide=("Mise en page du skin pensée pour Grand en 1080p : en Moyen / Petit, des écrans "
+                                "peuvent déborder. Après une mise à jour de FM, le patch est enlevé par Steam : "
+                                "réinstalle le skin (s'il n'est plus reconnu, rien n'est écrit). Retirer l'option "
+                                "remet le fichier d'origine.",
+                                "The skin's layout is made for Large at 1080p: in Medium / Small, some screens may "
+                                "overflow. After an FM update, Steam removes the patch: reinstall the skin (if it's "
+                                "no longer recognised, nothing is written). Turning the option off restores the "
+                                "original file.")),
     # --- Recrutement ---
     "rapport_recrutement_fm24": dict(cat="recrutement",   # 2026-11-12, idée du joueur (capture FM24)
                                      fr="Rapports du recruteur comme FM24 : attributs et Pour / Contre à gauche, "
@@ -542,6 +563,8 @@ OU = {
     "theme_fond": ("Tout le jeu", "Whole game"), "couleurs_interface": ("Barre du haut, Tactiques, tuiles, match",
                                                                                 "Top bar, Tactics, tiles, match"),
     "vues_alexjeuvideal": ("Menu des vues des tableaux", "Tables' views menu"),
+    "echelle_1080p": ("Préférences > Affichage des informations, tout le jeu",
+                      "Preferences > Information display, whole game"),
     "kinito_entete_large": ("Fiche joueur (1080p, affichage Large)", "Player profile (1080p, Large display)"),
     "kinito_capitaines_vues": ("Effectif > Capitaines", "Squad > Captains"),
     "kinito_enregistrement": ("Effectif > Enregistrement", "Squad > Registration"),
@@ -597,6 +620,7 @@ ORDRE_SKIN = [
     "kinito_enregistrement",   # 26.17 après moral_icone_seule
     "rapport_recrutement_fm24",   # après kinito_rapports_vues (même modèle, qu'il réécrit depuis l'original)
     "vues_alexjeuvideal",   # fichiers hors du jeu : n'importe où
+    "echelle_1080p",   # GameAssembly.dll seul : n'importe où
     "rencontres_stade_spectateurs",   # son option « rencontres » (version Kinito) suit entrainement_equipes
     # tout à la fin : après les scripts qui recopient / refont des menus Insérer colonne (colonne_personnalite,
     # recherches_ciblees, kinito_rapports_vues, kinito_capitaines_vues, kinito_rencontres_vues) et moral_icone_seule
@@ -693,8 +717,10 @@ ESSAIS = ["essai_noms_installations", "essai_retour_entrainement", "essai_ids_at
           "essai_trophees_image",     # 2026-11-09 : devenu club\palmares_images.py ; gardé pour retirer l'essai
           "essai_salle_trophees",     # 2026-11-09 : bandeau des trophées à la place des Actualités de la page club
           "essai_carte_monde",        # 2026-11-10 : carte de la connaissance du monde, étape 1 (image par sélection féminine)
-          "essai_echelle_1080p",      # 2026-11-10 : boutons Medium / Small des Préférences débloqués sous la 2K
-          "essai_continuer_club"]     # 2026-11-11 : bouton Continuer à la couleur du club (comme FM24)
+          "essai_continuer_club",     # 2026-11-11 : bouton Continuer à la couleur du club (comme FM24)
+          "essai_competition_vue"]    # 2026-11-12 : Compétition > Vue d'ensemble refaite (v3 : classement | stats 3x2 | 11)
+# (essai_echelle_1080p : devenu affichage\echelle_1080p.py le 2026-11-12, script supprimé ; la fonction coupée
+#  enlève au choix 1 un patch de GameAssembly.dll resté ; ses v1 / v2 (boutons, scène) déjà remises chez le joueur)
 # (essai_club_vue_ensemble : devenu club\club_vue_ensemble.py le 2026-11-09, script supprimé ; même préfixe
 #  UIPickerVueClub : la fonction refait les modèles posés par l'essai)
 # (essai_repos_diag : devenu effectif\repos_diag.py, option « repos_bouton » du bouton repos, le 2026-11-01)

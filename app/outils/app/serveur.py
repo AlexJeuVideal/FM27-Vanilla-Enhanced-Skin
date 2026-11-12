@@ -39,6 +39,7 @@ import langue  # noqa: E402
 import chemin_jeu  # noqa: E402
 import stades_photos  # noqa: E402
 import trophees_photos  # noqa: E402  (salle des trophées : images, même dossier graphics que les stades)
+import packs_graphics  # noqa: E402  (logos / visages d'autres sites : décompressés et rangés dans graphics)
 import noms_reels  # noqa: E402  (vrais noms : fix de FM SCOUT, pas un travail du skin ; leur zip, jamais livré)
 import sigles_clubs  # noqa: E402  (sigles à 3 lettres des clubs dans toutes les langues : .lnc du skin)
 import mise_a_jour  # noqa: E402
@@ -1018,6 +1019,10 @@ def tache_etat(depuis=0):
         t["avancement"] = 1.0 if t["fini"] else p
     elif t["type"] == "statut":   # statut.py écrit un point par fonction vérifiée
         t["avancement"] = 1.0 if t["fini"] else min(1, t["courante"].count(".") / len(cat.ORDRE_SKIN))
+    elif t["type"] == "packs":   # packs_graphics.py : « [1/2] Décompression … NN % » (85 %), « [2/2] Rangement … NN % »
+        m = re.search(r"\[(\d)/2\][^%]*?(\d+) %", t["courante"] or (lignes[-1] if lignes else ""))
+        p = (0 if m.group(1) == "1" else 0.85) + (0.85 if m.group(1) == "1" else 0.15) * int(m.group(2)) / 100 if m else 0
+        t["avancement"] = 1.0 if t["fini"] else p
     elif t["type"] == "maj":   # téléchargement « … 45 % » (90 %), puis la copie
         m = re.search(r"(\d+) %", t["courante"])
         p = 0.9 if any("sha256" in x or "Empreinte" in x or "Hash" in x for x in lignes) else (0.9 * int(m.group(1)) / 100 if m else 0)
@@ -1046,7 +1051,8 @@ SANS_OUTILS = {"langue_choisir", "python_installer", "jeu_enregistrer", "jeu_par
                "stades_diag", "stades_reconfigurer",
                "stades_migrer", "mes_themes", "journal_ouvrir", "app_ouvrir", "logs_fm_ouvrir",
                "noms_verifier", "noms_choisir", "noms_appliquer", "noms_retirer", "noms_ouvrir",
-               "sigles_verifier", "sigles_poser", "sigles_retirer"}
+               "sigles_verifier", "sigles_poser", "sigles_retirer", "packs_etat", "packs_choisir", "packs",
+               "packs_ouvrir"}
 # réseaux de l'auteur (carte « Me retrouver » de l'accueil) + Kinito (titre de sa section dans Options) + pack de
 # photos de stades (page Dossier du jeu) : seuls liens que la page peut faire ouvrir
 LIENS = {
@@ -1061,6 +1067,10 @@ LIENS = {
     # v1.78 : page « Vrais noms » = fix de FM Scout (pas notre travail) : leur page + leur X
     "fmscout_fix": "https://www.fmscout.com/a-fm27-real-names-license-fix.html#instructions",
     "fmscout_x": "https://x.com/fmscout",
+    # 2026-11-12 : pages « Logos » / « Visages » = packs d'autres sites (pas notre travail), l'app les range seulement
+    "tcm_logos": "https://www.tcmlogos.com/fr/tcm27-logos-fm27/",
+    "df11_faces": "https://www.df11faces.com/post/df11-faces-classic-megapack-fm27",
+    "7zip": "https://www.7-zip.org/",
 }
 _noms_source = {"chemin": ""}   # zip / dossier de FM Scout choisi à la main (sinon : trouvé dans Téléchargements / Bureau)
 COULEUR = HEXA + r"|[A-Za-zéè\- ]{2,30}"
@@ -1103,15 +1113,18 @@ def parcourir(titre):
         racine.destroy()
 
 
-def parcourir_fichier(titre, dossier=""):
-    """fenêtre de choix d'un fichier .zip (tkinter ; Linux : zenity / kdialog d'abord) ; renvoie le chemin ou ''"""
+def parcourir_fichier(titre, dossier="", archives=False):
+    """fenêtre de choix d'un fichier .zip (archives : aussi .rar / .7z / morceaux) (tkinter ; Linux : zenity /
+    kdialog d'abord) ; renvoie le chemin ou ''"""
+    exts = ["zip", "rar", "7z", "001"] if archives else ["zip"]
     if MAC:   # Finder par osascript (comme parcourir)
         titre_as = titre.replace("\\", "\\\\").replace('"', '\\"')
         lieu = "(path to downloads folder)"
         if dossier and os.path.isdir(dossier):
             lieu = '(POSIX file "' + dossier.replace("\\", "\\\\").replace('"', '\\"') + '")'
+        types = "" if archives else ' of type {"zip", "public.zip-archive"}'   # .rar / .7z : pas d'UTI sûr
         script = (f'tell me to activate\n'
-                  f'POSIX path of (choose file with prompt "{titre_as}" of type {{"zip", "public.zip-archive"}} '
+                  f'POSIX path of (choose file with prompt "{titre_as}"{types} '
                   f'default location {lieu})')
         try:
             r = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
@@ -1119,8 +1132,9 @@ def parcourir_fichier(titre, dossier=""):
         except OSError:
             return ""
     if not WINDOWS:
-        for cmd in (["zenity", "--file-selection", f"--title={titre}", "--file-filter=*.zip"],
-                    ["kdialog", "--getopenfilename", dossier or os.path.expanduser("~"), "*.zip", "--title", titre]):
+        motif = " ".join("*." + e for e in exts)
+        for cmd in (["zenity", "--file-selection", f"--title={titre}", f"--file-filter={motif}"],
+                    ["kdialog", "--getopenfilename", dossier or os.path.expanduser("~"), motif, "--title", titre]):
             if shutil.which(cmd[0]):
                 try:
                     r = subprocess.run(cmd, capture_output=True, text=True)
@@ -1137,7 +1151,8 @@ def parcourir_fichier(titre, dossier=""):
     racine.attributes("-topmost", True)
     try:
         return filedialog.askopenfilename(parent=racine, title=titre, initialdir=dossier or None,
-                                          filetypes=[("Zip", "*.zip"), ("*", "*.*")]) or ""
+                                          filetypes=[(" / ".join(exts), " ".join("*." + e for e in exts)),
+                                                     ("*", "*.*")]) or ""
     finally:
         racine.destroy()
 
@@ -1465,6 +1480,25 @@ def action(d):
                                           f"Game file locked ({e.strerror}): close FM, then run the app as "
                                           f"administrator (right-click the launcher).")}
         return 200, dict(sigles_clubs.diagnostic(g), message="ok", fm_ouvert=bool(fm_ouvert()))
+    # ---------- pages « Logos » / « Visages » (2026-11-12) : packs d'autres sites, rangés dans graphics ----------
+    if typ == "packs_etat":
+        return 200, dict(packs_graphics.etat(), message="ok")
+    if typ == "packs_choisir":   # fichier téléchargé (.zip / .rar / .7z) ou dossier (déjà décompressé, plusieurs archives)
+        if d.get("dossier"):
+            p = parcourir(T("Dossier du pack (décompressé, ou qui contient les archives)",
+                            "Pack folder (extracted, or containing the archives)"))
+        else:
+            p = parcourir_fichier(T("Fichier du pack téléchargé (.zip, .rar, .7z)",
+                                    "Downloaded pack file (.zip, .rar, .7z)"),
+                                  (noms_reels.dossiers_recherche() or [""])[0], archives=True)
+        return 200, {"chemin": p or ""}
+    if typ == "packs_ouvrir":   # explorateur sur graphics (créé au besoin)
+        try:
+            ouvrir_dossier(packs_graphics.graphics_pret())
+        except packs_graphics.Erreur as e:
+            return 400, {"message": T(str(e), "graphics folder not found: start FM 27 once, or pick your graphics "
+                                              "folder on the « Game folder » page.")}
+        return 200, {"message": "ok"}
     if typ in ("journal_ouvrir", "app_ouvrir", "logs_fm_ouvrir", "licence_ouvrir"):   # page Dépannage (v1.53)
         cible = {"journal_ouvrir": JOURNAL, "app_ouvrir": RACINE, "logs_fm_ouvrir": stades_photos.LOGS_FM,
                  "licence_ouvrir": os.path.join(RACINE, "LICENSE.txt")}[typ]
@@ -1561,6 +1595,13 @@ def action(d):
         def apres(code):
             if not code:   # skin réinstallé : plus besoin du bandeau d'après mise à jour
                 mise_a_jour.oublier_fait()   # (repère de la page « MAJ du jeu » : retiré par lancer.cmd_skin)
+    elif typ == "packs":   # Python de l'app (bibliothèque standard) : décompresse et range dans graphics
+        sorte, src = d.get("sorte"), (d.get("chemin") or "").strip()
+        if sorte not in ("logos", "faces") or not src or not os.path.exists(src):
+            return 400, {"message": T("Choisis d'abord le fichier téléchargé.", "Pick the downloaded file first.")}
+        cmds = [[sys.executable, os.path.join(COMMUN, "packs_graphics.py"), "installer", sorte, src]]
+        titre = (T("Installation des logos : ", "Installing the logos: ") if sorte == "logos"
+                 else T("Installation des visages : ", "Installing the faces: ")) + os.path.basename(src)
     elif typ == "desinstaller":   # tout coupé + fichiers d'origine remis ; ensuite, activer une par une
         cmds = [_python(lancer_py, "desinstaller", lg)]
         titre = T("Désinstaller tout le skin", "Uninstall the whole skin")
