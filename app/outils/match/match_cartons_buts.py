@@ -1,9 +1,9 @@
 """Match : cartons, buts et passes D sur les cartes des joueurs du terrain (demande du joueur, 2026-11-09).
 
 - carton jaune : la pastille du poste (à droite de la note) passe en jaune léger ;
-- buts : ballon + nombre à gauche du nom, juste hors de la carte, seulement s'il en a ;
-- passes D : icône passe D + nombre à droite du nom, seulement s'il en a.
-(Les parents de la rangée du nom passent en overflow visible : pas remis par « retirer », sans effet sans nos ajouts.)
+- buts : ballon + nombre collé à gauche de la pastille note | poste, seulement s'il en a ;
+- passes D : icône passe D + nombre collé à droite de la pastille, seulement s'il en a.
+(Les parents de la pastille passent en overflow visible : pas remis par « retirer », sans effet sans nos ajouts.)
 
 Cartes : terrain du match (formations, TacticsMatchPositionFilled) et tuile Formation du résumé
 (FormationPositionFilled). Ces cartes appartiennent à photos_match (qui repart de l'original) : ce script ne fait
@@ -45,8 +45,8 @@ ICONE = 10                        # px des icônes but / passe D (v3 : 10 -> 12,
                                   # « un poil plus petit » ; v5 : 10, « encore 1 pixel »)
 TEXTE_STAT = "body-sm-strong"     # classe du nombre de buts / passes D (celle de la barre du bas de FM)
 TAILLE_STAT = 10                  # px du nombre (v4 : 11, body-sm de FM un peu trop gros ; v5 : 10)
-RENTRE = 8                        # px : buts / passes D rentrés dans la marge de la carte (à côté du nom) ; v4 : 4 -> 8
-                                  # (« Matheus N. », le nom le plus long, laisse ~9 px de chaque côté sur 72)
+ECART = 2                         # px entre la pastille note | poste et les buts / passes D (v6 : collés à la pastille
+                                  # au lieu du nom ; v4-v5 : RENTRE 8 px dans la marge à côté du nom)
 # cartes : (modèle, chemin du joueur du match)
 CIBLES = [
     ("TacticsMatchPositionFilled", "Position.MatchPlayer"),
@@ -55,9 +55,10 @@ CIBLES = [
 # =====================================================================================================
 
 NOM = "UIPickerCartonsButs"
-VERSION = "uipicker-cartons-buts-v5"   # v2 : buts / passes D en pastilles sombres posées par-dessus (v1 cachés) ;
+VERSION = "uipicker-cartons-buts-v6"   # v2 : buts / passes D en pastilles sombres posées par-dessus (v1 cachés) ;
                                        # v3 : à gauche / à droite du nom, hors de la carte, sans fond ;
-                                       # v4 : un peu plus petits (11 px), rentrés de 8 px ; v5 : 10 px
+                                       # v4 : un peu plus petits (11 px), rentrés de 8 px ; v5 : 10 px ;
+                                       # v6 : remontés, collés à gauche / à droite de la pastille note | poste
 MARKER = os.path.join(backup.BACKUP_DIR, "match_cartons_buts.actif")
 GAUCHE = sm.PROPRIETES["left"][0]
 
@@ -113,14 +114,16 @@ def poser(t, joueur, s_int, v_int):
     #    maillot = illisibles). Visibles si Goals / Assists > 0 (même condition que la barre du bas de FM).
     #    v3 (le joueur : « ça gâche maillots et photos ») : à gauche / à droite du NOM, juste hors de la carte (le nom
     #    le plus long, « Matheus N. », la remplit) : right / left 100 % de la rangée du nom, RENTRE px dans sa marge.
-    rangee = t.parent[nom]
+    #    v6 (le joueur : « remonte-les, colle-les à gauche et à droite du poste plutôt que du nom ») : accrochés à la
+    #    pastille note | poste (#RatingBG, parent de #PositionContainer), right / left 100 % + ECART px.
+    rangee = t.parent[poste]
     for cote, chemin, icone, suffixe in (("right", f"{joueur}.Goals", ICONE_BUT, "buts"),
                                          ("left", f"{joueur}.Assists", ICONE_PASSE, "passes")):
         vis = ni.new_visible(t, s_int, v_int, rangee, None, "",
                              ni.make_binding(s_int.sd(v_int)["Binding"], 4, [chemin], 0), [])
         nommer(t, vis, suffixe)
         t.styles.style(t, vis, {"position": "absolute", "top": 0, "bottom": 0, cote: {"unit": 2, "value": 100.0},
-                                f"margin-{cote}": -RENTRE, "justify-content": "center"})
+                                f"margin-{cote}": ECART, "justify-content": "center"})
         p = plain(t, vis, None, ["row-direction-always-normal", "align-items-center"])
         t.elem(p)["m_RuleIndex"] = -1
         t.styles.style(t, p, {"flex-shrink": 0})
@@ -130,13 +133,13 @@ def poser(t, joueur, s_int, v_int):
         n = nombre(t, nom, p, chemin, suffixe + "-nb")
         t.elem(n)["m_Classes"] = [TEXTE_STAT if c == TEXTE else c for c in t.elem(n)["m_Classes"]]
         t.styles.style(t, n, {"margin-top": 0, "margin-left": 1, "font-size": TAILLE_STAT})
-    # rien ne rogne entre la rangée du nom et la racine de la carte (infos_cartes_terrain v3)
+    # rien ne rogne entre la pastille et la racine de la carte (infos_cartes_terrain v3)
     r = rangee
     while r in t.parent and not typ(t, r).endswith("UXML"):
         if not typ(t, r).endswith("Component"):
             t.styles.style(t, r, {"overflow": "visible"})
         r = t.parent[r]
-    return "jaune (pastille du poste), buts (gauche du nom), passes D (droite du nom)"
+    return "jaune (pastille du poste), buts (gauche de la pastille), passes D (droite de la pastille)"
 
 
 def chemin_de_texte(t, r):

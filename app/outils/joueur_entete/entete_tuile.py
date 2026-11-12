@@ -92,7 +92,9 @@ PREFIXE = "UIPickerEnteteTuile"
 # v33 : rapport de supervision trop haut pour la carte Niveau (Large) : Niveau 1.15 / Dispo. 0.85 de la hauteur,
 # marges réduites ; titre du rapport caché en Large (etoiles_rapport v2)
 # v34 (le joueur : « Indisponible » sur 2 lignes) : valeurs Dispo. sur une ligne, « … » + infobulle (Large)
-VERSION = 34
+# v35 (Heyti, 2026-11-12 : sélections U20 affichées pour un jeune déjà sélectionné en A) : Large, ligne unique = A
+# aussi avant AGE_JEUNE ans dès que InternationalDebutNationalTeamContainer n'est pas nul
+VERSION = 35
 CL_CARTE = "uipicker-entete-carte"     # classe fixe (sans version) : couleurs_interface.ENTETE_CARTE la vise
 COURBE_FOND = (0.0, 0.0, 0.0, 0.22)
 PROGRESSION = True
@@ -551,11 +553,8 @@ def construire(t, parent, index, dims, src, p, txt, photo, haut_src, poly_src, r
         elif len(cellules) == 2:
             # Large (v6) : une seule ligne : sélections A, ou jeunes avant AGE_JEUNE ans ; tout le détail (A +
             # jeunes) reste dans l'infobulle de FM au survol (InternationalCapsAndGoalsStringIncludingYouth)
-            for x, li in ((cellules[0], ni.make_binding(b, 4, ["person.Age"], AGE_JEUNE - 1)),   # âge > 20
-                          (cellules[1], ni.make_binding(b, 0, ["person.Age"], AGE_JEUNE))):     # âge < 21
-                sv = ni.new_visible(t, s_vis, vis, k, t.children(k).index(x), "", li)
-                move(t, x, sv)
-                t.elem(x)["m_Classes"] = []
+            # v35 : A aussi avant AGE_JEUNE ans dès qu'il a joué en A
+            ni.selections_une_ligne(t, s_vis, vis, k, cellules, b, AGE_JEUNE)
         src.clone(t, p["valeur"], moitie(c2, False, CARTE_BORD_VALEUR))
     c3 = carre(POIDS["club"], True)
     bc = boite(t, c3, habille({"flex-grow": 1, "flex-shrink": 1, "min-height": 0, "overflow": "hidden",

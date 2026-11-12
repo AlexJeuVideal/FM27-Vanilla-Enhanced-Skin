@@ -296,6 +296,48 @@ def _texte_visible(t, s, vis, parent, chemin, vide, nom):
     return new_visible(t, s, vis, parent, None, nom, b, ["row-direction-normal", "align-items-center"])
 
 
+# SIVisible « objet pas nul » de FM (#LastMatchVisible, page Sélection : NullVisualArg, booléen, chemin) ;
+# InternationalDebutNationalTeamContainer = sélection du 1er match en A (nul tant qu'il n'a pas joué en A)
+SOURCE_NUL, FN_NUL = "NationalTeamBlock", "4a1becfc0a0d04816b13fd8f330a9207"
+DEBUT_A = "person.InternationalDebutNationalTeamContainer"
+
+
+def nul_binding(s, vis, chemin, present):
+    """liaison « visible si chemin pas nul » (present) ou « nul », d'après le SIVisible vis de FM (modèle s)"""
+    b = copy.deepcopy(s.sd(vis)["Binding"])
+    args = decode_args(b["m_visualFunction"]["m_inputs"]["m_variable"]["m_argumentBytes"])
+    for a in args:
+        if a[0] == b"SI.VisualScripting.BooleanVisualArg":
+            a[1] = b"\x01" if present else b"\x00"   # FM : 1 = visible si l'objet existe
+        elif a[0].startswith(b"SI.VisualScripting.GenericVisualArg`1[SI.Bindable.BindingPath]"):
+            p = chemin.encode()
+            a[1] = b"\x01" + _enc_varint(len(p)) + p
+    b["m_visualFunction"]["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(args)
+    return b
+
+
+def selections_une_ligne(t, s_vis, vis, cap, cellules, b, age_jeune, op_sup=4, op_inf=0):
+    """une seule ligne de sélections (cellules = [A, jeunes] de la bannière de FM) : A à partir de age_jeune ans OU
+    dès qu'il a joué en A (avant : jeunes à tort, retour de Heyti 2026-11-12) ; jeunes sinon. b = liaison
+    BindIntToVisible de FM (vis du modèle s_vis)"""
+    a, j = cellules
+    s_nul, v_nul = visible_model(SOURCE_NUL, FN_NUL)
+    sv =new_visible(t, s_vis, vis, cap, t.children(cap).index(a), "",
+                     make_binding(b, op_sup, ["person.Age"], age_jeune - 1))
+    move(t, a, sv)
+    jeune = new_visible(t, s_vis, vis, cap, t.children(cap).index(j), "",
+                        make_binding(b, op_inf, ["person.Age"], age_jeune))
+    dans = jeune
+    if v_nul is not None:
+        deja_a = new_visible(t, s_nul, v_nul, jeune, None, "", nul_binding(s_nul, v_nul, DEBUT_A, True))
+        t.elem(t.clone(a, deja_a))["m_Classes"] = []
+        dans = new_visible(t, s_nul, v_nul, jeune, None, "", nul_binding(s_nul, v_nul, DEBUT_A, False))
+    move(t, j, dans)
+    t.elem(a)["m_Classes"] = []
+    t.elem(j)["m_Classes"] = []
+    return v_nul is not None
+
+
 def entrainement_exacte(t):
     """pastille Entraînement : note exacte lue dans l'objet éditeur du club, la fourchette (paliers) si elle est vide"""
     if first(t, lambda r: t.name(r) == NOM_EDITEUR_GARDE):

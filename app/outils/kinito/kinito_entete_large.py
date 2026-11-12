@@ -969,11 +969,8 @@ def construire_large(t, parent, parts, rayon_px, k):
     t.elem(cap)["m_Classes"] = ["row-direction-normal", "align-items-center"]
     cellules = [x for x in t.children(cap) if (t.elem(x).get("m_TemplateAlias") or "") == "text-cell-button-medium"]
     if len(cellules) == 2:   # une seule ligne : sélections A, ou jeunes avant AGE_JEUNE ans (le détail : infobulle)
-        for x, li in ((cellules[0], ni.make_binding(b, OP_SUP, ["person.Age"], AGE_JEUNE - 1)),
-                      (cellules[1], ni.make_binding(b, OP_INF, ["person.Age"], AGE_JEUNE))):
-            s2 = ni.new_visible(t, k.s_vis, k.vis, cap, t.children(cap).index(x), "", li)
-            move(t, x, s2)
-            t.elem(x)["m_Classes"] = []
+        # 2026-11-12 (Heyti) : A aussi avant AGE_JEUNE ans dès qu'il a joué en A (code plus appelé : construire_47)
+        ni.selections_une_ligne(t, k.s_vis, k.vis, cap, cellules, b, AGE_JEUNE, OP_SUP, OP_INF)
     hb = moitie(c3, False)
     src.clone(t, p["age"], hb)
     ti = titre(t, k, hb, *TITRE_LIEU)
@@ -1412,12 +1409,8 @@ def _contenu_carte(t, k, parent, taille):
     cap = src.clone(t, p["caps"], g)
     t.elem(cap)["m_Classes"] = ["row-direction-normal", "align-items-center"]
     cellules = [x for x in t.children(cap) if (t.elem(x).get("m_TemplateAlias") or "") == "text-cell-button-medium"]
-    if len(cellules) == 2:
-        for x, li in ((cellules[0], ni.make_binding(b, OP_SUP, ["person.Age"], AGE_JEUNE - 1)),
-                      (cellules[1], ni.make_binding(b, OP_INF, ["person.Age"], AGE_JEUNE))):
-            s2 = ni.new_visible(t, k.s_vis, k.vis, cap, t.children(cap).index(x), "", li)
-            move(t, x, s2)
-            t.elem(x)["m_Classes"] = []
+    if len(cellules) == 2:   # bloc v22 : A aussi avant AGE_JEUNE ans dès qu'il a joué en A
+        ni.selections_une_ligne(t, k.s_vis, k.vis, cap, cellules, b, AGE_JEUNE, OP_SUP, OP_INF)
     g = groupe()   # âge (date de naissance), lieu de naissance
     src.clone(t, p["age"], g)
     ti = titre(t, k, g, *TITRE_LIEU)
@@ -2832,7 +2825,8 @@ def _marquer():
 # recopient « le 1er SIVisible » ou « le 1er VisualElement » du modèle n'en héritent rien) autour de l'élément de FM qui
 # porte tout le bloc (ExpandableContentElement) : [« mode > 0 » : lui, tel qu'Alex l'a fait | « mode == 0 » : notre
 # modèle, inclus].
-VERSION_BLOC = 21    # v21 (Kinito, capture 55 : un joueur de Toluca montré au club de Kinito, Rodez) : le club de la
+VERSION_BLOC = 22    # v22 (Heyti, 2026-11-12) : sélections de la carte = A dès qu'il a joué en A, même avant 21 ans
+#                      v21 (Kinito, capture 55 : un joueur de Toluca montré au club de Kinito, Rodez) : le club de la
 #                      carte (et ses pastilles d'état) pris sur person.Team, le club où il joue (carte_bas47) ;
 #                      v20 (Kinito, captures 53-54, texte Normal et Petit : « réduire la colonne du terrain, donner ce
 #                      que tu réduis à la colonne de droite ») : la colonne des postes à LISTE_ROLES (340) au lieu de

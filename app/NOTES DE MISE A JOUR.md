@@ -6,6 +6,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v1.88 (12 novembre 2026)
+
+**Fiche joueur**
+- **Sélections dans l'en-tête (disposition Large)** : un joueur qui a déjà joué en équipe A est compté en A dès son premier match, même s'il a moins de 21 ans (avant, il était rangé d'office avec les jeunes, et la ligne montrait par exemple ses sélections U20 au lieu de ses sélections A).
+
+**Match**
+- **Buts et passes décisives sur la compo du match** : collés de part et d'autre de la pastille note | poste au lieu d'être à côté du nom, plus lisibles.
+
 ### v1.87 (12 novembre 2026)
 
 **App**
@@ -1015,6 +1023,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v1.88 (12 November 2026)
+
+**Player profile**
+- **International caps in the header (Large layout)**: a player who has already played for the senior team counts as senior from his first match, even under 21 (before, he was put with the youth sides by default, and the line showed e.g. his U20 caps instead of his senior caps).
+
+**Match**
+- **Goals and assists on the match line-up**: placed on either side of the rating | position badge instead of next to the name, easier to read.
 
 ### v1.87 (12 November 2026)
 
