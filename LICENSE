@@ -1,0 +1,40 @@
+MIT License
+
+Copyright (c) 2026 AlexJeuVideal and Kinito
+Rust engine (outils/moteur_rust, from FM27 Turbo): Copyright (c) 2026 TonyBoy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+Not covered by this license / Pas couvert par cette licence
+-----------------------------------------------------------
+- Football Manager 27 and its files (bundles, graphics, fonts) belong to Sports
+  Interactive / SEGA. The app ships none of them: it edits the game files on
+  the player's own computer.
+  Football Manager 27 et ses fichiers (bundles, images, polices) appartiennent
+  a Sports Interactive / SEGA. L'app n'en livre aucun : elle modifie les
+  fichiers du jeu sur l'ordinateur du joueur.
+- outils/app/logo.png, outils/club/images/UIPickerStadeDefaut.png and
+  outils/essais/essai_trophee.png: all rights reserved.
+  outils/app/logo.png, outils/club/images/UIPickerStadeDefaut.png et
+  outils/essais/essai_trophee.png : tous droits reserves.
+- Third-party software shipped with the app keeps its own license: see
+  THIRD_PARTY_NOTICES.txt.
+  Les logiciels d'autres auteurs livres avec l'app gardent leur licence : voir
+  THIRD_PARTY_NOTICES.txt.

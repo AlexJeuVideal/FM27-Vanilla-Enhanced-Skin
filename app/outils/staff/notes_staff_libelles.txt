@@ -1,0 +1,12 @@
+# Textes de FM affichés en valeur brute au lieu d'un libellé : appliquée par staff\notes_staff.py (fonction Staff
+# « Notes 1-20 au lieu de Bon, Exceptionnel... », interrupteur de l'app, choix 1 si activée).
+# Format : Modèle:@chemin_converti=chemin_à_afficher   (le @chemin reste valable après une mise à jour du jeu)
+# Installations du club : club\notes_installations_libelles.txt (appliquée d'office)
+
+# Staff : attributs en notes (1-20) au lieu de "Bon", "Exceptionnel"... (la couleur de la note est conservée)
+# profil d'un membre du staff (bloc Attributs), avec et sans icône
+NonPlayerAttributeCell:@attributebind.DisplayString=attributebind.PropertyValue
+NonPlayerAttributeWithIconCell:@attributebind.DisplayString=attributebind.PropertyValue
+# tableaux (liste du staff, recherche de staff)
+NonPlayerAttributeTableCell:@binding=binding
+NonPlayerAttributeStyledNotGenderedCell:@PropertyValue=PropertyValue

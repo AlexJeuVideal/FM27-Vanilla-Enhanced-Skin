@@ -1,0 +1,112 @@
+# Construit une version complète depuis ce dépôt : moteur Rust (Windows, Linux, Mac), Setup Windows (+ Python embarqué),
+# zips Linux / Mac ; fait signer le Setup par SignPath (si configuré) ; prépare la Release en BROUILLON (à relire et
+# publier à la main sur GitHub).
+# Builds a full release from this repository; the Release is created as a DRAFT, to be reviewed and published by hand.
+#
+# Lancer / Run: pousser un tag « v1.XX » égal à la version de app/outils/commun/version.txt
+#               (ou / or: Actions > Release > Run workflow).
+# SignPath (après acceptation / once accepted): secret SIGNPATH_API_TOKEN + variable SIGNPATH_ORGANIZATION_ID.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu,aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $complet = (Get-Content app/outils/commun/version.txt -Raw -Encoding utf8).Trim()
+          $v = [regex]::Match($complet, 'v\d+\.\d+').Value
+          if ("${{ github.ref_type }}" -eq "tag" -and "${{ github.ref_name }}" -ne $v) {
+            throw "Le tag ${{ github.ref_name }} ne correspond pas à version.txt ($v)"
+          }
+          "version=$v" >> $env:GITHUB_OUTPUT
+          "complet=$complet" >> $env:GITHUB_OUTPUT
+          "dossier=$($complet -replace ' x Kinito$', '')" >> $env:GITHUB_OUTPUT
+
+      - name: Moteur Rust (Windows, Linux, Mac)
+        shell: pwsh
+        working-directory: moteur_rust
+        run: |
+          python -m pip install --disable-pip-version-check ziglang==0.17.1 cargo-zigbuild==0.24.1
+          $d = "../app/outils/moteur_rust/UnityPy"
+          # Windows
+          $env:PYO3_PYTHON = (Get-Command python).Source
+          cargo build --release --locked
+          Copy-Item target/release/_core.dll "$d/_core.pyd"
+          # Linux (glibc 2.28) et Mac (universal2, macOS 11+) : compilation croisée par zig
+          $env:CARGO_ZIGBUILD_ZIG_PATH = python -c "import ziglang, os; print(os.path.join(os.path.dirname(ziglang.__file__), 'zig.exe'))"
+          $env:PYO3_CROSS_PYTHON_VERSION = "3.10"
+          cargo zigbuild --release --locked --target x86_64-unknown-linux-gnu.2.28
+          Copy-Item target/x86_64-unknown-linux-gnu/release/lib_core.so "$d/_core.abi3.so"
+          $env:MACOSX_DEPLOYMENT_TARGET = "11.0"
+          $env:CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS = "-C link-arg=-undefined -C link-arg=dynamic_lookup"
+          $env:CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS = "-C link-arg=-undefined -C link-arg=dynamic_lookup"
+          cargo zigbuild --release --locked --target universal2-apple-darwin
+          Copy-Item target/universal2-apple-darwin/release/lib_core.dylib "$d/_mac/_core.abi3.so"
+
+      - name: Setup + zips
+        shell: pwsh
+        run: |
+          $dossier = "build/${{ steps.version.outputs.dossier }}"
+          New-Item -ItemType Directory -Force build | Out-Null
+          Copy-Item app $dossier -Recurse
+          python installeur/fabriquer.py "$dossier" dist
+          Get-ChildItem dist
+
+      - name: Setup non signé (artefact)
+        id: setup_brut
+        uses: actions/upload-artifact@v4
+        with:
+          name: setup
+          path: dist/*Setup.exe
+          if-no-files-found: error
+
+      - name: Signature SignPath
+        if: ${{ env.SIGNPATH_API_TOKEN != '' }}
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: FM27-Vanilla-Enhanced-Skin
+          signing-policy-slug: release-signing
+          github-artifact-id: ${{ steps.setup_brut.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signe
+
+      - name: Setup signé à la place du brut
+        if: ${{ env.SIGNPATH_API_TOKEN != '' }}
+        shell: pwsh
+        run: Copy-Item signe/*Setup.exe dist/ -Force
+
+      - name: Release (brouillon / draft)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.complet }}
+          draft: true
+          files: |
+            dist/*.zip
+            dist/*Setup.exe

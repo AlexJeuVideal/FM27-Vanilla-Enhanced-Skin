@@ -1,0 +1,19 @@
+# Textes de FM affichés en valeur brute au lieu d'un libellé (outils\commun\notes_au_lieu_des_libelles.py apply / Outils FM.bat, choix 1).
+# Format : Modèle:@chemin_converti=chemin_à_afficher   (le @chemin reste valable après une mise à jour du jeu)
+# Installations du club (repli : notes_installations.py fait mieux quand il est actif). Staff : staff\notes_staff_libelles.txt
+
+# Tuile Jeunes : notes au lieu de "Bon", "Excellent"...
+# Encadrement des jeunes : vraie note /20 (= éditeur). club.YouthCoaching n'est qu'un niveau 1-8 (1 = meilleur).
+YouthFacilitiesBlock_4x4:@club.YouthCoaching=club.YouthCoachingLevel
+YouthFacilitiesBlock_4x4:@club.YouthRecruitment=club.YouthRecruitment
+FacilitiesRatingYouth:@Club.YouthFacilityRating.Rating=Club.YouthFacilityRating.Rating
+
+# Installations d'entraînement : note au lieu de "Très bon"...
+FacilitiesRatingTraining:@Club.TrainingFacilityRating.Rating=Club.TrainingFacilityRating.Rating
+FacilitiesRating:@Club.TrainingFacilityRating.Rating=Club.TrainingFacilityRating.Rating
+
+# Autres installations (retirer le # devant une ligne pour l'activer)
+# FacilitiesRatingCorporate:@Club.CorporateFacilityRating.Rating=Club.CorporateFacilityRating.Rating
+# ClubFacilitiesCorporateBlock:@club.CorporateFacilityRating.Rating=club.CorporateFacilityRating.Rating
+# FacilitiesRatingStadium:@Club.MainTeam.Stadium.Condition=Club.MainTeam.Stadium.Condition
+# ClubFacilitiesStadiumBlock:@Team.Stadium.PitchCondition=Team.Stadium.PitchCondition

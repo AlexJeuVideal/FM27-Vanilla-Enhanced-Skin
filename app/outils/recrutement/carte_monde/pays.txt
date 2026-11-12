@@ -1,0 +1,228 @@
+# carte du monde : 640x249, id du pays FM -> unités Natural Earth (notes_claude\carte_monde_fabriquer.py)
+5	Algeria	DZA
+6	Angola	AGO
+7	Benin	BEN
+8	Botswana	BWA
+9	Burkina Faso	BFA
+10	Burundi	BDI
+11	Cameroon	CMR
+12	Cape Verde	CPV
+13	Central African Republic	CAF
+14	Chad	TCD
+15	Djibouti	DJI
+16	Egypt	EGY
+17	Equatorial Guinea	GNQ
+18	Ethiopia	ETH
+19	Gabon	GAB
+20	The Gambia	GMB
+21	Ghana	GHA
+22	Guinea	GIN
+23	Guinea-Bissau	GNB
+24	Ivory Coast	CIV
+25	Kenya	KEN
+26	Lesotho	LSO
+27	Liberia	LBR
+28	Libya	LBY
+29	Madagascar	MDG
+30	Malawi	MWI
+31	Mali	MLI
+32	Mauritania	MRT
+33	Mauritius	MUS
+34	Morocco	MAR
+35	Mozambique	MOZ
+36	Namibia	NAM
+37	Niger	NER
+38	Nigeria	NGA
+39	Rwanda	RWA
+40	São Tomé and Príncipe	STP
+41	Senegal	SEN
+42	Seychelles	SYC
+43	Sierra Leone	SLE
+44	Somalia	SOM,SOL
+45	South Africa	ZAF
+46	Sudan	SDN
+47	Eswatini	SWZ
+48	Tanzania	TZA
+49	Congo	COG
+50	Togo	TGO
+51	Tunisia	TUN
+52	Uganda	UGA
+53	Democratic Republic of Congo	COD
+54	Zambia	ZMB
+55	Zimbabwe	ZWE
+106	Afghanistan	AFG
+107	Bahrain	BHR
+108	Bangladesh	BGD
+109	Brunei Darussalam	BRN
+110	China PR	CHN
+111	Hong Kong (China PR)	HKG
+112	India	IND
+113	Indonesia	IDN
+114	Iran	IRN
+115	Iraq	IRQ
+116	Japan	JPN
+117	Jordan	JOR
+118	Cambodia	KHM
+119	Kazakhstan	KAZ
+120	Kuwait	KWT
+121	Kyrgyzstan	KGZ
+122	Laos	LAO
+123	Lebanon	LBN
+124	Macau (China PR)	MAC
+125	Malaysia	MYS
+126	Maldives	MDV
+127	Myanmar	MMR
+128	Nepal	NPL
+129	North Korea	PRK
+130	Oman	OMN
+131	Pakistan	PAK
+132	Qatar	QAT
+133	Saudi Arabia	SAU
+134	Singapore	SGP
+135	South Korea	KOR
+136	Sri Lanka	LKA
+137	Syria	SYR
+138	Chinese Taipei (China PR)	TWN
+139	Tajikistan	TJK
+140	Thailand	THA
+141	Philippines	PHL
+142	Turkmenistan	TKM
+143	United Arab Emirates	ARE
+144	Uzbekistan	UZB
+145	Vietnam	VNM
+146	Yemen	YEM
+359	Antigua and Barbuda	ACA
+360	Aruba	ABW
+361	Barbados	BRB
+362	Belize	BLZ
+363	Bermuda	BMU
+364	Canada	CAN
+365	Cayman Islands	CYM
+366	Costa Rica	CRI
+367	Cuba	CUB
+368	Dominica	DMA
+370	El Salvador	SLV
+371	Grenada	GRD
+373	Guatemala	GTM
+374	Guyana	GUY
+375	Haiti	HTI
+376	Honduras	HND
+377	Jamaica	JAM
+379	Mexico	MEX
+380	Curaçao	CUW
+381	Nicaragua	NIC
+382	Panama	PAN
+383	Puerto Rico	PRI
+384	Saint Lucia	LCA
+385	Saint Kitts and Nevis	KNA
+386	Saint Vincent and the Grenadines	VCT
+387	Suriname	SUR
+388	The Bahamas	BHS
+389	Trinidad and Tobago	TTO
+390	United States	USA
+752	Albania	ALB
+753	Andorra	AND
+754	Armenia	ARM
+755	Austria	AUT
+756	Azerbaijan	AZE
+757	Belgium	BFR,BWR,BCR
+758	Belarus	BLR
+759	Bosnia and Herzegovina	BIS,BHF
+760	Bulgaria	BGR
+761	Croatia	HRV
+762	Cyprus	CYP
+763	Czechia	CZE
+764	Denmark	DNK
+765	England	ENG
+766	Estonia	EST
+767	Faroe Islands	FRO
+768	Finland	FIN,ALD
+769	France	FXX
+770	Georgia	GEG
+771	Germany	DEU
+772	Greece	GRC
+773	Hungary	HUN
+774	Iceland	ISL
+775	Israel	ISR
+776	Italy	ITA
+777	Latvia	LVA
+778	Liechtenstein	LIE
+779	Lithuania	LTU
+780	Luxembourg	LUX
+781	North Macedonia	MKD
+782	Malta	MLT
+783	Moldova	MDA
+784	Netherlands	NLD
+785	Northern Ireland	NIR
+786	Norway	NOR,NJM,NSV
+787	Poland	POL
+788	Portugal	PMD,PRX,PAZ
+789	Republic of Ireland	IRL
+790	Romania	ROU
+791	Russia	RUS
+792	San Marino	SMR
+793	Scotland	SCT
+794	Slovakia	SVK
+795	Slovenia	SVN
+796	Spain	ESP
+797	Sweden	SWE
+798	Switzerland	CHE
+799	Türkiye	TUR
+800	Ukraine	UKR
+801	Wales	WLS
+802	Serbia	SRS,SRV
+1435	Australia	AUS
+1436	Cook Islands	COK
+1437	Fiji	FJI
+1438	New Zealand	NZL
+1439	Papua New Guinea	PNX,PNB
+1440	Solomon Islands	SLB
+1441	Tahiti	PYF
+1442	Tonga	TON
+1443	Vanuatu	VUT
+1444	Samoa	WSM
+1649	Argentina	ARG
+1650	Bolivia	BOL
+1651	Brazil	BRA
+1652	Chile	CHL
+1653	Colombia	COL
+1654	Ecuador	ECU
+1655	Paraguay	PRY
+1656	Peru	PER
+1657	Uruguay	URY
+1658	Venezuela	VEN
+1662	Palestine	GAZ,WEB
+129504	American Samoa	ASM
+129505	Mongolia	MNG
+129508	Guam	GUM
+129511	Eritrea	ERI
+129514	Anguilla	AIA
+129517	British Virgin Islands	VGB
+129520	Montserrat	MSR
+129523	US Virgin Islands	VIR
+129526	Turks and Caicos Islands	TCA
+129532	New Caledonia	NCL
+131012	Bhutan	BTN
+142527	Dominican Republic	DOM
+209002	Kiribati	KIR
+214395	Bonaire	NLY
+217945	Kosovo	KOS
+917496	French Guiana	GUF
+917498	Guadeloupe	GLP
+917502	Martinique	MTQ
+917506	Sint Maarten	SXM
+917508	Saint Martin	MAF
+917510	Réunion	REU
+918740	Mayotte	MYT
+918745	Wallis and Futuna Islands	WLF
+918748	Saint Pierre and Miquelon	SPM
+919586	Comoros	COM
+5626837	East Timor	TLS
+8162661	Monaco	MCO
+13100103	Zanzibar	TZZ
+13113220	South Sudan	SDS
+15064643	Micronesia	FSM
+23008660	Northern Mariana Islands	MNP
+23088616	Tuvalu	TUV
+62002127	Montenegro	MNE
+82082526	Saint Barthélemy	BLM

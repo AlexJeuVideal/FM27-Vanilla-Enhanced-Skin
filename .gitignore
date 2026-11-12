@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+# construits par GitHub Actions / built by GitHub Actions
+installeur/python/
+moteur_rust/target/
+app/outils/moteur_rust/UnityPy/_core.pyd
+app/outils/moteur_rust/UnityPy/_core.abi3.so
+app/outils/moteur_rust/UnityPy/_mac/_core.abi3.so
+build/
+dist/
+# journaux d'un essai / test logs
+app/app.log
+app/Journal - Log.txt
