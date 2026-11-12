@@ -26,6 +26,8 @@ def main(argv):
              f"ENGLISH\n\n{section(texte, 'English', version)}\n\n---\n\n{POLITIQUE}\n")
     with open(sortie, "w", encoding="utf-8") as f:
         f.write(corps)
+    # console Windows de GitHub en cp1252 : un emoji des NOTES (🙂, v1.89) y plantait le print
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     print(corps)
 
 
