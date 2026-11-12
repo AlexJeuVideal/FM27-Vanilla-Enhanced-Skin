@@ -6,10 +6,12 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
-### v1.87 — dernières nouveautés (en cours)
+### v1.87 (12 novembre 2026)
 
 **App**
 - **Thèmes rangés en deux groupes** : d'un côté les thèmes de base (Sombre doux, Noir profond, Forêt, Océan…), de l'autre les thèmes de créateurs de la communauté FM (FM 24 Kojuro, SAS, Tato FM 24, Alex Morak). Sur la page Couleurs comme dans l'assistant d'installation ; tes thèmes à toi restent en dessous.
+- **Mac : la même app que Windows et Linux** (nouveau, premiers retours bienvenus) : zip « - Mac », lanceur « Lancer - Launch.command ». Au premier lancement, l'app prépare son propre Python toute seule (rien à installer), le moteur rapide marche aussi sur Mac (Apple Silicon et Intel), et l'app se met maintenant à jour toute seule sur Mac. Si macOS bloque l'écriture dans FM, une fenêtre propose « Ouvrir les Réglages » pour aller directement au bon endroit. Joueurs Mac : télécharge ce zip une fois à la main, ensuite les mises à jour arrivent seules. Merci à Jouz et Dhragga pour les premiers tests sur Mac !
+- **Code source public, licence MIT** : le code de l'app est maintenant sur GitHub (github.com/AlexJeuVideal/FM27-Vanilla-Enhanced-Skin), et chaque version y est construite automatiquement. Page Dépannage : nouvelle section « Licence et crédits ». Merci à TonyBoy (FM27 Turbo) pour le moteur rapide, à AlexMorak pour le pack d'images et à FM Scout pour le fix des vrais noms.
 
 ### v1.86 (12 novembre 2026)
 
@@ -1014,10 +1016,12 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## English
 
-### v1.87 — latest changes (in progress)
+### v1.87 (12 November 2026)
 
 **App**
 - **Themes split into two groups**: base themes on one side (Soft dark, Deep black, Forest, Ocean…), FM community creator themes on the other (FM 24 Kojuro, SAS, Tato FM 24, Alex Morak). On the Colours page and in the setup assistant; your own themes stay below.
+- **Mac: the same app as Windows and Linux** (new, first feedback welcome): « - Mac » zip, « Lancer - Launch.command » launcher. On first start the app sets up its own Python by itself (nothing to install), the fast engine works on Mac too (Apple Silicon and Intel), and the app now updates itself on Mac. If macOS blocks writing into FM, a window offers « Open Settings » to go straight to the right place. Mac players: download this zip once by hand, updates then come by themselves. Thanks to Jouz and Dhragga for the first tests on Mac!
+- **Public source code, MIT license**: the app's code is now on GitHub (github.com/AlexJeuVideal/FM27-Vanilla-Enhanced-Skin), and every version is built there automatically. Troubleshooting page: new « License and credits » section. Thanks to TonyBoy (FM27 Turbo) for the fast engine, AlexMorak for the images pack and FM Scout for the real names fix.
 
 ### v1.86 (12 November 2026)
 
