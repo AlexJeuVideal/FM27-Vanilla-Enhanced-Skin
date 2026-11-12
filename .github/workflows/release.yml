@@ -1,6 +1,6 @@
 # Construit une version complète depuis ce dépôt : moteur Rust (Windows, Linux, Mac), Setup Windows (+ Python embarqué),
-# zips Linux / Mac ; fait signer le Setup par SignPath (si configuré) ; prépare la Release en BROUILLON (à relire et
-# publier à la main sur GitHub).
+# zips Linux / Mac ; fait signer le Setup par SignPath (si configuré) ; prépare la Release en BROUILLON, texte tiré des
+# NOTES (à relire et publier à la main sur GitHub).
 # Builds a full release from this repository; the Release is created as a DRAFT, to be reviewed and published by hand.
 #
 # Lancer / Run: pousser un tag « v1.XX » égal à la version de app/outils/commun/version.txt
@@ -101,11 +101,16 @@ jobs:
         shell: pwsh
         run: Copy-Item signe/*Setup.exe dist/ -Force
 
+      - name: Texte de la release (depuis les NOTES)
+        shell: pwsh
+        run: python installeur/notes_release.py "app/NOTES DE MISE A JOUR.md" "${{ steps.version.outputs.version }}" corps.md
+
       - name: Release (brouillon / draft)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.complet }}
+          body_path: corps.md
           draft: true
           files: |
             dist/*.zip

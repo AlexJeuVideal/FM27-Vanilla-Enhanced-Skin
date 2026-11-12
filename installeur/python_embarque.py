@@ -25,6 +25,15 @@ if sys.argv and sys.argv[0] and sys.argv[0] not in ("-c", "-m") and os.path.isfi
 '''
 
 
+FMOD_VIDE = '''"""Remplace fmod_toolkit (bibliothèque audio FMOD, propriétaire) : le skin ne lit jamais de son.
+Replaces fmod_toolkit (proprietary FMOD audio library): the skin never reads audio. MIT, AlexJeuVideal and Kinito."""
+
+
+def raw_to_wav(*args, **kwargs):
+    raise RuntimeError("audio non pris en charge / audio not supported")
+'''
+
+
 def preparer():
     base = sys.base_prefix   # Python 3.14 de ce PC (même version) : tkinter et son Tcl/Tk en viennent
     if f"{sys.version_info[0]}.{sys.version_info[1]}" != VERSION.rsplit(".", 1)[0]:
@@ -47,6 +56,14 @@ def preparer():
     sp = os.path.join(DOSSIER, "Lib", "site-packages")
     subprocess.run([sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--no-input",
                     "--prefer-binary", "--target", sp, *MODULES], check=True)
+    # v1.88 (SignPath : aucun composant propriétaire dans le Setup signé) : fmod_toolkit embarque fmod.dll (FMOD,
+    # propriétaire), seulement pour l'audio des bundles, que le skin ne lit jamais -> remplacé par un module vide
+    for d in os.listdir(sp):
+        if d.lower().startswith(("fmod_toolkit", "pyfmodex")):
+            shutil.rmtree(os.path.join(sp, d))
+    os.makedirs(os.path.join(sp, "fmod_toolkit"))
+    with open(os.path.join(sp, "fmod_toolkit", "__init__.py"), "w", encoding="utf-8") as f:
+        f.write(FMOD_VIDE)
     shutil.copytree(os.path.join(base, "Lib", "tkinter"), os.path.join(sp, "tkinter"),
                     ignore=shutil.ignore_patterns("__pycache__", "test*"))
     for motif in ("_tkinter.pyd", "tcl*.dll", "tk*.dll", "zlib*.dll"):

@@ -16,14 +16,16 @@ merci a leurs auteurs.
    its bundled libraries are in python/share/ and in each package).
 
 2. Python packages installed in the app's Python (UnityPy, Pillow and their
-   dependencies: astc-encoder-py, attrs, brotli, etcpak, fmod_toolkit, fsspec,
-   lz4, texture2ddecoder, tpk_ar, zstandard)
+   dependencies: archspec, astc-encoder-py, attrs, brotli, etcpak, fsspec, lz4,
+   texture2ddecoder, tpk_ar, zstandard)
    - UnityPy: MIT License, Copyright (c) Rudolf Kolbe (K0lb3) and contributors,
      https://github.com/K0lb3/UnityPy
    - Pillow: MIT-CMU License, Copyright (c) 1997-2011 Secret Labs AB,
      Copyright (c) 1995-2011 Fredrik Lundh and contributors, Copyright (c) 2010
      Jeffrey A. Clark and contributors, https://github.com/python-pillow/Pillow
    Each package's license text is in its *.dist-info folder (site-packages).
+   Windows Setup: fmod_toolkit / pyfmodex are NOT shipped (FMOD is proprietary);
+   an empty fmod_toolkit module of ours stands in (the skin never reads audio).
 
 3. Rust engine (outils/moteur_rust: _core.pyd, _core.abi3.so, _mac/) built with
    these crates (we use them under the MIT License where a choice is offered):

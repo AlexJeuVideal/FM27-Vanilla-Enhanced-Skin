@@ -86,7 +86,19 @@ def main(argv):
         maj = os.path.join(tmp, "maj.txt")
         with open(maj, "w", encoding="ascii", newline="\n") as f:
             f.write("\n".join(m.group(1) for m in reglages) + "\n")
-        cmd = [CSC, "/nologo", "/target:winexe", "/optimize+", f"/out:{exe}",
+        # v1.88 (SignPath) : nom du produit et version dans les propriétés du .exe, à chaque build
+        num = version.lstrip("v")
+        info = os.path.join(tmp, "AssemblyInfo.cs")
+        with open(info, "w", encoding="utf-8") as f:
+            f.write("using System.Reflection;\n"
+                    '[assembly: AssemblyTitle("FM27 Vanilla Enhanced Skin Setup")]\n'
+                    '[assembly: AssemblyProduct("FM27 Vanilla Enhanced Skin")]\n'
+                    '[assembly: AssemblyCompany("AlexJeuVideal x Kinito")]\n'
+                    '[assembly: AssemblyCopyright("MIT License - AlexJeuVideal and Kinito")]\n'
+                    f'[assembly: AssemblyVersion("{num}.0.0")]\n'
+                    f'[assembly: AssemblyFileVersion("{num}.0.0")]\n'
+                    f'[assembly: AssemblyInformationalVersion("{num}")]\n')
+        cmd = [CSC, "/nologo", "/target:winexe", "/optimize+", f"/out:{exe}", info,
                "/win32icon:" + os.path.join(partage, "outils", "app", "icone.ico"),
                f"/resource:{payload},payload.zip", f"/resource:{maj},maj.txt",
                "/resource:" + os.path.join(partage, "outils", "app", "logo.png") + ",logo.png",

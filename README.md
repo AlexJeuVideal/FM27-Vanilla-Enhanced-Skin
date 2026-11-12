@@ -18,6 +18,9 @@ Dernière version / latest version : **[Releases](../../releases/latest)**
 
 Mode d'emploi complet / full guide : `LISEZMOI.txt` (in the app folder).
 
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by
+[SignPath Foundation](https://signpath.org) — [Code signing policy](CODE_SIGNING_POLICY.md).
+
 ## Contenu du dépôt / Repository content
 
 - `app/` — l'app et les scripts du skin (Python) / the app and the skin's scripts (Python)
@@ -37,9 +40,10 @@ Football Manager belongs to Sports Interactive / SEGA.
 [MIT](LICENSE) — AlexJeuVideal and Kinito ; Rust engine: TonyBoy. Third-party software:
 [app/THIRD_PARTY_NOTICES.txt](app/THIRD_PARTY_NOTICES.txt).
 
-## Signature / Code signing
+## Code signing policy
 
-[Politique de signature / Code signing policy](CODE_SIGNING_POLICY.md)
+Free code signing provided by SignPath.io, certificate by SignPath Foundation:
+[Code signing policy / Politique de signature](CODE_SIGNING_POLICY.md) (team roles, privacy policy).
 
 ## Vie privée / Privacy
 
