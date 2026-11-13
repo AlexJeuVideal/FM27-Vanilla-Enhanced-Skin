@@ -20,7 +20,7 @@ import chemins  # noqa: E402,F401  (dossiers des catégories : les scripts s'imp
 import notes_au_lieu_des_libelles as nb  # noqa: E402
 import sauvegarde_originaux as backup  # noqa: E402
 from arbre import PROPRIETES  # noqa: E402
-from elements import first, typ, copy_usings  # noqa: E402
+from elements import first, typ, copy_usings, move  # noqa: E402
 from attributs_tout_cocher import ouvrir  # noqa: E402  (modèle d'origine + sa feuille de style)
 from notes_installations import decode_args, encode_args, make_binding  # noqa: E402
 
@@ -45,6 +45,29 @@ SEUIL_ROUGE_JOURS = 28   # jours : < seuil = orange, >= seuil = rouge
 # intégré, passe avant la classe soft de FM) ; le bord garde la couleur de FM
 TEXTE_PASTILLE = (1, 1, 1, 1)
 FOND_PASTILLE = {"orange": (0.95, 0.55, 0.15, 0.22), "red": (0.90, 0.22, 0.22, 0.22)}
+# v8 (vu en jeu : « 4 semaines » sur 2 lignes, « 9 jour(s) (Blessure en cours) » qui déborde) : pastille sur 1 ligne,
+# largeur max, coupée en « … »
+LARGEUR_PASTILLE = 76  # px
+# v9 (le joueur : « met la plus récente en haut ») : FM ne donne la liste que de la plus ancienne à la plus récente
+# (pas de liste inverse, SortBinding = objet de tri des recherches) -> liste retournée (scale 1 -1) et chaque ligne
+# aussi (texte à l'endroit). Défauts possibles : peu de blessures = collées en bas, molette inversée
+RETOURNER = True
+ID_SCALE = 327681      # StylePropertyId Scale (lu dans les feuilles de FM : « 1.5 1.5 »)
+# v10 (vu en jeu : 3 blessures collées en bas, « cale ça sous le séparateur ») : hauteur de la liste = nombre de
+# blessures (copies de la liste dans des SIVisible sur player.InjuriesHistoryCount) jusqu'à LIGNES_FIXES, au-delà toute
+# la place ; liste amenée sur la dernière blessure (ScrollToElementBinding player.LastInjury, ScrollToMode Bottom =
+# en haut une fois retournée), sinon la plus récente serait cachée quand ça défile. ListDirection de FM : 0 / 1
+# seulement (vertical / horizontal), pas de sens inverse.
+LIGNES_FIXES = 4
+NOMBRE = "player.InjuriesHistoryCount"
+DERNIERE = "player.LastInjury"
+SCROLL_BAS = 1         # SI.UI.ScrollToMode : 0 Top, 1 Bottom, 2 Center
+# v11 (vu en jeu : barre de défilement même avec 1 blessure) : UnityEngine ScrollerVisibility 0 Auto, 1 Toujours,
+# 2 Cachée -> copies à hauteur exacte : cachée ; liste de 5 et plus : auto
+BARRE_AUTO, BARRE_CACHEE = 0, 2
+# v12 (vu en jeu : « le scroll est à l'envers », liste retournée) : MouseWheelScrollSize négatif (0 de FM = défaut) ;
+# une ligne par cran de molette
+MOLETTE = -float(H_LIGNE)
 # =====================================================================================================
 
 TUILE = "InjuryHistoryTile_4x2"
@@ -72,7 +95,7 @@ FN_REGLE = "d1ea93e235f63f14ba63dcd5b8ca43e3"
 MODE_AFFICHAGE = "settings.AdaptiveScalingLevelIndex"
 MODE_LARGE, OP_DIFFERENT = 0, 5
 PREFIXE = "UIPickerBlessures"
-VERSION = "uipicker-blessures-v7"   # v7 : texte blanc, fond léger ; v5 : pastille orange / rouge selon la durée ; v4 : textes plus petits (voir TAILLE_*) ; v3 (vu en jeu, Medium : « % matchs manqués » sur 2 lignes par-dessus le
+VERSION = "uipicker-blessures-v12"  # v12 : molette dans le bon sens ; v11 : barre cachée (1-4) / auto ; v10 : hauteur selon le nombre, liste amenée sur la dernière ; v9 : liste retournée (plus récente en haut) ; v8 : pastille sur 1 ligne, largeur max, « … » ; v7 : texte blanc, fond léger ; v5 : pastille orange / rouge selon la durée ; v4 : textes plus petits (voir TAILLE_*) ; v3 (vu en jeu, Medium : « % matchs manqués » sur 2 lignes par-dessus le
                                     # titre, nom de la blessure sous la pastille) : textes sur 1 ligne coupés en « … »,
                                     # pastille jamais rétrécie
 COUPE = {"flex-shrink": 1, "min-width": 0, "overflow": "hidden", "text-overflow": "ellipsis", "white-space": "nowrap"}
@@ -146,6 +169,8 @@ def construire_ligne(t, s):
     t.sd(rang)["name"] = PREFIXE + "Ligne"
     t.elem(rang)["m_Classes"] = (t.elem(rang).get("m_Classes") or []) + ["align-items-center", VERSION]
     t.styles.style(t, rang, {"height": H_LIGNE, "min-height": H_LIGNE, "flex-shrink": 0})
+    if RETOURNER:
+        retourner(t, rang)
     # v3 : date et pastille entières, nom de la blessure coupé en « … »
     for r in list(t.walk(rang)):
         n = t.name(r)
@@ -162,6 +187,10 @@ def construire_ligne(t, s):
         if typ(t, r).endswith("SIText"):
             pastille = "badges-text-color-base" in (t.elem(r).get("m_Classes") or [])
             t.styles.style(t, r, {"font-size": TAILLE_PASTILLE if pastille else TAILLE_LIGNE})
+            if pastille:   # v8 : une ligne, « … »
+                t.styles.style(t, r, COUPE)
+        elif "badges-background-color-base" in (t.elem(r).get("m_Classes") or []):
+            t.styles.style(t, r, {"max-width": LARGEUR_PASTILLE, "min-width": 0, "overflow": "hidden"})
     msg_couleur = colorer_pastille(t, s, rang)
     racine = t.parent.get(attente)
     while racine is not None:   # #Block (et au-dessus) : rien de fixe de FM
@@ -205,6 +234,14 @@ def colorer_pastille(t, s, rang):
     return f"pastille de durée : orange < {SEUIL_ROUGE_JOURS} j, rouge au-delà (InjuryDurationDays)"
 
 
+def retourner(t, rid):
+    """v9 : style intégré scale: 1 -1 (retourné de haut en bas)"""
+    e = t.elem(rid)
+    old = t.styles.values(e["m_RuleIndex"]) if e.get("m_RuleIndex", -1) >= 0 else []
+    e["m_RuleIndex"] = t.styles.add_rule([p for p in old if p[0] != ID_SCALE] +
+                                         [(ID_SCALE, "", [(2, 1.0), (2, -1.0)])])
+
+
 def t_guid(sd):
     return ((sd.get("Binding") or {}).get("m_visualFunction") or {}).get("m_target", {}).get("m_guid", "")
 
@@ -238,6 +275,15 @@ def construire_tuile(t, s):
         garde = [p for p in t.styles.values(e["m_RuleIndex"]) if p[0] != PROPRIETES["height"][0]]
         e["m_RuleIndex"] = t.styles.add_rule(garde)
     t.styles.style(t, liste, {"flex-grow": 1, "flex-shrink": 1, "min-height": 0, "margin-top": MAX_ECART})
+    msg_hauteur = []
+    if RETOURNER:
+        retourner(t, liste)
+        sd["ScrollToElementBinding"] = {"m_path": DERNIERE}
+        sd["ScrollToMode"] = SCROLL_BAS
+        for k in ("ScrollToElementBinding_UxmlAttributeFlags", "ScrollToMode_UxmlAttributeFlags"):
+            if k in sd:
+                sd[k] = 1
+        msg_hauteur = hauteur_selon_nombre(t, cadre, liste)
     t.styles.style(t, cadre, {"flex-grow": 1, "flex-shrink": 1, "min-height": 0})
     # v3 : en-tête (jauge + % manqué + temps total) sur une ligne chacun, coupé en « … » si la tuile est étroite
     entete = enfants[0] if enfants and enfants[0] != trait else None
@@ -255,7 +301,44 @@ def construire_tuile(t, s):
             t.styles.style(t, r, {"flex-shrink": 1, "min-width": 0, "overflow": "hidden"})
     t.remove(titre)
     t.remove(derniere)
-    return ["liste de toutes les blessures (ligne « Dernière blessure » de FM pour chacune)"]
+    return ["liste de toutes les blessures (ligne « Dernière blessure » de FM pour chacune)"] + msg_hauteur
+
+
+def _visible(t, modele, parent, index, op, valeur, nom, css):
+    """SIVisible (copie de celui de la tuile, vidé) : visible si NOMBRE <op> valeur"""
+    v = t.clone(modele, parent, index)
+    for k in list(t.children(v)):
+        t.remove(k)
+    t.sd(v)["Binding"] = make_binding(t.sd(modele)["Binding"], op, [NOMBRE], valeur)
+    t.sd(v)["name"] = PREFIXE + nom
+    t.elem(v)["m_Classes"] = (t.elem(v).get("m_Classes") or []) + [VERSION]
+    t.styles.style(t, v, css)
+    return v
+
+
+def hauteur_selon_nombre(t, cadre, liste):
+    """v10 : 1..LIGNES_FIXES blessures -> copie de la liste à la hauteur exacte ; au-delà, la liste prend la place"""
+    modele = first(t, lambda r: typ(t, r).endswith("SIVisible") and t_guid(t.sd(r)) == FN_VISIBLE)
+    if modele is None:
+        return ["SIVisible de FM introuvable : liste en bas si peu de blessures"]
+    place = t.children(cadre).index(liste)
+    retrecit = {"flex-grow": 0, "flex-shrink": 1, "min-height": 0}
+    for n in range(1, LIGNES_FIXES + 1):
+        moins = _visible(t, modele, cadre, place + n - 1, OP_INF, n + 1, f"Nombre{n}", retrecit)
+        pile = _visible(t, modele, moins, 0, OP_SUP_EGAL, n, f"Nombre{n}Exact", retrecit)
+        copie = t.clone(liste, pile)
+        t.sd(copie)["name"] = f"{PREFIXE}Liste{n}"
+        t.sd(copie)["VerticalScrollerVisibility"] = BARRE_CACHEE
+        t.styles.style(t, copie, {"flex-grow": 0, "flex-shrink": 1, "min-height": 0, "height": n * H_LIGNE})
+        retourner(t, copie)
+    plus = _visible(t, modele, cadre, place + LIGNES_FIXES, OP_SUP_EGAL, LIGNES_FIXES + 1, "NombrePlus",
+                    {"flex-grow": 1, "flex-shrink": 1, "min-height": 0})
+    move(t, liste, plus, 0)
+    t.sd(liste)["VerticalScrollerVisibility"] = BARRE_AUTO
+    t.sd(liste)["MouseWheelScrollSize"] = MOLETTE
+    if "MouseWheelScrollSize_UxmlAttributeFlags" in t.sd(liste):
+        t.sd(liste)["MouseWheelScrollSize_UxmlAttributeFlags"] = 1
+    return [f"hauteur de la liste = nombre de blessures jusqu'à {LIGNES_FIXES}, liste amenée sur la dernière"]
 
 
 def reglages_fiche(tt):

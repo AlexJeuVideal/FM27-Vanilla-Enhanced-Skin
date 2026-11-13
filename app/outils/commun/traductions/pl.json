@@ -498,6 +498,7 @@
 "146": "Znajdź mnie",
 "1460": "Przegląd: dolne kafelki w kolejności Zadowolenie, Kondycja, Statystyki sezonu, Statystyki kariery, Forma, Kontuzje (Trening w menu kafelka)",
 "1461": "Ze skina: Zadowolenie, Kondycja, Statystyki sezonu, Kariera, Forma, Kontuzje (Trening w menu kafelka). Albo twoja: przeciągnij kafelki w podglądzie.",
+"1462": "Kolumna Mentalność (Pracuś, Myśliciel...) w Wstaw kolumnę > Informacje ogólne",
 "147": "Kończenie zapisu plików gry",
 "148": "Zakładka Pierwsza drużyna: przyciski Trening / Indywidualny / Terminarz",
 "149": "Mecze: kolumny Stadion i Frekwencja",
@@ -1327,5 +1328,8 @@
 "996": "Portal i kalendarz",
 "997": "Portal: kalendarz",
 "998": "Skauting i kontrakty",
-"999": "Miękka ciemność"
+"999": "Miękka ciemność",
+"1466": "Ikona nastawienia",
+"1468": "Na prawo od osobowości, nazwa po najechaniu.",
+"1467": "Ikona nastawienia na prawo od osobowości, nazwa po najechaniu"
 }

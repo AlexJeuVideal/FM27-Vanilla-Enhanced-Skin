@@ -498,6 +498,7 @@
 "146": "Finde mich",
 "1460": "Übersicht: untere Kacheln in der Reihenfolge Zufriedenheit, Kondition, Saisonstatistik, Karrierestatistik, Form, Verletzungen (Training im Menü der Kachel)",
 "1461": "Vom Skin: Zufriedenheit, Kondition, Saisonstatistik, Karriere, Form, Verletzungen (Training im Menü der Kachel). Oder deine: zieh die Kacheln in der Vorschau.",
+"1462": "Spalte Mentalität (Arbeitstier, Denker...) in Spalte einfügen > Allgemeine Infos",
 "147": "Schreiben der Spieldateien wird abgeschlossen",
 "148": "Reiter Erste Mannschaft: Buttons Training / Individuell / Spielplan",
 "149": "Spiele: Spalten Stadion und Zuschauer",
@@ -1327,5 +1328,8 @@
 "996": "Portal und Kalender",
 "997": "Portal: Kalender",
 "998": "Scouting und Verträge",
-"999": "Weiches Dunkel"
+"999": "Weiches Dunkel",
+"1466": "Mentalitäts-Symbol",
+"1468": "Rechts neben der Persönlichkeit, Name beim Überfahren.",
+"1467": "Mentalitäts-Symbol rechts neben der Persönlichkeit, Name beim Überfahren"
 }

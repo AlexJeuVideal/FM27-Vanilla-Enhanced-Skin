@@ -183,7 +183,7 @@ def cmd_appliquer():
 
 def colonnes_etat_esprit(env):
     """colonnes des autres scripts actifs (etat_esprit_fm24, entrainement_pouces, tactiques_forme_valeur,
-    nation_drapeau_seul, suspensions_noms_courts, saison_presentation, colonnes_separateur) ;
+    nation_drapeau_seul, suspensions_noms_courts, saison_presentation, colonnes_separateur, colonne_temperament) ;
     renvoie l'env rechargé si des colonnes ont été ajoutées, sinon None.
     Rechargé après CHAQUE script : read_typetree rend l'ancien arbre, sans ça le suivant qui touche la même fabrique
     efface le précédent (2026-11-09 : colonnes_separateur effaçait les colonnes Nationalité en grand logo)."""
@@ -194,9 +194,10 @@ def colonnes_etat_esprit(env):
     import suspensions_noms_courts as sn
     import saison_presentation as sp   # colonne Cotes de la présentation de saison
     import colonnes_separateur as cs   # colonnes Séparateur (2026-11-07)
+    import colonne_temperament as ct   # colonne Tempérament (logo) (2026-11-13)
     change = False
     for m, on in ((ee, ee.actif()), (ep, ep.actif()), (tf, tf.actif()), (nd, nd.actif()), (sn, sn.actif()),
-                  (sp, sp.actif() or sp.EN_COURS), (cs, cs.actif())):
+                  (sp, sp.actif() or sp.EN_COURS), (cs, cs.actif()), (ct, ct.actif())):
         if on and m.fabrique_appliquer(env):
             change = True
             env = UnityPy.load(env.file.save(packer="original"))

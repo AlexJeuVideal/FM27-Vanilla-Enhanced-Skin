@@ -498,6 +498,7 @@
 "146": "Seguimi",
 "1460": "Panoramica: riquadri in basso nell'ordine Felicità, Condizione, Statistiche stagione, Statistiche carriera, Forma, Infortuni (Allenamento nel menu del riquadro)",
 "1461": "Della skin: Felicità, Condizione, Statistiche stagione, Carriera, Forma, Infortuni (Allenamento nel menu del riquadro). Oppure il tuo: trascina i riquadri nell'anteprima.",
+"1462": "Colonna Mentalità (Lavoratore, Pensatore...) in Inserisci colonna > Info generali",
 "147": "Completamento della scrittura dei file del gioco",
 "148": "Scheda Prima squadra: pulsanti Allenamento / Individuale / Calendario partite",
 "149": "Partite: colonne Stadio e Spettatori",
@@ -1327,5 +1328,8 @@
 "996": "Portale e calendario",
 "997": "Portale: calendario",
 "998": "Osservazione e contratti",
-"999": "Scuro morbido"
+"999": "Scuro morbido",
+"1466": "Icona della mentalità",
+"1468": "A destra della personalità, nome al passaggio del mouse.",
+"1467": "Icona della mentalità a destra della personalità, nome al passaggio del mouse"
 }

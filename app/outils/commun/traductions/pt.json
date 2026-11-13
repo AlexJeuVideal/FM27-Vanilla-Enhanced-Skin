@@ -498,6 +498,7 @@
 "146": "Me encontre",
 "1460": "Visão geral: painéis de baixo na ordem Felicidade, Condição, Estatísticas da época, Estatísticas da carreira, Forma, Lesões (Treino no menu do painel)",
 "1461": "Da skin: Felicidade, Condição, Estatísticas da época, Carreira, Forma, Lesões (Treino no menu do painel). Ou a tua: arrasta os painéis na pré-visualização.",
+"1462": "Coluna Mentalidade (Trabalhador, Pensador...) em Inserir coluna > Informações gerais",
 "147": "Finalizando a gravação dos arquivos do jogo",
 "148": "Aba Time principal: botões Treino / Individual / Calendário de jogos",
 "149": "Jogos: colunas Estádio e Público",
@@ -1327,5 +1328,8 @@
 "996": "Portal e calendário",
 "997": "Portal: calendário",
 "998": "Observação e contratos",
-"999": "Escuro suave"
+"999": "Escuro suave",
+"1466": "Ícone da mentalidade",
+"1468": "À direita da personalidade, nome ao passar o rato.",
+"1467": "Ícone da mentalidade à direita da personalidade, nome ao passar o rato"
 }

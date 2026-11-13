@@ -64,11 +64,15 @@ def find_title_binding():
 
 
 def personality_row(t):
-    """(valeur, cadre) de la ligne Personnalité"""
+    """(valeur, cadre) de la ligne Personnalité (cadre de FM : la rangée de temperament_infos autour du texte est
+    sautée)"""
     for rid in t.walk():
         p = t.binding(rid, "TextBinding")
         if p and p.split(".")[-1].lower() == "personality":
-            return rid, t.parent[rid]
+            cadre = t.parent[rid]
+            while t.name(cadre).startswith("UIPickerTemperamentInfos") and cadre in t.parent:
+                cadre = t.parent[cadre]
+            return rid, cadre
     return None, None
 
 

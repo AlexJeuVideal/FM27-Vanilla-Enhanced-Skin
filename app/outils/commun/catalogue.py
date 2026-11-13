@@ -63,6 +63,9 @@ FONCTIONS = {
     "style_mediatique": dict(cat="joueur_fiche",
                              fr="Style médiatique sous Personnalité, Réputation en bas, pieds écartés",
                              en="Media handling under Personality, Reputation last, feet spread out"),
+    "temperament_infos": dict(cat="joueur_fiche",   # 2026-11-13, validé ; pas dans la vue Guru (hors AVEC_GURU)
+                              fr="Logo du tempérament à droite de la personnalité, nom au survol",
+                              en="Mindset icon right of the personality, name on hover"),
     "hors_defaut": dict(cat="joueur_fiche",
                         fr="Options d'entraînement sous les attributs (s'il y a la place)",
                         en="Training options under the attributes (when there is room)"),
@@ -337,6 +340,9 @@ FONCTIONS = {
     "colonne_personnalite": dict(cat="tableaux",
                                  fr="Colonne Personnalité dans Insérer colonne > Infos générales",
                                  en="Personality column in Insert column > General info"),
+    "colonne_temperament": dict(cat="tableaux", textes=True,   # 2026-11-13 ; textes : « Tempérament (logo) »
+                                fr="Colonne Tempérament (Bosseur, Penseur...) dans Insérer colonne > Infos générales",
+                                en="Mindset column (Hard Worker, Thinker...) in Insert column > General info"),
     "nation_drapeau_seul": dict(cat="tableaux",
                                 fr="Colonnes Nationalité / 2e nationalité : logo seul plus grand (ou + 3 lettres, choix 500)",
                                 en="Nationality / 2nd Nationality columns: bigger logo only (or + 3 letters, choice 500)"),
@@ -400,6 +406,12 @@ FONCTIONS = {
                                      "pays et régions de « Connaissance du monde », recruteurs",
                                   en="WIP Knowledge levels in colour, from red (basic) to green (peerless): "
                                      "« World Knowledge » nations and regions, scouts"),
+    # 2026-11-13, le joueur (né de essai_selection_top50) : WIP = pas testable chez lui, on ne sait pas si FM l'accepte
+    "selection_top50": dict(cat="recrutement",
+                            fr="WIP Messages NXGN et 50 meilleurs joueurs du monde : bouton « Ajouter à la "
+                               "sélection » pour les 50 joueurs du message, à faire observer ensuite",
+                            en="WIP NXGN and world's 50 best players messages: « Add to shortlist » button for the "
+                               "message's 50 players, to scout them afterwards"),
     # --- Vues d'AlexJeuVideal (hors_jeu : fichiers hors du jeu, retirés aussi par « Désinstaller tout ») ---
     "vues_alexjeuvideal": dict(cat="vues", hors_jeu=True,   # 2026-11-12, le joueur ; de base 2026-10-31
                                fr="Vues d'AlexJeuVideal, optimisées pour l'affichage Small : Effectif, Tactiques "
@@ -519,7 +531,7 @@ _INDIV = ("Entraînement > Individuel", "Training > Individual")
 _TACT = ("Tactiques", "Tactics")
 _TABLEAUX = ("Tableaux de joueurs (Effectif, recherche...)", "Player tables (Squad, search...)")
 OU = {
-    "entete_fiche": _FICHE, "style_mediatique": _FICHE, "hors_defaut": _FICHE, "fiche_joueur_plus": _FICHE,
+    "entete_fiche": _FICHE, "style_mediatique": _FICHE, "temperament_infos": _FICHE, "hors_defaut": _FICHE, "fiche_joueur_plus": _FICHE,
     "listes_pour_contre": _FICHE, "suspensions_noms_courts": _FICHE, "attributs_tout_cocher": _FICHE,
     "graphes_attributs": _FICHE, "fiche_ordre_tuiles": _FICHE, "tuile_carriere": _FICHE,
     "tuile_blessures": _FICHE,
@@ -561,8 +573,10 @@ OU = {
     "recherches_ciblees": ("Recrutement > Recherches ciblées", "Scouting > Recruitment Focuses"),
     "connaissance_couleurs": ("Recrutement > Recrutement > tuile Connaissance du monde",
                               "Scouting > Scouting > World Knowledge tile"),
+    "selection_top50": ("Boîte de réception / Actualités (messages NXGN, top 50 mondial)",
+                        "Inbox / News (NXGN, world top 50 messages)"),
     "rencontres_place_championnat": ("Portail > Calendrier > Rencontres", "Portal > Calendar > Fixtures"),
-    "colonne_personnalite": _TABLEAUX, "nation_drapeau_seul": _TABLEAUX, "moral_icone_seule": _TABLEAUX,
+    "colonne_personnalite": _TABLEAUX, "colonne_temperament": _TABLEAUX, "nation_drapeau_seul": _TABLEAUX, "moral_icone_seule": _TABLEAUX,
     "colonnes_separateur": ("Tous les tableaux > clic droit > Insérer colonne > Séparateur",
                             "All tables > right click > Insert column > Separator"),
     "prochain_match_domicile": ("Barre du haut", "Top bar"),
@@ -604,10 +618,13 @@ ORDRE_SKIN = [
     "club_vue_ensemble",   # après club_page_bas (son stade photo est recopié)
     "couleurs_staff_comme_joueurs",
     "couleurs_polygone",
-    "infobulle_pieds", "style_mediatique", "hors_defaut", "infobulle_pour_contre", "listes_pour_contre",
+    "infobulle_pieds", "style_mediatique",
+    "temperament_infos",   # après style_mediatique (sa ligne Média est recopiée de Personnalité, hors de notre ligne)
+    "hors_defaut", "infobulle_pour_contre", "listes_pour_contre",
     "entete_fiche", "staff_fiche", "entrainement_individuel_boutons", "fiche_joueur_plus",
     "match_haut", "theme_fond", "colonne_personnalite",
     "recherches_ciblees",   # après colonne_personnalite (son menu recopie celui de la Base de données)
+    "colonne_temperament",   # après colonne_personnalite (placée après Personnalité) et recherches_ciblees
     "finances_tuile_unique", "graphes_finances",
     "graphes_attributs",
     "hierarchie_pyramide", "photos_tactiques", "photos_match", "match_cartons_buts", "attributs_tout_cocher", "nation_drapeau_seul", "suspensions_noms_courts",
@@ -622,6 +639,7 @@ ORDRE_SKIN = [
     "couleurs_interface",   # après tactiques_boutons : couleurs du bandeau des Tactiques (TacticalPlannerHeader)
     "connaissance_couleurs",   # passe par couleurs_interface.ecrire_styles (même bundles de styles)
     "club_infobulle_offres", "jeunes_candidats_fm24", "club_amical",
+    "selection_top50",   # seul sur TopPlayersInTheWorldNewsStoryBlock : n'importe où
     # Kinito : après toutes les fonctions du skin (kinito_vue_equipes après entrainement_equipes)
     "kinito_calendrier_rencontres", "kinito_contrat_cadenas", "kinito_vacances_jour", "kinito_rapports_vues",
     "kinito_echange_seances", "kinito_vue_equipes", "kinito_capitaines_vues",
@@ -682,15 +700,17 @@ SUIVANTS = {
     # vue FM Guru (option fiche_fmguru) : refaite par-dessus ce que ces fonctions remettent dans la fiche joueur
     # (attributs_tout_cocher : le tableau d'attributs qu'elle recopie)
     # (fiche_joueur_plus : sa copie du tableau d'attributs pour le mode Large, refaite quand le modèle change)
-    "style_mediatique": ["fiche_joueur_plus", "fiche_fmguru"],
+    # + temperament_infos : posée seule après lui, la ligne Média tomberait dans notre ligne Personnalité (ressortie)
+    "style_mediatique": ["temperament_infos", "fiche_joueur_plus", "fiche_fmguru"],
     "hors_defaut": ["fiche_fmguru"],
     "attributs_tout_cocher": ["fiche_fmguru"],
     # Kinito 26.5 réécrit PlayerRecommendationsMainBlock depuis l'original : le rapport façon FM24 est refait dessus
     "kinito_rapports_vues": ["rapport_recrutement_fm24", "colonnes_separateur"],
     # menus Insérer colonne recopiés de l'original (ou ui-tableviews remis d'origine au retrait de
     # colonne_personnalite) : la rubrique Séparateur est remise dessus
-    "colonne_personnalite": ["colonnes_separateur"],
-    "recherches_ciblees": ["colonnes_separateur"],
+    # + colonne_temperament : placée après Personnalité ; remise si ui-tableviews / le menu repart de l'original
+    "colonne_personnalite": ["colonne_temperament", "colonnes_separateur"],
+    "recherches_ciblees": ["colonne_temperament", "colonnes_separateur"],
     "kinito_capitaines_vues": ["colonnes_separateur"],
     "rencontres_stade_spectateurs": ["colonnes_separateur"],
     # la tuile unique réécrit FinanceOverviewGraphsBlock depuis l'original : les points des courbes sont refaits dessus
@@ -733,7 +753,8 @@ ESSAIS = ["essai_noms_installations", "essai_retour_entrainement", "essai_ids_at
           "essai_salle_trophees",     # 2026-11-09 : bandeau des trophées à la place des Actualités de la page club
           "essai_carte_monde",        # 2026-11-10 : carte de la connaissance du monde, étape 1 (image par sélection féminine)
           "essai_continuer_club",     # 2026-11-11 : bouton Continuer à la couleur du club (comme FM24)
-          "essai_competition_vue"]    # 2026-11-12 : Compétition > Vue d'ensemble refaite (v3 : classement | stats 3x2 | 11)
+          "essai_competition_vue",    # 2026-11-12 : Compétition > Vue d'ensemble refaite (v3 : classement | stats 3x2 | 11)
+          "essai_selection_top50"]    # 2026-11-13 : devenu recrutement\selection_top50 ; gardé pour retirer l'essai
 # (essai_echelle_1080p : devenu affichage\echelle_1080p.py le 2026-11-12, script supprimé ; la fonction coupée
 #  enlève au choix 1 un patch de GameAssembly.dll resté ; ses v1 / v2 (boutons, scène) déjà remises chez le joueur)
 # (essai_club_vue_ensemble : devenu club\club_vue_ensemble.py le 2026-11-09, script supprimé ; même préfixe

@@ -6,6 +6,16 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v1.91 (13 novembre 2026)
+
+**Fiche joueur**
+- **Historique des blessures plus lisible** : la blessure la plus récente est maintenant en haut de la liste, juste sous le séparateur. La pastille de durée tient sur une ligne (coupée en « … » si besoin, ex. blessure en cours). La barre de défilement n'apparaît que s'il y a 5 blessures ou plus.
+- **Logo du tempérament** (nouvelle fonction) : dans Infos, le logo du Tempérament du joueur (Bosseur, Penseur, Relaxé, Leader) est collé à droite de sa Personnalité, calé sur la ligne du texte, dans toutes les dispositions. Passe la souris dessus pour voir son nom.
+
+**Tableaux**
+- **Colonne Tempérament** (nouvelle fonction) : Insérer colonne > Infos générales propose maintenant le Tempérament du joueur (Bosseur, Penseur, Relaxé, Leader), juste à côté de Personnalité. Dans la Base de données, la recherche, la liste de suivi, l'effectif, le recrutement, les prêts, les sélections...
+- **Vues d'AlexJeuVideal mises à jour** : nouvelles versions des vues Effectif, Recrutement (rapports et base de données), Sélection et Tactique (Vue d'ensemble). Si tu as modifié une de ces vues toi-même, elle est gardée telle quelle.
+
 ### v1.90 (13 novembre 2026)
 
 **Fiche joueur**
@@ -1041,6 +1051,16 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v1.91 (13 November 2026)
+
+**Player profile**
+- **Easier-to-read injury history**: the most recent injury is now at the top of the list, right under the divider. The duration badge fits on one line (cut with "…" if needed, e.g. ongoing injury). The scrollbar only shows with 5 injuries or more.
+- **Mindset icon** (new feature): in Info, the player's Mindset icon (Hard Worker, Thinker, Relaxed, Leader) sits right of their Personality, lined up with the text, in every layout. Hover it to see its name.
+
+**Tables**
+- **Mindset column** (new feature): Insert column > General info now offers the player's Mindset (Hard Worker, Thinker, Relaxed, Leader), right next to Personality. In the Player Search database, search results, shortlist, squad, recruitment, loans, national teams...
+- **AlexJeuVideal views updated**: new versions of the Squad, Recruitment (reports and database), Shortlist and Tactics (Overview) views. If you changed one of these views yourself, yours is kept as it is.
 
 ### v1.90 (13 November 2026)
 

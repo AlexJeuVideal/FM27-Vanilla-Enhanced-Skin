@@ -498,6 +498,7 @@
 "146": "Encuéntrame",
 "1460": "Vista general: paneles inferiores en el orden Felicidad, Condición, Estadísticas de temporada, Estadísticas de carrera, Forma, Lesiones (Entrenamiento en el menú del panel)",
 "1461": "Del skin: Felicidad, Condición, Estadísticas de temporada, Carrera, Forma, Lesiones (Entrenamiento en el menú del panel). O el tuyo: arrastra los paneles en la vista previa.",
+"1462": "Columna Mentalidad (Trabajador, Pensador...) en Insertar columna > Información general",
 "147": "Terminando de escribir los archivos del juego",
 "148": "Pestaña Primer equipo: botones Entrenamiento / Individual / Calendario de partidos",
 "149": "Partidos: columnas Estadio y Asistencia",
@@ -1327,5 +1328,8 @@
 "996": "Portal y calendario",
 "997": "Portal: calendario",
 "998": "Ojeo y contratos",
-"999": "Oscuro suave"
+"999": "Oscuro suave",
+"1466": "Icono de mentalidad",
+"1468": "A la derecha de la personalidad, nombre al pasar el ratón.",
+"1467": "Icono de mentalidad a la derecha de la personalidad, nombre al pasar el ratón"
 }

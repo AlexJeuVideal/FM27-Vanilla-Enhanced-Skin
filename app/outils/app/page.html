@@ -1968,15 +1968,15 @@ function rangerPourApp(e) {
   for (const c of e.categories || []) if (TITRES_CAT[c.id]) [c.fr, c.en] = TITRES_CAT[c.id];
 }
 const ORDRE_FONCTIONS = [
-  "vues_alexjeuvideal", "colonnes_separateur", "colonne_personnalite", "tactiques_forme_valeur",
+  "vues_alexjeuvideal", "colonnes_separateur", "colonne_personnalite", "colonne_temperament", "tactiques_forme_valeur",
   "rapport_recrutement_fm24", "recherches_ciblees", "club_infobulle_offres",
   "effectif_equipes", "effectif_boutons_entrainement", "effectif_repos_equipe", "dynamique_vue_ensemble",
   "hierarchie_pyramide", "cercles_amis_cartes", "etat_esprit_fm24", "jeunes_candidats_fm24",
-  "fiche_joueur_plus", "fiche_contexte_equipe", "tuile_forme", "fiche_ordre_tuiles", "tuile_carriere", "tuile_blessures", "style_mediatique",
+  "fiche_joueur_plus", "fiche_contexte_equipe", "tuile_forme", "fiche_ordre_tuiles", "tuile_carriere", "tuile_blessures", "style_mediatique", "temperament_infos",
   "listes_pour_contre", "couleurs_polygone", "hors_defaut", "suspensions_noms_courts",
   "match_haut", "photos_match",
   "club_bandeau_installations", "club_page_bas", "salle_trophees", "palmares_images", "notes_installations", "club_amical", "club_histoire",
-  "nation_drapeau_seul", "moral_icone_seule", "colonne_personnalite"];
+  "nation_drapeau_seul", "moral_icone_seule", "colonne_personnalite", "colonne_temperament"];
 const rang = (liste, x) => { const i = liste.indexOf(x); return i < 0 ? 999 : i; };
 // pas Couleurs (page à part), ni Kinito / vues (page Features additionnelles) ; une catégorie inconnue va à la fin
 const categoriesRangees = () => E.categories.filter(c => c.id !== "theme" && c.id !== "kinito" && c.id !== "vues"
@@ -2447,6 +2447,7 @@ const REGLAGES_J = [
     ["listes_pour_contre", "fiche", "pc", ["Pour / Contre en pastilles colorées", "Pros / Cons as coloured badges"], null],
     ["couleurs_polygone", "fiche", "polygone", ["Chiffres du polygone en couleur", "Coloured polygon numbers"], ["Aux couleurs des attributs réglées dans le jeu.", "In the attribute colours set in game."]],
     ["style_mediatique", "fiche", "infos", ["Style médiatique, pieds écartés", "Media handling, feet spread"], ["Sous Personnalité ; Réputation en bas.", "Under Personality; Reputation last."]],
+    ["temperament_infos", "fiche", "infos", ["Logo du tempérament", "Mindset icon"], ["À droite de la personnalité, nom au survol.", "Right of the personality, name on hover."]],
     ["suspensions_noms_courts", "fiche", "susp", ["Suspensions : noms courts", "Bans: short names"], null],
     ["hors_defaut", "fiche", "attributs", ["Options d'entraînement sous les attributs", "Training options under the attributes"], ["Pas en Large (Medium / Small, s'il y a la place).", "Not in Large (Medium / Small, when there is room)."]],
   ]],
@@ -2790,7 +2791,9 @@ function mqFiche() {
   "attributs", `flex:${S ? 3.3 : M ? 2.6 : 2.4}`);
   // --- Infos : Personnalité, (Rapports avec les médias), Réputation, Caractéristiques ; Suspensions (Medium / Large) ;
   //     Small + Fiche joueur + : bloc Entraînement avec Rôles / Priorité / Intensité
-  const infos = mqCarte("Infos", `${mqLi(mqT("Personnalité", "Personality"), "")}<div>${mqT("Assez déterminé", "Fairly determined")}</div>
+  const perso = `${mqLi(mqT("Personnalité", "Personality"), "")}<div>${mqT("Assez déterminé", "Fairly determined")}</div>`;
+  const infos = mqCarte("Infos", `${!jV("temperament_infos") ? perso
+    : `${mqLi(mqT("Personnalité", "Personality"), "")}<div>${mqT("Assez déterminé", "Fairly determined")} <span title="${mqT("Bosseur", "Hard Worker")}">🔨</span></div>`}
     ${jV("style_mediatique") ? `<div class="doux" style="margin-top:3px">${mqT("Rapports avec les médias", "Media handling")}</div><div>${mqT("Réservé", "Reserved")}</div>` : ""}
     <div class="doux" style="margin-top:3px">${mqT("Réputation", "Reputation")}</div><div>${mqT("Nationale", "National")}</div>
     <div class="titre" style="margin-top:6px">✦ ${mqT("Caractéristiques", "Traits")}</div><div class="doux">-</div>

@@ -2048,5 +2048,21 @@
 "écrit : {}": "written: {}",
 "GameAssembly.dll : {} {} (0x{})": "GameAssembly.dll: {} {} (0x{})",
 "{} : patché": "{}: patched",
-"patché": "patched"
+"patché": "patched",
+"bouton FM ({})": "FM button ({})",
+"bouton FM « Ajouter à la sélection » posé au-dessus de la liste ({})": "FM \"Add to shortlist\" button added above the list ({})",
+"{} : essai Sélection top 50 retiré": "{}: top 50 shortlist trial removed",
+"{} : bouton « Ajouter à la sélection » retiré": "{}: \"Add to shortlist\" button removed",
+"{} : bouton « Ajouter à la sélection » {}": "{}: \"Add to shortlist\" button {}",
+"sélection top 50 : non activé, rien à faire": "top 50 shortlist: not enabled, nothing to do",
+"Tempérament retiré, ligne Personnalité remise": "Mindset removed, Personality row put back",
+"Tempérament à droite de Personnalité (Medium / Small : logo + nom ; Large : logo, nom au survol)": "Mindset next to Personality (Medium / Small: icon + name; Large: icon, name on hover)",
+"logo / nom du tempérament, SIVisible ou infobulle de FM introuvables, ignoré": "mindset icon / name, SIVisible or FM tooltip not found, skipped",
+"tempérament dans Infos : non activé, rien à faire": "mindset in Info: not enabled, nothing to do",
+"tempérament dans Infos : {}": "mindset in Info: {}",
+"{} : {} introuvable (le jeu a changé ?), ignoré": "{}: {} not found (game changed?), skipped",
+"{} ressortie sous la ligne Personnalité / Tempérament": "{} moved out under the Personality / Mindset row",
+"Tempérament à droite de Personnalité (Medium / Small : titre + logo + nom ; Large : logo collé au texte, nom au survol)": "Mindset next to Personality (Medium / Small: title + icon + name; Large: icon next to the text, name on hover)",
+"logo du tempérament à droite de Personnalité (nom au survol)": "mindset icon right of Personality (name on hover)",
+"logo / nom du tempérament ou infobulle de FM introuvables, ignoré": "mindset icon / name or FM tooltip not found, skipped"
 }
