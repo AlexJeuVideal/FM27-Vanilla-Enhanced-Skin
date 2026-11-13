@@ -6,6 +6,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v1.90 (13 novembre 2026)
+
+**Fiche joueur**
+- **Historique des blessures dans les tuiles de la Vue d'ensemble** : la dernière tuile du bas (celle d'Entraînement) montre maintenant la tuile Historique des blessures de FM (% de matchs manqués, temps total d'absence). Entraînement reste au choix dans le menu de la tuile. Pour les joueurs des autres clubs, Éligibilité reste affichée de base, avec l'Historique des blessures juste en dessous dans le menu. En affichage Grand, Entraînement reste à sa place.
+- **Toutes les blessures dans la tuile** : au lieu de la dernière seulement, la tuile liste toutes les blessures du joueur (date, blessure, pastille de durée), une par ligne. Les noms longs sont coupés en « … » pour que la tuile reste propre en Moyen et en Petit.
+- **Durée des blessures en couleur** : la pastille de durée est teintée en orange pour les blessures courtes (moins de 4 semaines) et en rouge pour les longues, texte en blanc.
+- **En-tête : carte Niveau centrée** : sur la fiche d'un joueur d'un autre club, « Rapport de supervision » est centré au-dessus de la note, et « Niveau actuel » / « Potentiel » au-dessus de leurs étoiles.
+
 ### v1.89 (12 novembre 2026)
 
 **App**
@@ -1033,6 +1041,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v1.90 (13 November 2026)
+
+**Player profile**
+- **Injury history in the Overview tiles**: the last bottom tile (where Training was) now shows FM's Injury history tile (% of matches missed, total time out). Training is still available from that tile's menu. For players from other clubs, Eligibility is still shown by default, with Injury history right under it in the menu. In Large display, Training stays in its place.
+- **All injuries in the tile**: instead of the last injury only, the tile lists every injury of the player (date, injury, duration badge), one row each. Long names are cut with "…" so the tile stays tidy in Medium and Small.
+- **Coloured injury durations**: the duration badge is tinted orange for short injuries (under 4 weeks) and red for long ones, with white text.
+- **Header: Ability card centred**: on the profile of a player from another club, "Scouting report" is centred above the grade, and "Current ability" / "Potential" above their stars.
 
 ### v1.89 (12 November 2026)
 

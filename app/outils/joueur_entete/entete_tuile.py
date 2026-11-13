@@ -724,7 +724,8 @@ def construire(t, parent, index, dims, src, p, txt, photo, haut_src, poly_src, r
 # étoiles centrées. Vue « tuile » seulement (cartes de hauteur fixe : ça tient ; la bannière de FM n'est pas touchée)
 MODELE_RAPPORT = "PlayerReportHeaderScoutSection"
 PREFIXE_ETOILES = PREFIXE + "Etoiles"
-NOM_ETOILES = f"{PREFIXE_ETOILES}-v3"
+NOM_ETOILES = f"{PREFIXE_ETOILES}-v4"   # v4 (2026-11-13, le joueur, capture Large : « Rapport de supervision » pas
+                                        # centré au-dessus de la note) : titre align-self-start de FM -> centré
 NOM_TITRE_RAPPORT = PREFIXE_ETOILES + "Titre"   # aiguillage du titre d'origine (Medium / Small) ; + « Large » : petit
 TITRE_RAPPORT_LARGE = 10                        # px, titre du rapport en Large (v3)
 ETOILES_ECART = 6   # px entre la note et les étoiles
@@ -751,6 +752,11 @@ def etoiles_rapport(t):
             t.elem(frame)["m_Classes"] = [c for c in cl if c != "margin-right-global-gap-regular"]
         elif "margin-right-global-gap-regular" not in cl:
             t.elem(frame)["m_Classes"] = cl + ["margin-right-global-gap-regular"]
+    titre_fm = first(t, lambda r: t.name(r) == "ScoutReport" and typ(t, r).endswith("SIText"))
+    if titre_fm is not None:   # v4 : centré en vue tuile, à gauche (FM) sinon
+        avant, apres = ("align-self-start", "align-self-center-class") if vue() == "tuile" else \
+            ("align-self-center-class", "align-self-start")
+        t.elem(titre_fm)["m_Classes"] = [apres if c == avant else c for c in t.elem(titre_fm).get("m_Classes") or []]
     has = first(t, lambda r: t.name(r) == "HasReport")
     kids = has is not None and t.children(has)
     if vue() != "tuile":
@@ -771,6 +777,11 @@ def etoiles_rapport(t):
     if pot is not None:   # dernière colonne : pas de marge à droite (centre juste)
         t.elem(pot)["m_Classes"] = [k for k in t.elem(pot).get("m_Classes") or []
                                     if k != "margin-right-global-gap-regular"]
+    # v4 (le joueur : « centre le niveau et le potentiel pile au-dessus des étoiles ») : étiquettes centrées
+    for r in dedans:
+        if t.name(r) in ("CurrentAbilityText", "PotentialAbilityText"):
+            t.elem(r)["m_Classes"] = ["align-self-center-class" if k == "align-self-start" else k
+                                      for k in t.elem(r).get("m_Classes") or []]
     # v2 (le joueur, Large v32 : carte Niveau en demi-hauteur, rapport qui déborde) : titre « Rapport de supervision »
     # d'origine en Medium / Small (mode > 0) ; v3 (le joueur : « il doit apparaître, juste plus petit ») : en Large
     # (mode == 0) une copie du titre en petit

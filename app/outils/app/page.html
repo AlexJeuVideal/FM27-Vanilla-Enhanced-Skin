@@ -1972,7 +1972,7 @@ const ORDRE_FONCTIONS = [
   "rapport_recrutement_fm24", "recherches_ciblees", "club_infobulle_offres",
   "effectif_equipes", "effectif_boutons_entrainement", "effectif_repos_equipe", "dynamique_vue_ensemble",
   "hierarchie_pyramide", "cercles_amis_cartes", "etat_esprit_fm24", "jeunes_candidats_fm24",
-  "fiche_joueur_plus", "fiche_contexte_equipe", "tuile_forme", "fiche_ordre_tuiles", "tuile_carriere", "style_mediatique",
+  "fiche_joueur_plus", "fiche_contexte_equipe", "tuile_forme", "fiche_ordre_tuiles", "tuile_carriere", "tuile_blessures", "style_mediatique",
   "listes_pour_contre", "couleurs_polygone", "hors_defaut", "suspensions_noms_courts",
   "match_haut", "photos_match",
   "club_bandeau_installations", "club_page_bas", "salle_trophees", "palmares_images", "notes_installations", "club_amical", "club_histoire",
@@ -2451,9 +2451,10 @@ const REGLAGES_J = [
     ["hors_defaut", "fiche", "attributs", ["Options d'entraînement sous les attributs", "Training options under the attributes"], ["Pas en Large (Medium / Small, s'il y a la place).", "Not in Large (Medium / Small, when there is room)."]],
   ]],
   [["Tuiles du bas", "Bottom tiles"], [
-    ["fiche_ordre_tuiles", "fiche", "tuiles", ["Ordre des tuiles", "Tile order"], ["Du skin : État d'esprit, Condition, Stats saison, Carrière, Forme, Entraînement. Ou le tien : glisse les tuiles dans l'aperçu.", "Skin's: Happiness, Condition, Season stats, Career, Form, Training. Or yours: drag the tiles in the preview."]],
+    ["fiche_ordre_tuiles", "fiche", "tuiles", ["Ordre des tuiles", "Tile order"], ["Du skin : État d'esprit, Condition, Stats saison, Carrière, Forme, Blessures (Entraînement au menu de la tuile). Ou le tien : glisse les tuiles dans l'aperçu.", "Skin's: Happiness, Condition, Season stats, Career, Form, Injuries (Training in the tile's menu). Or yours: drag the tiles in the preview."]],
     ["tuile_forme", "fiche", "t-esprit t-condition b-taille", ["État d'esprit et Condition détaillés", "Detailed Happiness and Condition"], ["+ moral, forme, fatigue ; logos Hiérarchie / Groupe dans l'infobulle.", "+ morale, sharpness, fatigue; Hierarchy / Group icons in the tooltip."]],
     ["tuile_carriere", "fiche", "t-carriere", ["Stats carrière en tableau", "Career stats as a table"], ["Une ligne par saison, total en bas.", "One row per season, total at the bottom."]],
+    ["tuile_blessures", "fiche", "t-blessures", ["Toutes les blessures dans la tuile", "All injuries in the tile"], ["Date, blessure, durée : une ligne par blessure.", "Date, injury, duration: one row per injury."]],
   ]],
   [["Infobulle (survol d'un joueur)", "Tooltip (hovering a player)"], [
     ["infobulle_pour_contre", "bulle", "b-pc", ["Pour / Contre au lieu du rapport", "Pros / Cons instead of the report"], null],
@@ -2821,7 +2822,10 @@ function mqFin(corps, guru) {   // en-tête + corps + tuiles du bas (largeurs co
       : `81 ${mqT("matchs", "apps")} · 19 ${mqT("buts", "gls")}`}</div>`],
     forme: [1, `<div class="bloc" data-z="tuiles"><div class="titre">${mqT("Forme", "Form")}</div><div style="display:flex;gap:2px;align-items:flex-end;height:22px">${[18, 22, 12, 12, 20].map(h => `<span style="width:9px;height:${h}px;background:${h > 15 ? "#6a9a20" : "#666"}"></span>`).join("")}</div><span class="btn">7,21</span></div>`],
     entr: guru ? [1, `<div class="bloc" data-z="tuiles"><div class="titre">${mqT("Efficacité tactique", "Tactical effectiveness")}</div>MC 82 %</div>`]
-      : [1, `<div class="bloc" data-z="tuiles"><div class="titre">${mqT("Entraînement", "Training")}</div>${mqT("Note à l'entraînement", "Training rating")}<br><span class="btn">7,20</span></div>`],
+      : jV("fiche_ordre_tuiles") ? [1, `<div class="bloc" data-z="tuiles t-blessures"><div class="titre">${mqT("Historique des blessures", "Injury history")}</div>${mqT("Matchs manqués", "Matches missed")} 4 %${jV("tuile_blessures")
+        ? `<div style="font-size:11px;margin-top:3px">12/03 ${mqT("Entorse", "Sprain")} <span class="btn">2 ${mqT("sem.", "wks")}</span><br>02/11 ${mqT("Claquage", "Strain")} <span class="btn">5 ${mqT("j", "d")}</span></div>`
+        : `<div class="doux" style="margin-top:3px">${mqT("Dernière blessure", "Last injury")}</div>12/03 ${mqT("Entorse", "Sprain")}`}</div>`]
+      : [1,`<div class="bloc" data-z="tuiles"><div class="titre">${mqT("Entraînement", "Training")}</div>${mqT("Note à l'entraînement", "Training rating")}<br><span class="btn">7,20</span></div>`],
   };
   const glisser = jGlisser();
   const ordre = glisser ? jOrdre() : ORDRE_FM_J;

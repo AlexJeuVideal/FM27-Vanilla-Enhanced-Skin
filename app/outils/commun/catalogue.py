@@ -89,9 +89,10 @@ FONCTIONS = {
                         aide=RESET_DISPOSITIONS),
     "fiche_ordre_tuiles": dict(cat="joueur_fiche",   # 2026-11-12, le joueur
                                fr="Vue d'ensemble : tuiles du bas dans l'ordre État d'esprit, Condition physique, "
-                                  "Stats saison, Stats carrière, Forme, Entraînement",
+                                  "Stats saison, Stats carrière, Forme, Blessures (Entraînement dans le menu de la "
+                                  "tuile)",
                                en="Overview: bottom tiles in the order Happiness, Condition, Season stats, Career "
-                                  "stats, Form, Training",
+                                  "stats, Form, Injuries (Training in the tile's menu)",
                                aide=RESET_DISPOSITIONS),
     "tuile_carriere": dict(cat="joueur_fiche", textes=True,   # 2026-11-01, le joueur
                            fr="Tuile Stats carrière en tableau : une ligne par saison (club, matchs, buts, passes D ; "
@@ -99,6 +100,12 @@ FONCTIONS = {
                            en="Career stats tile as a table: one row per season (club, apps, goals, assists; "
                               "goalkeeper: conceded, clean sheets), total at the bottom, every size",
                            aide=RESET_DISPOSITIONS),
+    "tuile_blessures": dict(cat="joueur_fiche",   # 2026-11-13, le joueur
+                            fr="Tuile Historique des blessures : toutes les blessures du joueur en liste (date, "
+                               "blessure, durée)",
+                            en="Injury history tile: all the player's injuries as a list (date, injury, "
+                               "duration)",
+                            aide=RESET_DISPOSITIONS),
     "couleurs_polygone": dict(cat="joueur_fiche",   # 2026-11-12, le joueur
                               fr="Chiffres du polygone aux couleurs des attributs (réglées dans le jeu)",
                               en="Polygon numbers in the attribute colours (set in game)"),
@@ -515,6 +522,7 @@ OU = {
     "entete_fiche": _FICHE, "style_mediatique": _FICHE, "hors_defaut": _FICHE, "fiche_joueur_plus": _FICHE,
     "listes_pour_contre": _FICHE, "suspensions_noms_courts": _FICHE, "attributs_tout_cocher": _FICHE,
     "graphes_attributs": _FICHE, "fiche_ordre_tuiles": _FICHE, "tuile_carriere": _FICHE,
+    "tuile_blessures": _FICHE,
     "couleurs_polygone": ("Fiche joueur, survol d'un joueur", "Player profile, hovering a player"),
     "fiche_contexte_equipe": ("Clic sur un de tes joueurs (partout)", "Clicking one of your players (anywhere)"),
     "tuile_forme": _SURVOL,
@@ -603,7 +611,8 @@ ORDRE_SKIN = [
     "finances_tuile_unique", "graphes_finances",
     "graphes_attributs",
     "hierarchie_pyramide", "photos_tactiques", "photos_match", "match_cartons_buts", "attributs_tout_cocher", "nation_drapeau_seul", "suspensions_noms_courts",
-    "tuile_forme", "fiche_ordre_tuiles", "tuile_carriere", "fiche_contexte_equipe", "moral_icone_seule",
+    "tuile_forme", "fiche_ordre_tuiles", "tuile_carriere", "fiche_contexte_equipe",
+    "moral_icone_seule",
     "rencontres_place_championnat",
     "cercles_amis_cartes", "dynamique_vue_ensemble", "etat_esprit_fm24",
     "entrainement_pouces", "staff_fm24", "entrainement_equipes", "effectif_boutons_entrainement",
@@ -630,6 +639,9 @@ ORDRE_SKIN = [
     "kinito_cartes_jeunes",   # 26.19 : après jeunes_candidats_fm24 (posée par-dessus son tableau)
     "kinito_entete_large",    # 26.20 : après tes fonctions de la fiche (entete_fiche, fiche_joueur_plus...)
     "kinito_pays_formation",  # 26.21 : seul à toucher ses deux en-têtes (pays, sélection) : n'importe où
+    # v6 : retouche PlayerReport (règle « pas en Large ») sur place : après kinito_cartes_jeunes (révélation des
+    # jeunes), qui le refait depuis l'original
+    "tuile_blessures",
 ]
 
 # fonction activée ou retirée seule (app, menu) : ces fonctions sont relancées ensuite (« si-actif »), parce qu'elles
@@ -654,7 +666,10 @@ SUIVANTS = {
     "match_haut": ["couleurs_interface", "kinito_fenetre_but"],
     # Kinito 26.19 : ses cartes sont posées dans YouthCandidatesCategoryTable, que jeunes_candidats_fm24 refait depuis
     # l'original
-    "jeunes_candidats_fm24": ["kinito_cartes_jeunes"],
+    "jeunes_candidats_fm24": ["kinito_cartes_jeunes", "tuile_blessures"],
+    # tuile_blessures v6 : sa règle de visibilité est dans PlayerReport, que la révélation des jeunes (Kinito 26.22,
+    # posée par kinito_cartes_jeunes) refait depuis l'original
+    "kinito_cartes_jeunes": ["tuile_blessures"],
     # Kinito 26.20 : sa bande est dans PlayerReportHeader, que entete_fiche (entete_tuile) réécrit
     "entete_fiche": ["kinito_entete_large"],
     # Kinito 26.14 / 26.15 (lancés par entrainement_individuel_equipes) et 26.17 : leurs morceaux partent quand ces

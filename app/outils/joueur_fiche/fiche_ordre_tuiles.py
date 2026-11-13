@@ -1,6 +1,7 @@
 """Fiche joueur > Vue d'ensemble : ordre des tuiles du bas (2026-11-12, demande du joueur).
 
-Ordre voulu : État d'esprit, Condition physique, Stats saison, Stats carrière, Forme, Entraînement. Rien d'autre ne
+Ordre voulu : État d'esprit, Condition physique, Stats saison, Stats carrière, Forme, Entraînement (v10 : la place
+Entraînement montre d'office l'Historique des blessures de FM, Entraînement reste au choix dans le ⌄). Rien d'autre ne
 change : chaque tuile garde la largeur, la hauteur et les tailles mini / maxi de FM, seules les colonnes (x) sont
 recalculées. Toutes les compositions de PlayerReportOverviewCompositionSet (Standard, Small, Large, Large-FMC ; pas
 Entraînement en Small / Large-FMC : ordre des autres) ; Phone_Landscape n'a que le bloc du haut.
@@ -59,6 +60,21 @@ TAILLES = {"PlayerReportOverviewComposition-Large": {"PlayerSeasonStats": (8, 8,
 LARGEUR = {c: {k: w for k, (w, _, _) in t.items()} for c, t in TAILLES.items()}
 SLOT_ENTRAINEMENT = "PlayerTrainingOverview"
 GUID_EFFICACITE_2X2 = "d0a61cef5fce9e640bd4623e58da0cdc"   # TacticalEffectivenessTile_2x2
+# v9 (2026-11-13, le joueur : « Entraînement fait doublon avec Progression en haut ») : essai, seulement par le .bat
+# 124 (argument --blessures, pas d'option dans l'app) -> la tuile Historique des blessures de FM (celle de Condition
+# physique, 4x2 : % manqué, temps total, dernière blessure ; clic = historique complet, version IA pour les autres
+# équipes) choisie d'office à la place d'Entraînement (Entraînement reste au ⌄). Pas en mode Guru. Un passage sans
+# l'argument (choix 1, app) remet Entraînement.
+# v10 (2026-11-13, validé en jeu Medium + Small, le joueur : « ajoute-la globalement à nos tuiles, laisse
+# l'entraînement sous la tuile comme ça ») : Historique des blessures d'office (hors mode Guru), plus d'argument ;
+# Entraînement reste dans le ⌄ de la tuile. Liste de toutes les blessures dedans : joueur_fiche\tuile_blessures.
+# v11 (2026-11-13, le joueur, vu en jeu : « parfait sur les autres joueurs, mets historique blessures SOUS
+# éligibilité ») : Statut formé au club (= « Éligibilité », montré par FM aux joueurs des autres clubs : PlayerReport,
+# visibilité player.ReportMode != 0 et != 2) remis AVANT les Blessures -> autres clubs : Éligibilité de base,
+# Blessures au ⌄ ; tes joueurs (ReportMode 0 : Éligibilité cachée) : Blessures de base.
+DESC_ELIGIBILITE = "PlayerHomegrownStatusTileDescription"
+DESC_BLESSURES = "InjuryHistoryTileDescription"
+GUID_BLESSURES = "67103b067801d3c4f824e737a8cb0f1e"        # InjuryHistoryTile_4x2
 # =====================================================================================================
 
 TUILES = os.path.join(nb.AA, "ui-tileslayouts_assets_all.bundle")
@@ -97,12 +113,49 @@ def description_efficacite(env):
     return None
 
 
-def configs_voulues(orig_c, loc, eff):
+def description_blessures(env, nom=DESC_BLESSURES):
+    """référence (m_FileID 0, m_PathID) d'une description du même bundle (Historique des blessures par défaut) ; None
+    si introuvable"""
+    for o in env.objects:
+        if o.type.name != "MonoBehaviour":
+            continue
+        try:
+            if o.peek_name() == nom:
+                return {"m_FileID": 0, "m_PathID": o.path_id}
+        except Exception:
+            continue
+    return None
+
+
+def jeu_tuiles(env):
+    for o in env.objects:
+        if o.type.name != "MonoBehaviour":
+            continue
+        try:
+            if o.peek_name() == JEU_TUILES:
+                return o
+        except Exception:
+            continue
+    return None
+
+
+def configs_voulues(orig_c, loc, eff, bles=None, elig=None):
     """(m_configDescriptions, m_gridElementConfigs) de la place Entraînement : celles de FM, avec (mode Guru, place
-    2x2) l'Efficacité tactique en premier = choisie d'office"""
+    2x2) l'Efficacité tactique en premier = choisie d'office ; v9 (option fiche_blessures) : l'Historique des
+    blessures en premier, à la taille de la place (2x2, étirée à 4 en Large)"""
     descs = [dict(d) for d in orig_c["m_configDescriptions"]]
     confs = json.loads(json.dumps(orig_c["m_gridElementConfigs"]))
-    if eff is not None and (loc["width"], loc["height"]) == (2, 2):
+    if bles is not None:
+        descs.insert(0, dict(bles))
+        confs.insert(0, {"Description": dict(bles), "Size": {"x": loc["width"], "y": loc["height"]},
+                         "Asset": {"m_FileID": 0, "m_PathID": 0},
+                         "AssetRef": {"m_AssetGUID": GUID_BLESSURES, "m_SubObjectName": "", "m_SubObjectType": ""},
+                         "Type": 0})
+        # v11 : Éligibilité (description + ses configs, ordre de FM gardé entre elles) remise devant les Blessures
+        if elig is not None and elig in descs:
+            descs = [d for d in descs if d == elig] + [d for d in descs if d != elig]
+            confs = [c for c in confs if c["Description"] == elig] + [c for c in confs if c["Description"] != elig]
+    elif eff is not None and (loc["width"], loc["height"]) == (2, 2):
         descs.insert(0, dict(eff))
         confs.insert(0, {"Description": dict(eff), "Size": {"x": 2, "y": 2},
                          "Asset": {"m_FileID": 0, "m_PathID": 0},
@@ -181,6 +234,27 @@ def run(retirer):
     if g:
         print("mode FM Guru : ordre de FM, Efficacité tactique à la place d'Entraînement" if eff else
               "mode FM Guru : Efficacité tactique introuvable dans le jeu de tuiles (le jeu a changé ?), ordre de FM seul")
+    bles = description_blessures(env) if not retirer and not g else None
+    if not retirer and not g:
+        print("Historique des blessures à la place d'Entraînement (Entraînement au ⌄)" if bles else
+              "Historique des blessures introuvable (le jeu a changé ?), Entraînement gardé")
+    elig = description_blessures(env, DESC_ELIGIBILITE) if bles is not None else None
+    if bles is not None and elig is None:
+        print("Éligibilité (statut formé au club) introuvable (le jeu a changé ?) : Blessures aussi pour les autres clubs")
+    # v9 : jeu de tuiles de la page = celui de FM (+ Historique des blessures si choisi : dans le ⌄ aussi)
+    js = jeu_tuiles(env)
+    src = backup.backup_path(TUILES)
+    js_orig = jeu_tuiles(UnityPy.load(src if os.path.exists(src) else TUILES))
+    if js is not None and js_orig is not None:
+        tt_js = js.read_typetree()
+        voulu_js = [dict(d) for d in js_orig.read_typetree()["m_gridElementDescriptions"]]
+        if bles is not None and bles not in voulu_js:
+            voulu_js.append(dict(bles))
+        if tt_js["m_gridElementDescriptions"] != voulu_js:
+            tt_js["m_gridElementDescriptions"] = voulu_js
+            js.save_typetree(tt_js)
+            change += 1
+            print(f"{JEU_TUILES} : " + ("+ Historique des blessures" if bles else "d'origine"))
     for nom, (o, tt) in actuels.items():
         if nom not in orig or len(orig[nom][1]["m_gridComponents"]) < 2:   # Phone_Landscape : bloc du haut seul
             continue
@@ -210,10 +284,11 @@ def run(retirer):
                     c["m_gridElementConfigs"] = confs
                     fait.append(c["m_elementID"] + " (config)")
             if c["m_elementID"] == SLOT_ENTRAINEMENT and c["m_elementID"] in orig_comp:
-                descs, confs = configs_voulues(orig_comp[c["m_elementID"]], c["m_location"], eff)
+                descs, confs = configs_voulues(orig_comp[c["m_elementID"]], c["m_location"], eff, bles, elig)
                 if c["m_configDescriptions"] != descs or c["m_gridElementConfigs"] != confs:
                     c["m_configDescriptions"], c["m_gridElementConfigs"] = descs, confs
-                    fait.append(c["m_elementID"] + (" (Efficacité tactique)" if eff else " (d'origine)"))
+                    fait.append(c["m_elementID"] + (" (Historique des blessures)" if bles else
+                                                    " (Efficacité tactique)" if eff else " (d'origine)"))
         if fait:
             o.save_typetree(tt)
             change += 1
@@ -248,7 +323,7 @@ def cmd_etat():
 
 
 def main(argv):
-    argv = [a for a in argv if a != "--dry-run"]
+    argv = [a for a in argv if a not in ("--dry-run", "--blessures")]   # --blessures : ancien essai (v9), sans effet
     op = argv[0] if argv else ""
     if op == "appliquer":
         run(retirer=False)
