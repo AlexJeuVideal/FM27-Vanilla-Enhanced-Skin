@@ -127,6 +127,8 @@ TEMPS_B = 104             # px, temps dans ce bloc (« 89:52 (+4) »)
 CASE_SCORE_B = 64         # px, case unique du score « 2 - 1 »
 # v28 (le joueur : sigles toujours 3 lettres, « réduit mais que ça respire ») : bande 376 -> 296, noms 114 -> 74
 LARGEUR_B = 296           # px, bande de la maquette B (noms = (LARGEUR_B - 2 × (LOGO + 12) - CASE_SCORE_B) / 2)
+CUMUL_B = 104             # px, case du cumul aller-retour « 1 - 5 Cmb » à droite de la bande (v29)
+TAILLE_CUMUL = 12         # px, « Cmb » / « AGG » dans cette case
 # v21 en jeu (2026-11-12) : crash natif à l'ouverture du match (ContinuePanel) -> v22 sans fondus pour isoler
 FONDUS = False            # True = fondus du maillot (SIGradient sur KitForMatch : SUSPECT du crash v21)
 FONDU = 28                # % de la bande couvert par chaque fondu
@@ -136,7 +138,8 @@ FN_DEGRADE = "9f6121106098fd4478470df83d3e70ee"   # couleur (chemin) + opacité 
 FONDU_CHEMIN ="team.KitForMatch.BackgroundColour"   # lu dans le BindingRemapper de l'équipe (team = match.HomeTeam…)
 # =====================================================================================================
 
-VERSION = "uipicker-score-dispo-v28"   # changer la disposition -> augmenter le numéro
+VERSION = "uipicker-score-dispo-v29"   # changer la disposition -> augmenter le numéro
+# v29 : cumul aller-retour dans une case de largeur fixe (CUMUL_B), une ligne, fond couleur du skin
 # v28 : maquette B plus étroite (bande 296, noms 74 : sigles 3 lettres partout)
 # v27 : sans thème (ou cases pas choisies) = couleur des cases de FM #232735, plus le violet
 # v26 : liserés de la couleur du maillot (4 px) tout au bord de la bande (traits de couleur de FM)
@@ -705,12 +708,30 @@ def _disposer_b(t):
         for c in t.children(s):
             st.style(t, c, dict(plein, **coins))
 
-    # cumul du match retour : juste à droite de la bande (hors de la largeur fixe, déborde à droite)
+    # cumul du match retour : case à droite de la bande (hors de la largeur fixe, déborde à droite) ; v29 : largeur
+    # fixe CUMUL_B, une ligne « 1 - 5 Cmb », fond couleur du skin (v28 : sans largeur, « Cmb » passait dessous)
     if cumul is not None:
-        st.style(t, cumul, {"height": HAUT, "flex-shrink": 0, "margin-left": ECART_LIGNE})
+        _cls(t, cumul, retirer=["row-direction-"])
+        st.style(t, cumul, dict(zero, **{
+            "height": HAUT, "min-height": HAUT, "width": CUMUL_B, "min-width": CUMUL_B, "margin-left": ECART_LIGNE,
+            "flex-direction": "row", "align-items": "center", "justify-content": "center", "background-color": skin,
+            "overflow": "hidden", "border-top-left-radius": ARRONDI_BANDE, "border-top-right-radius": ARRONDI_BANDE,
+            "border-bottom-left-radius": ARRONDI_BANDE, "border-bottom-right-radius": ARRONDI_BANDE}))
         for r in t.walk(cumul):
-            if r != cumul and _typ(t, r).endswith("SIText"):
-                st.style(t, r, dict(contour, **{"font-size": TAILLE_TEMPS, "margin-bottom": 0}))
+            if r == cumul:
+                continue
+            if _typ(t, r).endswith("SIText"):
+                _cls(t, r, retirer=["padding-horizontal-", "margin-right-", "text-colours-brand-fm-ultra-violet"])
+                agg = t.parent.get(r) != cumul and t.parent.get(t.parent.get(r)) == cumul   # « Cmb » / « AGG »
+                st.style(t, r, dict(contour, **{"font-size": TAILLE_CUMUL if agg else TAILLE_TEMPS,
+                                                "color": texte_skin, "white-space": "nowrap", "flex-shrink": 0,
+                                                "margin-top": 0, "margin-bottom": 0, "margin-right": 0,
+                                                "margin-left": 4 if agg else 0, "padding-left": 1,
+                                                "padding-right": 1}))
+            elif _typ(t, r) == "UnityEngine.UIElements.VisualElement":
+                _cls(t, r, retirer=["row-direction-", "padding-horizontal-"])
+                st.style(t, r, dict(zero, **{"flex-direction": "row", "align-items": "center",
+                                             "justify-content": "center", "height": HAUT}))
     return msgs + ["tableau de score sur une ligne : compétition et temps sur la couleur du skin"
                    + (", fondus des maillots" if g is not None else "")
                    + (" (contour des chiffres)" if OUTLINE_B else "")]

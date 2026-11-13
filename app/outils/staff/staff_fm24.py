@@ -48,6 +48,7 @@ from notes_installations import (visible_model, new_visible, text_static, text_d
 from arbre import no_styles  # noqa: E402
 import arbre as sm  # noqa: E402
 from entrainement_equipes import evenement_ecran  # noqa: E402  (événement FM « ouvrir un écran »)
+import entrainement_equipes as ee  # noqa: E402  (rangée des équipes, v35)
 
 # =====================================================================================================
 #  RÉGLAGES (changer un réglage -> augmenter VERSION)
@@ -262,9 +263,29 @@ FABRIQUES = os.path.join(nb.AA, "ui-tablefactories_assets_all.bundle")
 LISTE_FABRIQUE = "NonPlayerTableFactory"
 LISTE_SELECTION = "uipicker-staff-selection"
 SELECTION_SOURCE = ("PlayerPositionalRolesTableFactory", "selection-small")
+# v35 (demande du joueur, 2026-11-13) : rangée des équipes du club (comme le calendrier / les rencontres) dans l'espace
+# vide de la ligne d'onglets (Vue d'ensemble | Équipe de préparateurs | … | Tout le staff) ; clic = Staff de l'équipe.
+# Emplacement prévu par FM : ExtraTabRowButtonTemplate de l'écran (le calendrier y met CalendarHeaderSeasonBlock).
+EQUIPES = True
+EQUIPES_REGLAGE = {"liste": "human.Club.Teams", "largeur": None, "hauteur": 32, "descendre": 0, "marge": 0}
+EQUIPES_RANGEE = "ClubAndNationRow"     # modèle FM inutilisé (scan 2026-11-13 : cité par aucun bundle ni par le code)
+EQUIPES_RANGEE_GUID = "0cce345bc92f2fd478c2582642122cb1"
+EQUIPES_BOUTON = "ClubIconNameRow"      # idem, réécrit en bouton d'équipe (celui du calendrier)
+EQUIPES_BOUTON_GUID = "6e6e95d20d5cc794cac4ca1499da183c"
+ECRAN_STAFF = "9ba550b513bf5144da547e7d87df80da"   # ClubAllStaffTool (ui-panelids, paramètre team)
+EQUIPES_ONGLET = "navigation-tab-default-default"   # bouton FM des onglets de l'écran (v38 : boutons d'équipes)
+EQUIPES_ECART = 16            # px entre deux boutons d'équipes
+EQUIPES_DROITE = 24           # px : marge au bord droit (v40 : 0 = collé au bord de l'écran, vu en jeu ; aligné sur
+                              # le bord droit des tuiles / « Passer annonce »)
+EQUIPES_STYLE_LIGNE = "tabbed-grid-layout-tab-button-container-flex-start-extra-tab-flex-end"   # v39 (classe FM)
 # =====================================================================================================
 
-VERSION = f"34{SUFFIXE}"   # langue : suffixe -en ; v34 : vue de la mini-liste changée (LISTE_VUE)
+VERSION = f"40{SUFFIXE}"   # langue : suffixe -en ; v34 : vue de la mini-liste changée (LISTE_VUE) ; v35 : équipes
+                           # (pas affichées : drapeau du champ à 0) ; v36 : ExtraTabRowButtonTemplate_UxmlAttributeFlags 1
+                           # (toujours rien) ; v37 : racine BindingExpect au lieu de BindingRoot (VU, s'affiche) ;
+                           # v38 : boutons = onglets FM en texte (VU : bons, mais morts, collés aux onglets) ;
+                           # v39 : Events_UxmlAttributeFlags 1, style de ligne FM « extra-tab-flex-end » sans défilement
+                           # (VU : marche, collé au bord) ; v40 : marge droite 24
 INFOBULLE_SOURCE = "PlayerAttributesLargeBlock"   # modèle FM avec un SI.Bindable.Tooltip simple (bouton polygone)
 CADRE = ["siblock-border", "flex-grow-class"]     # fond + bord des blocs des postes (ClubAllStaffBlock)
 TUILES = os.path.join(nb.AA, "ui-tileslayouts_assets_all.bundle")
@@ -288,6 +309,8 @@ NOM_RACINE = f"{PREFIXE}-v{VERSION}"
 NOM_GRANDE = f"{PREFIXE}Grande-v{VERSION}"
 NOM_BOUTONS = f"{PREFIXE}Boutons-v{VERSION}"
 NOM_ONGLET = f"{PREFIXE}Onglet-v{VERSION}"
+NOM_EQUIPES = f"{PREFIXE}Equipes-v{VERSION}"
+NOM_BOUTON_EQUIPE = f"{PREFIXE}BoutonEquipe-v{VERSION}"
 ENSEMBLES_ONGLETS = [f"{o}GridCompositionSet" for o in ONGLETS]
 MARKER = os.path.join(backup.BACKUP_DIR, "staff_fm24.actif")
 
@@ -1481,11 +1504,175 @@ def ids_ensembles_onglets():
 
 
 def outil_modifie(tt, id_vue, ids_onglets):
-    return outil_a_jour(tt, id_vue) or any(outil_onglets_ok(tt, [i]) for i in ids_onglets)
+    return outil_a_jour(tt, id_vue) or any(outil_onglets_ok(tt, [i]) for i in ids_onglets) \
+        or outil_equipes(tt) not in ("", None)
+
+
+# ---------- v35 : rangée des équipes dans la ligne d'onglets ----------
+def _extras(tt):
+    """réglages ExtraTabRowButtonTemplate de l'écran (override du modèle FigmaBaseToolTabbedTemplate)"""
+    out = []
+
+    def walk(x):
+        if isinstance(x, dict):
+            if isinstance(x.get("ExtraTabRowButtonTemplate"), dict):
+                out.append(x)
+            for v in x.values():
+                walk(v)
+        elif isinstance(x, list):
+            for v in x:
+                walk(v)
+    walk(tt)
+    return out
+
+
+def outil_equipes(tt):
+    """GUID du modèle posé dans la ligne d'onglets ("" = FM) ; None si l'emplacement est introuvable"""
+    ex = _extras(tt)
+    if not ex:
+        return None
+    # v36 : champ ignoré par FM sans son drapeau (v35 : rien affiché en jeu)
+    e = ex[0]
+    if not e.get("ExtraTabRowButtonTemplate_UxmlAttributeFlags"):
+        return ""
+    if e.get("TabButtonContainerStyle") != EQUIPES_STYLE_LIGNE:
+        return "ancienne"   # v35-v38 : style de ligne pas posé
+    return e["ExtraTabRowButtonTemplate"]["m_AssetGUID"]
+
+
+def construire_outil_equipes(tt):
+    ex = _extras(tt)
+    if not ex:
+        return ["emplacement ExtraTabRowButtonTemplate introuvable dans l'écran Staff"]
+    for e in ex:
+        e["ExtraTabRowButtonTemplate"]["m_AssetGUID"] = EQUIPES_RANGEE_GUID
+        e["ExtraTabRowButtonTemplate_UxmlAttributeFlags"] = 1
+        # v39 : rangée au bout à droite = style FM fait pour ça (StaffResponsibilitiesCard, PlayerInstructionsCard),
+        # ligne d'onglets sans défilement (comme eux ; avec, le contenu ne s'étire pas)
+        e["TabButtonContainerStyle"] = EQUIPES_STYLE_LIGNE
+        e["TabButtonContainerStyle_UxmlAttributeFlags"] = 1
+        e["AddTabButtonsHorizontalScrollView"] = 0
+        e["AddTabButtonsHorizontalScrollView_UxmlAttributeFlags"] = 1
+    return [f"rangée des équipes ({EQUIPES_RANGEE}) dans la ligne d'onglets"]
+
+
+def construire_rangee_equipes(t, mx, outil_tt):
+    """BindingRoot (team, comme l'écran) > [équipe du club du joueur] > remapper > boutons des équipes du club"""
+    # v37 : racine BindingExpect (comme CalendarHeaderSeasonBlock dans le calendrier : lit les données de l'écran) ;
+    # v36 gardait le BindingRoot du modèle (attend des données passées à la main) : rien affiché en jeu
+    haut = t.tt["m_VisualTree"]["rid"]
+    attente = first(mx.ent, lambda r: typ(mx.ent, r) == "BindingExpect")
+    racine = None
+    if attente is not None:
+        for k in list(t.children(haut)):
+            t.remove(k)
+        racine = t.clone(attente, haut, src=mx.ent)
+        no_styles(t, racine)
+    params = None
+
+    def walk(x):
+        nonlocal params
+        if params is None and isinstance(x, dict):
+            p = x.get("Parameters")
+            if isinstance(p, list) and any(isinstance(q, dict) and q.get("name") == "team" for q in p):
+                params = p
+                return
+            for v in x.values():
+                walk(v)
+        elif params is None and isinstance(x, list):
+            for v in x:
+                walk(v)
+    walk(outil_tt)
+    if racine is None or params is None:
+        return ["racine de la rangée / paramètre team de l'écran Staff introuvable"]
+    for k in list(t.children(racine)):
+        t.remove(k)
+    t.sd(racine)["Parameters"] = [copy.deepcopy(q) for q in params if q.get("name") == "team"]
+    t.sd(racine)["Parameters_UxmlAttributeFlags"] = 1
+    t.elem(racine)["m_Classes"] = ["row-direction-normal", "align-items-center"]
+    # v38 : calée tout à droite de l'écran (prend la place libre de la ligne d'onglets, contenu au bout)
+    t.styles.style(t, racine, {"flex-grow": 1, "flex-shrink": 1, "min-width": 0, "justify-content": "flex-end",
+                               "margin-right": EQUIPES_DROITE})
+    c = ee.rangee(t, mx, racine, None, EQUIPES_REGLAGE, meme_club=True, guid=EQUIPES_BOUTON_GUID)
+    if c is None:
+        return ["morceaux de FM de la condition « équipe du club » introuvables"]
+    for r in t.walk():
+        n = t.name(r)
+        if n == ee.NOM_RACINE:
+            t.sd(r)["name"] = NOM_EQUIPES
+        elif n.startswith(ee.PREFIXE):
+            t.sd(r)["name"] = PREFIXE + "Equipes" + n[len(ee.PREFIXE):]
+    return ["boutons des équipes du club (équipe affichée surlignée), seulement pour le club du joueur"]
+
+
+def construire_bouton_equipe(t, src_bouton, mx):
+    """v38 (le joueur : « même type de bouton que ceux de gauche, en texte ») : ComponentElement (BindingExpect row +
+    équipe affichée) > 2 SIVisible (équipe affichée / autre) > copie du bouton d'onglet FM (navigation-tab-default-default,
+    classe --active-true / --active-false) ; texte = nom court de l'équipe, clic = Staff de l'équipe"""
+    s_onglet = ouvrir(EQUIPES_ONGLET)
+    racine = t.tt["m_VisualTree"]["rid"]
+    s_rac = src_bouton.tt["m_VisualTree"]["rid"]
+    comp = next((r for r in src_bouton.children(s_rac) if typ(src_bouton, r) == "ComponentElement"), None)
+    if comp is None or s_onglet is None:
+        return ["bouton d'onglet FM / composant du bouton d'équipe introuvable"]
+    so = s_onglet[3]
+    bouton = first(so, lambda r: typ(so, r) == "SIButton")
+    if bouton is None:
+        return ["bouton d'onglet FM introuvable"]
+    for k in list(t.children(racine)):
+        t.remove(k)
+    c = t.clone(comp, racine, src=src_bouton)
+    for k in list(t.children(c)):
+        t.remove(k)
+    no_styles(t, c)
+    t.elem(c)["m_Classes"] = ["row-direction-normal"]
+    t.sd(c)["name"], t.sd(c)["name_UxmlAttributeFlags"] = NOM_BOUTON_EQUIPE, 1
+    composants = [x["rid"] for x in t.sd(c).get("m_components") or []]
+    attente = next((x for x in composants if "BindingExpect" in t.refs[x]["type"]["class"]), None)
+    if attente is None:
+        return ["composant BindingExpect du bouton FM introuvable"]
+    autres = set(composants) - {attente}
+    t.sd(c)["m_components"] = [{"rid": attente}]
+    t.tt["references"]["RefIds"] = [r for r in t.tt["references"]["RefIds"] if r["rid"] not in autres]
+    for x in autres:
+        t.refs.pop(x, None)
+    params = t.refs[attente]["data"]["Parameters"]
+    row = next(p for p in params if p["name"] == "row")
+    equipe = copy.deepcopy(row)
+    equipe["name"], equipe["type"]["id"], equipe["isOptional"] = ee.PARAM_EQUIPE, ee.TYPE_EQUIPE, 1
+    params[:] = [row, equipe]
+    for e in (t.elem(r) for r in t.walk(c)):
+        for prop in e.get("m_Properties") or []:
+            if prop["name"] == "params":
+                prop["value"] = f"row:team:False,{ee.PARAM_EQUIPE}:team:True"
+    ev = evenement_ecran(ECRAN_STAFF, [("team", "row")])
+    for actif, op in ((True, 2), (False, 5)):   # 2 « = », 5 « ≠ »
+        b = make_binding(mx.s_vis.sd(mx.vis)["Binding"], op, ["row.UniqueId", f"{ee.PARAM_EQUIPE}.UniqueId"])
+        vis = new_visible(t, mx.s_vis, mx.vis, c, None, f"{PREFIXE}Equipe-{'affichee' if actif else 'autre'}", b)
+        t.sd(vis)["name_UxmlAttributeFlags"] = 1
+        t.styles.style(t, vis, {"margin-left": EQUIPES_ECART, "flex-shrink": 0})
+        x = t.clone(bouton, vis, src=so)
+        t.styles.copy_from(so.styles, t, x)
+        t.elem(x)["m_Classes"] = [k.replace("--active-false", f"--active-{'true' if actif else 'false'}")
+                                  for k in (t.elem(x).get("m_Classes") or [])]
+        sd = t.sd(x)
+        sd["name"], sd["name_UxmlAttributeFlags"] = f"{PREFIXE}Equipe-bouton", 1
+        sd["Events"]["m_bytes"] = list(ev)
+        sd["Events_UxmlAttributeFlags"] = 1   # v39 : sans, clic ignoré (v38 vu : boutons morts)
+        txt = next((r for r in t.walk(x) if typ(t, r) == "SIText"), None)
+        if txt is None:
+            return ["texte du bouton d'onglet FM introuvable"]
+        tb = t.sd(txt)["TextBinding"]
+        tb["m_kind"] = 1
+        tb["m_direct"]["Path"]["m_path"] = "row.TeamTypeStringTypeOnly"
+        tb["m_visualFunction"]["m_target"]["m_guid"] = ""
+        tb["m_visualFunction"]["m_inputs"]["m_variable"]["m_argumentBytes"] = []
+        t.sd(txt)["DebugDisplay"] = "UIPicker team"
+    return ["bouton d'équipe = onglet FM en texte (équipe affichée = onglet actif), clic = Staff de l'équipe"]
 
 
 # ---------- commandes ----------
-VISUELS = MODELES + [GRANDE, POSTES, CONTRATS]   # modèles UXML touchés
+VISUELS = MODELES + [GRANDE, POSTES, CONTRATS] + ([EQUIPES_RANGEE, EQUIPES_BOUTON] if EQUIPES else [])
 
 
 def cmd_appliquer():
@@ -1501,10 +1688,16 @@ def cmd_appliquer():
     blocs_ok = blocs_ok and any(actuels[POSTES][3].name(r) == NOM_BOUTONS for r in marques(actuels[POSTES][3]))
     blocs_ok = blocs_ok and (any(actuels[CONTRATS][3].name(r) == NOM_ONGLET for r in marques(actuels[CONTRATS][3]))
                              if DEFAUT_COTE else not marques(actuels[CONTRATS][3]))
+    if EQUIPES:
+        blocs_ok = blocs_ok and any(actuels[EQUIPES_RANGEE][3].name(r) == NOM_EQUIPES
+                                    for r in marques(actuels[EQUIPES_RANGEE][3]))
+        blocs_ok = blocs_ok and any(actuels[EQUIPES_BOUTON][3].name(r) == NOM_BOUTON_EQUIPE
+                                    for r in marques(actuels[EQUIPES_BOUTON][3]))
     # écran Staff : Vue d'ensemble d'origine (les versions à 6 tuiles la modifiaient : remise) ; onglets : données
     # ajoutées à la tuile du tableau si DEFAUT_COTE
     outil = actuels[OUTIL][2]
     outil_ok = not outil_a_jour(outil, id_vue) and outil_onglets_ok(outil, ids_onglets) == DEFAUT_COTE
+    outil_ok = outil_ok and outil_equipes(outil) == (EQUIPES_RANGEE_GUID if EQUIPES else "")
     if blocs_ok and outil_ok:
         print("staff FM24 : comparaisons : déjà appliqué")
     else:
@@ -1526,6 +1719,16 @@ def cmd_appliquer():
         if DEFAUT_COTE:
             msgs += [f"{CONTRATS} (onglets) : {x}" for x in construire_contrats(travail[CONTRATS][3], src, comparaisons)]
             msgs += [f"{OUTIL} : {x}" for x in construire_outil_onglets(travail[OUTIL][2], ids_onglets)]
+        if EQUIPES:
+            mx, src_b = ee.Morceaux(), ouvrir(ee.BOUTON_SOURCE)
+            if src_b is None or not mx.ok():
+                msgs.append("équipes : morceaux de FM (bouton, liste d'équipes) introuvables")
+            else:
+                msgs += [f"{EQUIPES_BOUTON} : {x}"
+                         for x in construire_bouton_equipe(travail[EQUIPES_BOUTON][3], src_b[3], mx)]
+                msgs += [f"{EQUIPES_RANGEE} : {x}"
+                         for x in construire_rangee_equipes(travail[EQUIPES_RANGEE][3], mx, travail[OUTIL][2])]
+                msgs += [f"{OUTIL} : {x}" for x in construire_outil_equipes(travail[OUTIL][2])]
         msgs += ["ancienne version remplacée"] if ancien else []
         for x in msgs:
             print(f"staff FM24 : {x}")
@@ -1598,7 +1801,8 @@ def cmd_etat():
             print(f"{m} : introuvable")
             continue
         t = o[3]
-        etat = ("à jour" if any(t.name(r) in (NOM_RACINE, NOM_GRANDE, NOM_BOUTONS, NOM_ONGLET) for r in marques(t))
+        etat = ("à jour" if any(t.name(r) in (NOM_RACINE, NOM_GRANDE, NOM_BOUTONS, NOM_ONGLET, NOM_EQUIPES,
+                                              NOM_BOUTON_EQUIPE) for r in marques(t))
                 else "ANCIENNE version")
         print(f"{m} : " + (f"appliqué ({etat}, v{VERSION})" if marques(t) else "d'origine"))
     o, id_vue, ids_onglets = ouvrir(OUTIL), id_ensemble_vue(), ids_ensembles_onglets()

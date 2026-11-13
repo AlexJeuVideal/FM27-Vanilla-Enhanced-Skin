@@ -52,9 +52,12 @@ FICHIERS = [
     "ui-panelids_assets_all.bundle",          # Kinito : kinito_vacances_jour (panneau des vacances)
     "ui-globalnavigation_assets_all.bundle",  # Kinito : kinito_calendrier_rencontres v3 (menu du Portail, déplacé là)
     "ui-visualfunctions_assets_all.bundle",   # club_amical v14 (fonction FM inutilisée réécrite, UIPickerSoustraction)
+    "initscene-assets_assets_all.bundle",     # match_vitesses (liste des vitesses du menu)
+    "scenes_scenes_initscene.bundle",         # match_vitesses (liste des vitesses du match)
+    "match-assets_assets_all.bundle",         # match_camera_limites v4 (limites des modes de caméra)
 ]
-# (scenes_scenes_initscene.bundle : écrit par essai_echelle_1080p v2 le 2026-11-12, abandonné le jour même ; retiré
-#  pour ne pas bloquer l'app sur une MAJ de FM qui ne toucherait qu'elle)
+# (scenes_scenes_initscene.bundle : écrit par essai_echelle_1080p v2 le 2026-11-12, abandonné le jour même : contenu
+#  identique à l'original, seule la compression change ; revenu le 2026-11-13 avec match_vitesses)
 # ceux où chaque ajout du skin laisse le mot « uipicker » (noms, classes, debug_name)
 # par nom, pas par rang : le partage n'a pas la ligne datacollections (rang 13 hors liste là-bas, 2026-11-12)
 MARQUABLES = [f for f in FICHIERS if f.startswith(("ui-visualtreeassets_", "ui-tableviews_", "ui-tablefactories_",

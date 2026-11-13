@@ -325,6 +325,16 @@ FONCTIONS = {
     "photos_match": dict(cat="match",
                          fr="Photos des joueurs : terrain du match et barre du bas",
                          en="Player photos: match pitch and bottom bar"),
+    # 2026-11-13, le joueur : Hauteur / Zoom de la caméra -20..20 (FM 0-10), molette comprise, Caméras TV débloquée
+    "match_camera_limites": dict(cat="match", facultatif=True,
+                                 fr="WIP Caméra du match : Hauteur et Zoom de -60 à 60 (au lieu de 0 à 10, molette "
+                                    "comprise), Hauteur aussi en Caméras TV",
+                                 en="WIP Match camera: Height and Zoom from -60 to 60 (instead of 0 to 10, mouse wheel "
+                                    "included), Height in TV Cameras too"),
+    # 2026-11-13, le joueur : x 1.4 entre 1.25 et 1.5 (liste dans les données de FM)
+    "match_vitesses": dict(cat="match", facultatif=True,
+                           fr="WIP Vitesse du match pendant les temps forts : cran x 1.4 ajouté (entre x 1.25 et x 1.5)",
+                           en="WIP Match speed during highlights: x 1.4 step added (between x 1.25 and x 1.5)"),
     # 2026-11-09 (le joueur) : validé en jeu (v5), pour la release v1.71
     "match_cartons_buts": dict(cat="match",
                                fr="Terrain du match : pastille du poste en jaune après un carton, buts et passes D "
@@ -572,6 +582,8 @@ OU = {
     "entrainement_individuel_equipes": _INDIV, "entrainement_individuel_boutons": _INDIV, "entrainement_pouces": _INDIV,
     "photos_tactiques": _TACT, "tactiques_forme_valeur": _TACT, "tactiques_boutons": _TACT,    "match_haut": ("Match en direct", "Live match"), "photos_match": ("Match en direct", "Live match"),
     "match_cartons_buts": ("Match en direct (formations)", "Live match (formations)"),
+    "match_camera_limites": ("Match en direct > Caméra", "Live match > Camera"),
+    "match_vitesses": ("Match en direct > Temps forts", "Live match > Highlights"),
     "rencontres_stade_spectateurs": ("Calendrier > Rencontres", "Calendar > Fixtures"),
     "recherches_ciblees": ("Recrutement > Recherches ciblées", "Scouting > Recruitment Focuses"),
     "connaissance_couleurs": ("Recrutement > Recrutement > tuile Connaissance du monde",
@@ -630,7 +642,7 @@ ORDRE_SKIN = [
     "colonne_temperament",   # après colonne_personnalite (placée après Personnalité) et recherches_ciblees
     "finances_tuile_unique", "graphes_finances",
     "graphes_attributs",
-    "hierarchie_pyramide", "photos_tactiques", "photos_match", "match_cartons_buts", "attributs_tout_cocher", "nation_drapeau_seul", "suspensions_noms_courts",
+    "hierarchie_pyramide", "photos_tactiques", "photos_match", "match_cartons_buts", "match_camera_limites", "match_vitesses", "attributs_tout_cocher", "nation_drapeau_seul", "suspensions_noms_courts",
     "tuile_forme", "fiche_ordre_tuiles", "tuile_carriere", "fiche_contexte_equipe",
     "moral_icone_seule",
     "rencontres_place_championnat",
@@ -751,6 +763,7 @@ AVEC_GURU = ["entete_fiche", "style_mediatique", "hors_defaut", "listes_pour_con
 
 # zones d'essai : jamais dans le choix 1, retirées au début du choix 1
 ESSAIS = ["essai_noms_installations", "essai_retour_entrainement", "essai_ids_attributs",
+          "essai_raccourcis_selections",   # 2026-11-13 : sonde des sous-entrées de Sélect. rapide (écran Effectif)
           "essai_valeurs_criteres",   # 2026-11-12 : valeur cachée des conditions de recherche (notes du staff ?)
           "essai_fiche_bas_bloc",     # 2026-11-12 : rangée du bas de la fiche en un bloc, sélecteurs gardés
           "essai_repos_effectif",     # 2026-10-30 : devenu effectif_repos_equipe ; gardé pour retirer l'essai

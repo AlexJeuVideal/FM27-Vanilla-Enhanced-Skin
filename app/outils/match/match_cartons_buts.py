@@ -47,6 +47,7 @@ TEXTE_STAT = "body-sm-strong"     # classe du nombre de buts / passes D (celle d
 TAILLE_STAT = 10                  # px du nombre (v4 : 11, body-sm de FM un peu trop gros ; v5 : 10)
 ECART = 2                         # px entre la pastille note | poste et les buts / passes D (v6 : collés à la pastille
                                   # au lieu du nom ; v4-v5 : RENTRE 8 px dans la marge à côté du nom)
+HAUT_NB = 11                      # px de la ligne du nombre, au-dessus de l'icône (v7 : empilés)
 # cartes : (modèle, chemin du joueur du match)
 CIBLES = [
     ("TacticsMatchPositionFilled", "Position.MatchPlayer"),
@@ -55,10 +56,11 @@ CIBLES = [
 # =====================================================================================================
 
 NOM = "UIPickerCartonsButs"
-VERSION = "uipicker-cartons-buts-v6"   # v2 : buts / passes D en pastilles sombres posées par-dessus (v1 cachés) ;
+VERSION = "uipicker-cartons-buts-v7"   # v2 : buts / passes D en pastilles sombres posées par-dessus (v1 cachés) ;
                                        # v3 : à gauche / à droite du nom, hors de la carte, sans fond ;
                                        # v4 : un peu plus petits (11 px), rentrés de 8 px ; v5 : 10 px ;
-                                       # v6 : remontés, collés à gauche / à droite de la pastille note | poste
+                                       # v6 : remontés, collés à gauche / à droite de la pastille note | poste ;
+                                       # v7 : nombre au-dessus de l'icône (moins large, plus de chevauchement)
 MARKER = os.path.join(backup.BACKUP_DIR, "match_cartons_buts.actif")
 GAUCHE = sm.PROPRIETES["left"][0]
 
@@ -124,15 +126,18 @@ def poser(t, joueur, s_int, v_int):
         nommer(t, vis, suffixe)
         t.styles.style(t, vis, {"position": "absolute", "top": 0, "bottom": 0, cote: {"unit": 2, "value": 100.0},
                                 f"margin-{cote}": ECART, "justify-content": "center"})
-        p = plain(t, vis, None, ["row-direction-always-normal", "align-items-center"])
+        # v7 (le joueur : « buts et passes D se chevauchent quand les joueurs sont proches ») : nombre AU-DESSUS,
+        #    icône dessous (colonne) = moitié moins large
+        p = plain(t, vis, None, ["column-direction-normal", "align-items-center"])
         t.elem(p)["m_RuleIndex"] = -1
         t.styles.style(t, p, {"flex-shrink": 0})
+        n = nombre(t, nom, p, chemin, suffixe + "-nb")
+        t.elem(n)["m_Classes"] = [TEXTE_STAT if c == TEXTE else c for c in t.elem(n)["m_Classes"]]
+        t.styles.style(t, n, {"margin-top": 0, "margin-left": 0, "font-size": TAILLE_STAT,
+                              "height": HAUT_NB, "padding-left": 0, "padding-right": 0})
         i = plain(t, p, None, [icone])
         t.elem(i)["m_RuleIndex"] = -1
         t.styles.style(t, i, {"width": ICONE, "height": ICONE, "flex-shrink": 0})
-        n = nombre(t, nom, p, chemin, suffixe + "-nb")
-        t.elem(n)["m_Classes"] = [TEXTE_STAT if c == TEXTE else c for c in t.elem(n)["m_Classes"]]
-        t.styles.style(t, n, {"margin-top": 0, "margin-left": 1, "font-size": TAILLE_STAT})
     # rien ne rogne entre la pastille et la racine de la carte (infos_cartes_terrain v3)
     r = rangee
     while r in t.parent and not typ(t, r).endswith("UXML"):

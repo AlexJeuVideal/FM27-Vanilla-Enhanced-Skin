@@ -6,6 +6,18 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v1.93 (13 novembre 2026)
+
+**Staff**
+- **Staff de toutes tes équipes en un clic** : dans Club > Staff, tout à droite de la ligne d'onglets, un onglet par équipe de ton club (équipe première, U20, U23…). Un clic ouvre le staff de cette équipe ; l'équipe affichée est mise en avant comme un onglet actif. Seulement pour les équipes de ton club.
+
+**Match**
+- **Caméra plus libre** (option à activer toi-même, catégorie Match) : Hauteur et Zoom de la caméra vont de -60 à 60 au lieu de 0 à 10, avec les curseurs comme avec la molette. La Hauteur marche aussi en Caméras TV.
+- **Vitesse x 1.4 pendant les temps forts** (option à activer toi-même, catégorie Match) : un cran de plus entre x 1.25 et x 1.5.
+- **Buts et passes décisives au-dessus du ballon** : sur le terrain du match, le nombre de buts et de passes D est placé au-dessus de l'icône, plus de chevauchement.
+- **Photo et maillot resserrés** : sur la compo du match et le résumé, la photo du joueur et son maillot sont collés l'un à l'autre.
+- **Cumul aller-retour dans le score** : en match retour, le cumul (ex. « 1 - 5 Cmb ») tient sur une ligne dans sa propre case, à la couleur du skin.
+
 ### v1.92 (13 novembre 2026)
 
 **Fiche joueur**
@@ -1060,6 +1072,18 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v1.93 (13 November 2026)
+
+**Staff**
+- **Staff of all your teams in one click**: in Club > Staff, at the far right of the tab row, one tab per team of your club (first team, U20, U23...). One click opens that team's staff; the team shown is highlighted like an active tab. Only for your club's teams.
+
+**Match**
+- **Freer camera** (option to turn on yourself, Match category): camera Height and Zoom go from -60 to 60 instead of 0 to 10, with the sliders as well as the mouse wheel. Height also works in TV Cameras.
+- **x 1.4 speed during highlights** (option to turn on yourself, Match category): one more step between x 1.25 and x 1.5.
+- **Goals and assists above the ball**: on the match pitch, the number of goals and assists sits above the icon, no more overlap.
+- **Photo and shirt closer together**: on the match line-up and the summary, the player's photo and shirt sit right next to each other.
+- **Aggregate score in the scoreboard**: in a second leg, the aggregate (e.g. "1 - 5 AGG") fits on one line in its own box, in the skin colour.
 
 ### v1.92 (13 November 2026)
 

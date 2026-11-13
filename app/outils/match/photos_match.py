@@ -23,7 +23,8 @@ import moteur_photos as mp  # noqa: E402
 #   chevauche   : px de photo et de maillot l'un sur l'autre (0 = côte à côte)
 #   remonter    : px de remontée de la photo (décalage visuel seul, la carte ne change pas de taille)
 #   decaler     : px de décalage du groupe photo + maillot vers la gauche (< 0) ou la droite (> 0)
-MATCH = dict(photo=32, maillot="dessous", chevauche=0, remonter=0)       # terrain du match : validé en jeu (v1)
+MATCH = dict(photo=32, maillot="dessous", chevauche=4, remonter=0)       # terrain du match : validé en jeu (v1) ;
+                                                                         # v19 : resserrés (buts / passes D dessous)
 #   maillot_px  : taille du maillot en px (None = celle de FM)
 #   centrer     : groupe photo + maillot centré dans sa zone, bas de la photo aligné sur le bas du maillot
 #               (avec centrer, remonter décale tout le groupe photo + maillot)
@@ -34,7 +35,8 @@ BARRE = dict(photo=46, maillot="dessus", chevauche=17, remonter=8,    # barre du
 #   ecart       : (maillot dessous) px entre la photo et le maillot
 # tuile Formation du résumé du match (2026-11-05, le joueur : têtes et maillots de 2 voisins se chevauchaient) :
 # plus petits, côte à côte avec un petit écart, centrés
-RESUME = dict(photo=26, maillot="dessous", chevauche=0, remonter=0, ecart=3, maillot_px=28, centrer=True)
+RESUME = dict(photo=26, maillot="dessous", chevauche=4, remonter=0, ecart=0, maillot_px=28, centrer=True)  # v19 : ecart 3
+                                                                         # -> 4 px l'un sur l'autre (resserrés)
 LOGOS_DESSUS = False         # (logos de rôle : tactiques seulement)
 # cartes touchées : (modèle, repère, chemin de la personne, réglages)
 #   repère "FMTacticsShirt" = le maillot sous #ShirtAndRoleMovements ; "#Shirt" = l'élément nommé Shirt
@@ -45,7 +47,7 @@ CIBLES = [
 ]
 # =====================================================================================================
 
-VERSION = 18  # v18 : tuile Formation du résumé (RESUME) ; v2 : photo des tactiques remontée, logos de rôle par-dessus ; v3 : photo sur le maillot, resserrée ;
+VERSION = 19  # v19 : terrain du match + résumé, photo et maillot resserrés (4 px l'un sur l'autre) ; v18 : tuile Formation du résumé (RESUME) ; v2 : photo des tactiques remontée, logos de rôle par-dessus ; v3 : photo sur le maillot, resserrée ;
               # v4 : barre du bas photo + maillot (photo dessus), remontée ; v5 : barre plus grande, centrée, bas alignés ;
               # tactiques un peu plus grandes ; v6 : barre, groupe remonté de 4 px ; v7 : 8 px, resserré (17) ;
               # v8 : tactiques, groupe décalé à gauche (logo de rôle de droite plus sur le maillot) ;
