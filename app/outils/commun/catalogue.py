@@ -63,9 +63,11 @@ FONCTIONS = {
     "style_mediatique": dict(cat="joueur_fiche",
                              fr="Style médiatique sous Personnalité, Réputation en bas, pieds écartés",
                              en="Media handling under Personality, Reputation last, feet spread out"),
-    "temperament_infos": dict(cat="joueur_fiche",   # 2026-11-13, validé ; pas dans la vue Guru (hors AVEC_GURU)
-                              fr="Logo du tempérament à droite de la personnalité, nom au survol",
-                              en="Mindset icon right of the personality, name on hover"),
+    "temperament_infos": dict(cat="joueur_fiche",   # 2026-11-13, validé ; jamais en vue Guru (hors AVEC_GURU)
+                              fr="Logo du tempérament à droite de la personnalité (fiche : nom au survol ; aussi "
+                                 "dans l'infobulle du joueur)",
+                              en="Mindset icon right of the personality (profile: name on hover; also in the "
+                                 "player tooltip)"),
     "hors_defaut": dict(cat="joueur_fiche",
                         fr="Options d'entraînement sous les attributs (s'il y a la place)",
                         en="Training options under the attributes (when there is room)"),
@@ -531,7 +533,8 @@ _INDIV = ("Entraînement > Individuel", "Training > Individual")
 _TACT = ("Tactiques", "Tactics")
 _TABLEAUX = ("Tableaux de joueurs (Effectif, recherche...)", "Player tables (Squad, search...)")
 OU = {
-    "entete_fiche": _FICHE, "style_mediatique": _FICHE, "temperament_infos": _FICHE, "hors_defaut": _FICHE, "fiche_joueur_plus": _FICHE,
+    "entete_fiche": _FICHE, "style_mediatique": _FICHE, "hors_defaut": _FICHE,
+    "temperament_infos": ("Fiche joueur, survol d'un joueur", "Player profile, hovering a player"), "fiche_joueur_plus": _FICHE,
     "listes_pour_contre": _FICHE, "suspensions_noms_courts": _FICHE, "attributs_tout_cocher": _FICHE,
     "graphes_attributs": _FICHE, "fiche_ordre_tuiles": _FICHE, "tuile_carriere": _FICHE,
     "tuile_blessures": _FICHE,
@@ -716,7 +719,8 @@ SUIVANTS = {
     # la tuile unique réécrit FinanceOverviewGraphsBlock depuis l'original : les points des courbes sont refaits dessus
     "finances_tuile_unique": ["graphes_finances"],
     # infobulle du joueur remise d'origine par infobulle_pieds : logos de Taille (tuile_forme) refaits dessus
-    "infobulle_pieds": ["tuile_forme"],
+    # + temperament_infos : sa ligne Média posée après tomberait dans notre rangée Personnalité de l'infobulle
+    "infobulle_pieds": ["tuile_forme", "temperament_infos"],
     # cartes du terrain du match refaites depuis l'original par photos_match : jaune / buts / passes D remis dessus
     "photos_match": ["match_cartons_buts"],
 }
@@ -743,6 +747,7 @@ BLOQUES_GURU = {
 # (+ tuiles du bas de la fiche, 2026-11-07, le joueur : ordre, État d'esprit / Condition, Stats carrière)
 AVEC_GURU = ["entete_fiche", "style_mediatique", "hors_defaut", "listes_pour_contre", "infobulle_pieds",
              "infobulle_pour_contre", "fiche_ordre_tuiles", "tuile_forme", "tuile_carriere"]
+# (temperament_infos : jamais en vue Guru, ni fiche ni infobulle, le joueur 2026-11-13)
 
 # zones d'essai : jamais dans le choix 1, retirées au début du choix 1
 ESSAIS = ["essai_noms_installations", "essai_retour_entrainement", "essai_ids_attributs",

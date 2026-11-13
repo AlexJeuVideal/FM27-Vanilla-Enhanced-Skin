@@ -2,6 +2,8 @@
 de « Personnalité » (suit sa longueur), calé sur la ligne du texte, nom au survol (infobulle de FM). Tous les modes.
 (v1-v5 : Medium / Small = titre + logo + nom à droite ; le joueur, 2026-11-13 : « le logo à droite de la perso
 c'est mieux », partout, taille FM gardée.)
+Aussi dans l'infobulle du joueur (survol, PlayerAttributesTooltipBlock, ligne Personnalité) : logo seul, sans nom au
+survol (une infobulle dans l'infobulle la ferme).
 Logo et nom recopiés du bloc FM PlayerInfoBlock_4x6 (MindsetFrame : Player.Mindset, IconSmall / Name).
 Pas dans la vue FM Guru (fonction hors AVEC_GURU : la vue Guru refait le gros bloc depuis l'original).
 
@@ -37,7 +39,10 @@ REMONTE = 1         # px : logo remonté. Mesures (milieu du logo / milieu des l
 VERSION = 7         # v6 : logo seul à droite de la perso dans tous les modes, taille FM, remonté ; v7 : 1 px au
                     # lieu de 3 (trop haut)
 ETIRE = "align-self-stretch-class"   # classe FM posée par v4 / v5 sur le conteneur de la ligne (retirée)
-MODELE = "PlayerAttributesLargeBlock"
+MODELE = "PlayerAttributesLargeBlock"     # fiche (aussi : source de l'infobulle de FM)
+INFOBULLE = "PlayerAttributesTooltipBlock"   # infobulle du joueur (survol), 2026-11-13 (le joueur)
+MODELES = {MODELE: True, INFOBULLE: False}   # modèle : nom au survol du logo
+# vue FM Guru : jamais posée, ni fiche ni infobulle (hors AVEC_GURU ; le joueur, 2026-11-13)
 SOURCE = "PlayerInfoBlock_4x6"            # bloc FM qui affiche déjà Tempérament (logo + nom)
 SOURCE_CADRE = "MindsetFrame"
 NOM = "UIPickerTemperamentInfos"          # v1-v5 : rangée [ligne Personnalité][Tempérament M / S] ; préfixe
@@ -78,7 +83,9 @@ def tooltip_source(t):
     return o[3], cherche(o[3])
 
 
-def construire(t):
+def construire(t, survol_nom=True):
+    """survol_nom : nom au survol du logo (fiche) ; pas dans l'infobulle du joueur (une infobulle dans l'infobulle
+    la ferme : piège vu avec les caractéristiques, infobulle_pieds v21)"""
     value, frame = sm.personality_row(t)
     if value is None:
         return ["ligne Personnalité introuvable, ignoré"]
@@ -105,12 +112,14 @@ def construire(t):
     img = t.clone(image_src, survol, src=s)                                                # changer la ligne
     no_styles(t, img)
     t.elem(img)["m_Classes"] = []
+    copy_usings(t, s, cadre)
+    if not survol_nom:
+        return ["logo du tempérament à droite de Personnalité"]
     bulle = t.clone(tip, survol, src=tip_s)
     no_styles(t, bulle)
     texte = t.children(bulle)[0]
     t.sd(texte)["name"] = ""
     t.sd(texte)["TextBinding"] = json.loads(json.dumps(s.sd(nom_src)["TextBinding"]))
-    copy_usings(t, s, cadre)
     return ["logo du tempérament à droite de Personnalité (nom au survol)"]
 
 
@@ -121,31 +130,36 @@ def a_jour(t):
             and any(sm.text_path_ends(t, k, "Personality") for k in t.children(ws[0])))
 
 
-def travail(t):
+def travail(t, modele):
     if a_jour(t):
         return []
     defaire(t)   # ancienne version, ou rangée recopiée par un autre script (ligne Média)
-    return construire(t)
+    return construire(t, survol_nom=MODELES[modele])
 
 
 def ecrire(fn):
-    bundle, obj, tt = nb.find_vta(MODELE)
-    if tt is None:
-        print(f"{MODELE} : introuvable (renommé par une mise à jour ?), ignoré")
-        return False
-    t = Tree(tt)
-    t.styles = Styles(bundle, tt)
-    msgs = fn(t)
-    for m in msgs:
-        print(f"{MODELE} : {m}")
-    if not msgs or all("ignoré" in m for m in msgs):
-        return False
-    t.finish()
-    t.styles.save()
-    obj.save_typetree(tt)
-    nb._dirty.add(bundle)
-    nb.save_all()
-    return True
+    """fn(t, modele) -> messages, sur chaque modèle de MODELES ; un seul enregistrement à la fin"""
+    change = False
+    for modele in MODELES:
+        bundle, obj, tt = nb.find_vta(modele)
+        if tt is None:
+            print(f"{modele} : introuvable (renommé par une mise à jour ?), ignoré")
+            continue
+        t = Tree(tt)
+        t.styles = Styles(bundle, tt)
+        msgs = fn(t, modele)
+        for m in msgs:
+            print(f"{modele} : {m}")
+        if not msgs or all("ignoré" in m for m in msgs):
+            continue
+        t.finish()
+        t.styles.save()
+        obj.save_typetree(tt)
+        nb._dirty.add(bundle)
+        change = True
+    if change:
+        nb.save_all()
+    return change
 
 
 def cmd_appliquer():
@@ -157,7 +171,7 @@ def cmd_appliquer():
 
 
 def cmd_retirer():
-    def fn(t):
+    def fn(t, modele):
         if not wrappers(t):
             return []
         defaire(t)
@@ -169,10 +183,11 @@ def cmd_retirer():
 
 
 def cmd_etat():
-    _, _, tt = nb.find_vta(MODELE)
-    ws = [] if tt is None else wrappers(Tree(tt))
-    print(f"{MODELE} : " + ("introuvable" if tt is None else
-                            f"tempérament dans Infos : {'oui' if ws else 'non'}"))
+    for modele in MODELES:
+        _, _, tt = nb.find_vta(modele)
+        ws = [] if tt is None else wrappers(Tree(tt))
+        print(f"{modele} : " + ("introuvable" if tt is None else
+                                f"tempérament dans Infos : {'oui' if ws else 'non'}"))
     print("réapplication automatique après mise à jour (menu, choix 1) :", "oui" if os.path.exists(MARKER) else "non")
 
 

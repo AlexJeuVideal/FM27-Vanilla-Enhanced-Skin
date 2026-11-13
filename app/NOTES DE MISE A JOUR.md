@@ -6,6 +6,15 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v1.92 (13 novembre 2026)
+
+**Fiche joueur**
+- **Logo du tempérament aussi dans l'infobulle** : au survol d'un joueur, le logo de son Tempérament est maintenant collé à droite de sa Personnalité, comme sur la fiche. (Pas avec la vue FM Guru.)
+
+**Tableaux**
+- **Colonne Tempérament (logo)** : dans Insérer colonne > Infos générales, juste après Tempérament, une version logo seul en colonne étroite, pour gagner de la place.
+- **Vues d'AlexJeuVideal mises à jour** : nouvelles versions des vues Effectif et Tactique (Vue d'ensemble). Si tu as modifié une de ces vues toi-même, elle est gardée telle quelle.
+
 ### v1.91 (13 novembre 2026)
 
 **Fiche joueur**
@@ -1051,6 +1060,15 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v1.92 (13 November 2026)
+
+**Player profile**
+- **Mindset icon in the tooltip too**: when hovering a player, their Mindset icon now sits right of their Personality, like on the profile. (Not with the FM Guru view.)
+
+**Tables**
+- **Mindset (icon) column**: in Insert column > General info, right after Mindset, an icon-only version in a narrow column, to save space.
+- **AlexJeuVideal views updated**: new versions of the Squad and Tactics (Overview) views. If you changed one of these views yourself, yours is kept as it is.
 
 ### v1.91 (13 November 2026)
 

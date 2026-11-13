@@ -2064,5 +2064,6 @@
 "{} ressortie sous la ligne Personnalité / Tempérament": "{} moved out under the Personality / Mindset row",
 "Tempérament à droite de Personnalité (Medium / Small : titre + logo + nom ; Large : logo collé au texte, nom au survol)": "Mindset next to Personality (Medium / Small: title + icon + name; Large: icon next to the text, name on hover)",
 "logo du tempérament à droite de Personnalité (nom au survol)": "mindset icon right of Personality (name on hover)",
-"logo / nom du tempérament ou infobulle de FM introuvables, ignoré": "mindset icon / name or FM tooltip not found, skipped"
+"logo / nom du tempérament ou infobulle de FM introuvables, ignoré": "mindset icon / name or FM tooltip not found, skipped",
+"logo du tempérament à droite de Personnalité": "mindset icon right of Personality"
 }
