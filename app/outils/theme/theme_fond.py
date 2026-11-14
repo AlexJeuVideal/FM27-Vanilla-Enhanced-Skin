@@ -13,12 +13,13 @@ Usage (jeu fermé) :
   .venv\\Scripts\\python.exe outils\\theme\\theme_fond.py retirer       (fond violet d'origine)
   .venv\\Scripts\\python.exe outils\\theme\\theme_fond.py etat
 """
+import colorsys
 import json
 import os
 import sys
 
 import UnityPy
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageOps
 from UnityPy.enums import TextureFormat
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "commun"))
@@ -253,7 +254,12 @@ SITES = ("FigmaBaseSiteTemplate", "FigmaBaseSiteMultiGridTemplate",
 # 2026-11-14 (le joueur : « interview bord du terrain / presse ou autre : un fond uni, faut pas ») : GameWorldBackground
 # = fond général ; FM y montre game.BackgroundImage (sièges des interviews…) ou la 3D (Use3DBackground) ; notre image
 # fixe cachait les sièges -> cadre de FM. PAS VU : vérifier aussi que les pages gardent le fond du thème.
-HORS_THEME = ("PressConferenceDynamicCard", "PressConferenceSingleQuestionDynamicCard", "GameWorldBackground")
+# 2026-11-14 (capture du joueur, FM sans skin) : Préférences ouvertes du menu principal = menu + vestiaire 3D visibles
+# derrière ; chez nous fond uni plein : le cadre plein écran FigmaFullscreenBlockTemplate recevait notre image FIXE
+# (toujours opaque) ; FM y lit game.BackgroundImage (rien au menu principal = transparent ; en partie = fond des pages,
+# déjà repeint) -> cadre de FM
+HORS_THEME = ("PressConferenceDynamicCard", "PressConferenceSingleQuestionDynamicCard", "GameWorldBackground",
+              "FigmaFullscreenBlockTemplate")
 # écrans de match : ils incluent un modèle de base partagé (FigmaBaseTool*) ; leur surcharge du cadre de ce modèle
 # (m_SerializedDataOverride, créée si absente) reçoit le cadre d'origine de FM, le reste du jeu garde notre fond
 CARTES_MATCH = {"MatchPreviewCard": "FigmaBaseToolTemplate",
@@ -462,6 +468,46 @@ def fond_portail(mode):
         nb._dirty.add(bundle)
 
 
+# ESSAI vide (2026-11-14, le joueur : « je veux du vide derrière les Préférences, pas une couleur unie ») : image du
+# fond général GameWorldBackground à opacité 0, pour voir ce qu'il y a dessous (l'écran du jeu ou du noir). Commande
+# essai-vide ; tout appliquer normal (cadres) l'enlève (feuille de style d'origine du modèle remise)
+ESSAI_VIDE_CLASSE = "uipicker-essai-vide-v1"
+
+
+def essai_vide(actif):
+    arbre = _arbre()
+    bundle, obj, tt = nb.find_vta(FOND_GENERAL)
+    if tt is None:
+        print(f"{FOND_GENERAL} : introuvable, essai ignoré")
+        return
+    t = arbre.Tree(tt)
+    st = arbre.Styles(bundle, tt)
+    avant = json.dumps(tt, sort_keys=True)
+    img = [r for r in t.walk() if t.name(r) == "background_image"]
+    if actif and img:
+        arbre.PROPRIETES.setdefault("opacity", (458767, 2))
+        e = t.elem(img[0])
+        if ESSAI_VIDE_CLASSE not in (e.get("m_Classes") or []):
+            e["m_Classes"] = list(e.get("m_Classes") or []) + [ESSAI_VIDE_CLASSE]
+        st.style(t, img[0], {"opacity": 0})
+    else:
+        for r in t.walk():
+            e = t.elem(r)
+            if ESSAI_VIDE_CLASSE in (e.get("m_Classes") or []):
+                e["m_Classes"] = [c for c in e["m_Classes"] if c != ESSAI_VIDE_CLASSE]
+                orig = backup_original_feuille(bundle, obj)
+                if orig is not None:
+                    st.sh, st.changed = orig, True
+                    e["m_RuleIndex"] = -1
+    t.finish()
+    st.save()
+    if json.dumps(tt, sort_keys=True) != avant or st.changed:
+        print(f"{FOND_GENERAL} : " + ("ESSAI vide (image invisible)" if actif else "essai vide retiré"))
+        obj.save_typetree(tt)
+        nb._ecrits[(bundle, obj.path_id)] = tt
+        nb._dirty.add(bundle)
+
+
 def cadres(mode):
     """mode "portail" : voir PAGES_CLUB ; tout autre réglage = "origine" (cadres de FM)"""
     mode_pages = mode if mode == "portail" else "origine"
@@ -485,6 +531,7 @@ def cadres(mode):
         nb._dirty.add(bundle)
     cartes_match(mode_pages)
     fond_portail(mode_pages)
+    essai_vide(False)   # retire l'essai vide s'il est posé
     nb.save_all()
 
 
@@ -502,19 +549,76 @@ def infobulles(rgb):
     couleurs_interface.ecrire_styles(rgb)
 
 
+# fonds plein écran en plus des « *skin* » (le joueur, 2026-11-14 : « tous les fonds in game du portail = couleur du
+# skin ») : fond générique de FM27 (bundle des fonds) et, dans ui-backgrounds_assets_common, fond sombre à motif et fond
+# des tournois internationaux. Les scènes en ovale (vestiaires, presse, et leurs versions Premier League / UEFA…) :
+# jamais (règle du joueur : images propres à un écran).
+# fm27-background-texture (trait pointillé en bas) retirée (le joueur, 2026-11-14) : image des chargements / derrière
+# les Préférences, doit rester celle de FM
+FONDS_EN_PLUS = ("dynamic-pattern-dark-texture", "international-tournament-default")
+_COMPET = []   # [image, format] posés par peindre() (mode couleur), repris pour ui-backgrounds_assets_common
+
+
+def peindre_competitions(tex, exclus=()):
+    """fonds de compétition / fonds plein écran de {nom: Texture2D} = image de peindre() ; renvoie le nombre"""
+    if not _COMPET:
+        return 0
+    im, fmt = _COMPET
+    n = 0
+    for nom, tc in tex.items():
+        if ("skin" in nom.lower() or nom in FONDS_EN_PLUS) and nom not in exclus:
+            tc.set_image(im, target_format=fmt, mipmap_count=1)
+            tc.save()
+            n += 1
+    return n
+
+
+# image des chargements (et derrière les Préférences en partie) : fond sombre + pointillé lumineux. Le joueur
+# (2026-11-14) : « dans la couleur du skin, pas trop forte, on la voit en majorité », « juste elle ». Dégradé de
+# luminosité : sombre = couleur du fond, pointillé = même teinte plus claire (CHARGEMENT_S / _V), dessin et halo gardés.
+CHARGEMENT = "fm27-background-texture"
+CHARGEMENT_S, CHARGEMENT_V = 0.55, 0.72
+
+
+def chargement(tex, rgb):
+    t = tex.get(CHARGEMENT)
+    if t is None:
+        print(f"{CHARGEMENT} : introuvable (le jeu a changé ?), image des chargements laissée")
+        return
+    h = colorsys.rgb_to_hsv(*(c / 255 for c in rgb))[0]
+    clair = tuple(round(c * 255) for c in colorsys.hsv_to_rgb(h, CHARGEMENT_S, CHARGEMENT_V))
+    lum = ImageOps.autocontrast(t.image.convert("L").resize((1920, 1080), Image.LANCZOS), cutoff=0.2)
+    im = ImageOps.colorize(lum, black=tuple(rgb), white=clair)
+    t.set_image(im, target_format=TextureFormat.DXT1, mipmap_count=1)
+    t.save()
+    print("image des chargements : à la couleur du fond")
+
+
 def peindre(tex, rgb):
     """textures du fond {nom: Texture2D} (lues dans l'original) peintes dans la couleur rgb ; appelé par
     fonds_jeu.ecrire(), seul écrivain du bundle des fonds (partagé avec le stade générique de club_page_bas)"""
     if CIBLE not in tex or SOURCE not in tex:
         sys.exit("images de fond introuvables (le jeu a changé ?)")
+    _COMPET[:] = []
     t = tex[CIBLE]
     if lisse():   # couleur unie : petite image non compressée (DXT1 décalait la couleur : #17181B -> 16,24,24)
         # RGBA32 : seul format non compressé du moteur Rust de l'app (RGB24 refusé)
-        t.set_image(Image.new("RGBA", (64, 36), tuple(rgb) + (255,)), target_format=TextureFormat.RGBA32,
-                    mipmap_count=1)
+        im, fmt = Image.new("RGBA", (64, 36), tuple(rgb) + (255,)), TextureFormat.RGBA32
     else:
-        t.set_image(fond(tex[SOURCE].image, rgb).convert("RGB"), target_format=TextureFormat.DXT1, mipmap_count=1)
+        im, fmt = fond(tex[SOURCE].image, rgb).convert("RGB"), TextureFormat.DXT1
+    t.set_image(im, target_format=fmt, mipmap_count=1)
     t.save()
+    chargement(tex, rgb)
+    # v2026-11-14 (retour Discord : « problème sur les compétitions sous licence, FA Cup OK ») : FM remplit
+    # game.BackgroundImage avec le fond de la compétition quand elle en a un (fm27_skin_epl, _bundesliga, _uefa-ucl…,
+    # même bundle) -> portail / pages sur ce fond officiel. Mode couleur : toutes ces images = notre fond.
+    # Pas fm27_skin_blended (pages de club, SOURCE) ni la texture du stade générique (club_page_bas).
+    if PAGES_CLUB == "portail":
+        if fmt == TextureFormat.DXT1:   # 32 images en 4096 px = +150 Mo : 1920 px suffisent (fond flou, plein écran)
+            im = im.resize((1920, 1080), Image.LANCZOS)
+        _COMPET[:] = [im, fmt]
+        n = peindre_competitions(tex, exclus=(CIBLE, SOURCE, "caraboa-cup-skin-test-min"))
+        print(f"fonds des compétitions sous licence : {n} à la couleur du fond")
     if PAGES_CLUB in ("noir", "transparent"):   # image des pages de club, que FM recolore aux couleurs du club
         b = tex[SOURCE]
         alpha = 0 if PAGES_CLUB == "transparent" else 255
@@ -587,6 +691,9 @@ def main(argv):
         CHOIX2 = argv[2].strip()
     if op == "appliquer":
         cmd_appliquer()
+    elif op == "essai-vide":   # ESSAI : image du fond général invisible (marqueur pas touché ; appliquer l'enlève)
+        essai_vide(True)
+        nb.save_all()
     elif op == "liste":
         print(liste())
     elif op == "apercu":

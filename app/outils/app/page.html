@@ -941,10 +941,11 @@ const TXT = {
   cToucheDeux: ["2 couleurs", "2 colours"],
   cToucheLong: ["Longueur", "Length"],
   cToucheForce: ["Force", "Strength"],
-  cOmbrage: ["Ombrage derrière les fenêtres (Traitement)", "Shading behind windows (Processing)"],
-  cOmbrageAide: ["Pendant les changements de jour (fenêtre « Traitement ») et dans les options caméra du match, FM assombrit le jeu derrière la fenêtre. Ce réglage choisit à quel point : 0 % = le jeu bien visible, 100 % = le jeu caché. FM de base : 65 %. Pour tous les thèmes.",
-    "While the days go by (\"Processing\" window) and in the match camera options, FM darkens the game behind the window. This setting chooses how much: 0% = game fully visible, 100% = game hidden. FM default: 65%. For every theme."],
-  cOmbrageFM: ["65 % (FM)", "65% (FM)"],
+  cOmbrage: ["Ombrage derrière les fenêtres (Traitement, Préférences, match)", "Shading behind windows (Processing, Preferences, match)"],
+  cOmbrageAide: ["Fond sombre derrière les fenêtres posées sur le jeu (Traitement entre les jours, Préférences, options du match). « Fond vide » (choix de base, tous les thèmes) : pas d'ombre, on voit le jeu derrière. « Gérer l'opacité » : ton réglage partout, de 0 % (jeu bien visible) à 100 % (jeu caché) ; FM : 65 %.",
+    "Dark background behind the windows shown over the game (Processing between days, Preferences, match options). \"Empty background\" (default, every theme): no shading, you see the game behind. \"Manage opacity\": your setting everywhere, from 0% (game fully visible) to 100% (game hidden); FM: 65%."],
+  cOmbrageFM: ["Fond vide (de base)", "Empty background (default)"],
+  cOmbrageGerer: ["Gérer l'opacité moi-même", "Manage opacity myself"],
   cPolygone: ["Polygone de la fiche joueur", "Player profile polygon"],
   cPolygoneAide: ["Couleur des polygones d'attributs (fiche joueur, infobulle, rapports) : trait fin, remplissage léger (l'opacité règle le remplissage, pas le trait). La toile derrière reste celle de FM.",
     "Colour of the attribute polygons (player profile, tooltip, reports): thin line, light fill (opacity sets the fill, not the line). The web behind stays FM's."],
@@ -3478,20 +3479,35 @@ function appliquerTheme() {
 // opacité en % du fond sombre de FM (couleurs_interface clé « ombrage ») ; null = 65 % de FM, pour tous les thèmes ; pas
 // une clé des thèmes (gardé quand on en prend un), envoyé avec « Appliquer le thème » et « Appliquer » des couleurs
 const OMBRAGE_FM = 65;
+// 2026-11-14 (le joueur : « un bouton comme FM de base, coché pour tous les thèmes » + « un autre qui active l'opacité ») :
+// case « Comme FM de base » (null : rien écrit, FM décide : ombré au Traitement / Préférences, rien en match) ou case
+// « Gérer l'opacité » (nombre, même 65 : écrit partout) ; les deux s'excluent, le curseur n'apparaît qu'avec la 2e
 function ligneOmbrage() {
   const b = brouillonBarres || {};
   const actuelO = E.couleurs?.ombrage;
   const v = typeof b.ombrage === "number" ? b.ombrage : OMBRAGE_FM;
   const val = el("span", { class: "val" }, `${v} %`);
   const c = el("input", { type: "range", min: 0, max: 100, step: 5, value: v, "aria-label": t("cOmbrage") });
-  c.addEventListener("input", () => { const n = Number(c.value); b.ombrage = n === OMBRAGE_FM ? null : n; val.textContent = `${n} %`; });
-  const base = el("button", { class: "bouton", onclick: () => { b.ombrage = null; c.value = OMBRAGE_FM; val.textContent = `${OMBRAGE_FM} %`; } }, t("cOmbrageFM"));
+  const caseFM = el("input", { type: "checkbox", checked: typeof b.ombrage !== "number" });
+  const caseGerer = el("input", { type: "checkbox", checked: typeof b.ombrage === "number" });
+  const regl = el("div", { class: "touche-regl", style: typeof b.ombrage === "number" ? "" : "display:none" },
+    el("span", {}, "0 %"), c, val);
+  const gerer = oui => {
+    caseFM.checked = !oui; caseGerer.checked = oui;
+    b.ombrage = oui ? Number(c.value) : null;
+    regl.style.display = oui ? "" : "none";
+  };
+  caseFM.addEventListener("change", () => gerer(!caseFM.checked));
+  caseGerer.addEventListener("change", () => gerer(caseGerer.checked));
+  c.addEventListener("input", () => { b.ombrage = Number(c.value); val.textContent = `${c.value} %`; });
   return el("div", { class: "ligne-couleur pleine", style: "margin-top:14px" },
     el("label", { class: "etiquette" }, t("cOmbrage"),
       typeof actuelO === "number" ? el("span", { class: "badge ambre", style: "margin-left:8px" }, `${actuelO} % · ${t("pasLeChoixDeBase")}`)
-        : el("span", { class: "badge vert", style: "margin-left:8px" }, `${OMBRAGE_FM} % · ${t("deBase")}`)),
+        : el("span", { class: "badge vert", style: "margin-left:8px" }, `${t("cOmbrageFM")} · ${t("deBase")}`)),
     el("div", { class: "aide" }, t("cOmbrageAide")),
-    el("div", { class: "touche-regl" }, el("span", {}, "0 %"), c, val), el("div", { style: "margin-top:8px" }, base));
+    el("label", { class: "case" }, caseFM, t("cOmbrageFM")),
+    el("label", { class: "case" }, caseGerer, t("cOmbrageGerer")),
+    regl);
 }
 
 // polygone de la fiche joueur (2026-11-14, le joueur : maquette D, trait 1,5 ; rangé dans Panneaux / tuiles / menus /

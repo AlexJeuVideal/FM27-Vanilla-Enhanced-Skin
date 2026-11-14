@@ -43,6 +43,7 @@ FICHIERS = [
     "ui-visualtreeassets_assets_matchvisualtreeassetpreload.bundle",
     "ui-tileslayouts_assets_all.bundle",
     "ui-backgrounds_assets_.bundle",
+    "ui-backgrounds_assets_common.bundle",   # theme_fond (fonds des compétitions, 2e lot), écrivain : fonds_jeu
     "ui-styles_assets_common.bundle",
     "ui-styles_assets_default.bundle",
     "ui-tableviews_assets_all.bundle",

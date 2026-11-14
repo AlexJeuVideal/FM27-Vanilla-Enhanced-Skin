@@ -164,17 +164,18 @@ SURBRILLANCE_CONTRASTE = 2.5
 # essai 2 VU : cadre Causerie + options du match = --layout-surfaces-cards-surface (tuiles). v19 (règle
 # « .sicard-container-large .figma-base-card-template-inner-frame ») : PAS pris en match / Traitement.
 # essai 3 : règles « ancêtre descendant » ajoutées, une couleur par paire (ESSAI_DESCENDANTS) ; rien sur ESSAI_FENETRES
+# essai 5 (2026-11-14, Préférences : fond plein écran sombre, barre du haut cachée, même après v25 « sipopup vide ») :
+# rien de coloré = pas une règle de style (alors l'image de fond / le cadre de l'écran)
+# essai 5 VU : tout rouge (Préférences = .sicard-container-large, = Traitement / options du match)
+# essai 6 (2026-11-14) : ce plein écran TRANSPARENT : ce qui reste sombre derrière les Préférences est dessous
+# (fond de page à la couleur du thème si FM cache l'écran, sinon le jeu réapparaît)
+# essai 6 VU en match (le joueur) : plus d'ombre = normal -> v26 (OMBRAGE_BASE = 0)
+# essai 8 (2026-11-14, Préférences toujours pleines ; GameWorldBackground écarté) : fond des cartes (v20 opaque) en vert
+# essai 8 VU : rien de vert (ni le fond ni les cases) -> pas cette variable
 ESSAI_FENETRES = {}
-# (ancêtre ou None, classe, couleur, même élément ?) ; essai 4 (2026-11-14) : boutons du menu principal (v22 / v23
-# sans effet, pixels identiques). Règles posées dans MENU_FEUILLES
-ESSAI_DESCENDANTS = [(None, "buttons-button-secondary-default", "#FF0000", False),                          # rouge
-                     (None, "main-menu-button-container", "#0040FF", False),                                # bleu
-                     (None, "mainmenu-headerbar", "#00E040", False),                                        # vert
-                     ("main-menu-button-container", "buttons-button-secondary-default", "#FFD000", False),  # jaune
-                     (None, "button-secondary-label", "#FF00FF", False)]                                    # magenta
-ESSAI_FENETRES_TEXTE = ("ESSAI 4 (menu principal) : rouge = .buttons-button-secondary-default (partout), bleu = "
-                        ".main-menu-button-container, vert = .mainmenu-headerbar, jaune = .main-menu-button-container "
-                        ".buttons-button-secondary-default, magenta = .button-secondary-label")
+# (ancêtre ou None, classe, couleur, même élément ?) ; essai 4 (2026-11-14, menu principal, sans effet) retiré
+ESSAI_DESCENDANTS = []
+ESSAI_FENETRES_TEXTE = ("ESSAI 8 (Préférences) : vert = var --layout-surfaces-cards-surface (fond des cartes)")
 # ESSAI (2026-10-31, Kiliwick : terrain qui reste gris avec Ardoise quoi qu'on choisisse) : quel élément fait vraiment
 # la pelouse ? Commande essai-pelouse = styles seuls, chaque candidat dans une couleur vive (règle d'une seule classe ou
 # variable) ; retour normal : toute autre écriture des couleurs (si-actif, app, choix 1)
@@ -229,10 +230,15 @@ PANNEAUX_VARIABLE = "--midnight-alpha-65"
 # TOUT l'écran : FM = sombre à 65 % = l'ombrage sur le jeu. Recolorée opaque, elle cachait le jeu. Le joueur : « comme
 # le FM de base PARTOUT » -> jamais recolorée par les panneaux ; son opacité = clé « ombrage » (OMBRAGE_*)
 PANNEAUX_EXCLUS = ("overlay", "--dimmed", "sicard-container-large")
+# 2026-11-14 (ESSAI panneaux VU : orange = « report-container , tool-container » d'AlwaysAppliedStyleSheet = fond plein
+# écran derrière les Préférences, opaque chez nous, voile à 65 % chez FM qui laisse voir le jeu) : ces règles prennent
+# la couleur des panneaux à l'opacité de FM (65 %, x l'opacité choisie)
+PANNEAUX_VOILES = ("report-container",)
 # ombrage (2026-11-14, le joueur) : opacité en % du fond sombre de FM derrière les fenêtres par-dessus le jeu
 # (Traitement entre les jours, options caméra) ; None = celle de FM (65 %), la couleur reste celle de FM
 OMBRAGE_SELECTEUR = "sicard-container-large"
 OMBRAGE_RGB, OMBRAGE_FM = (0x0A, 0x0F, 0x1E), 65
+OMBRAGE_BASE = 0   # v26 : sans choix = fond vide (transparent)
 # v19 (2026-11-14, essais fenêtres 1 et 2, le joueur : « fonds secondaires toujours ombrés comme le passage entre les
 # jours », « branche tous les thèmes ») : en match, le fond plein écran restait clair (var(--midnight-alpha-65) pas
 # résolue là, supposé) -> ombrage toujours écrit en couleur (OMBRAGE_FM si pas choisi), dès que les couleurs sont
@@ -735,21 +741,50 @@ def _menus(tt, rgb, a=1.0):
     return n + _fonds_selecteurs(tt, MENUS_SELECTEURS, rgb, a)
 
 
+# ESSAI panneaux (2026-11-14, Préférences : fond uni #1B1022 = couleur des grands panneaux, opaque) : chaque règle
+# recolorée par _panneaux = sa propre couleur vive (liste numérotée affichée) ; commande essai-panneaux
+ESSAI_PANNEAUX = []   # [n° , couleur, sélecteurs] remplis pendant l'essai ; None = pas d'essai
+_ESSAI_PANNEAUX_ON = False
+
+
+ESSAI_PANNEAUX_COULEURS = [(255, 0, 0), (0, 200, 0), (0, 80, 255), (255, 220, 0), (255, 0, 255), (0, 230, 230),
+                           (255, 130, 0), (255, 255, 255), (140, 70, 20), (130, 255, 130)]
+
+
+def _couleur_essai(i):   # rouge, vert, bleu, jaune, magenta, cyan, orange, blanc, marron, vert clair
+    return ESSAI_PANNEAUX_COULEURS[(i - 1) % len(ESSAI_PANNEAUX_COULEURS)]
+
+
 def _panneaux(tt, rgb, a=1.0):
     """fond des règles dont le fond est var(PANNEAUX_VARIABLE), sauf voiles (PANNEAUX_EXCLUS) ; renvoie le nombre"""
     n = 0
     chaines = tt.get("strings") or []
+
+    def couleur(nom):
+        if not _ESSAI_PANNEAUX_ON:
+            return _rgba(tt, rgb, a)
+        i = len(ESSAI_PANNEAUX) + 1
+        c = _couleur_essai(i)
+        ESSAI_PANNEAUX.append((i, "#%02X%02X%02X" % c, nom))
+        return _rgba(tt, c, 1.0)
+
     for rule in tt.get("m_Rules") or []:
         for p in rule["m_Properties"]:   # variables des blocs (définies dans :root)
             if (p.get("m_Name") or p.get("m_CustomName") or "") in PANNEAUX_VARIABLES:
-                p["m_Values"] = [{"m_ValueType": 4, "valueIndex": _rgba(tt, rgb, a)}]
+                p["m_Values"] = [{"m_ValueType": 4, "valueIndex": couleur("var " + str(p.get("m_Name") or
+                                                                                     p.get("m_CustomName")))}]
                 n += 1
         if any(x in str(v) for s in _selecteurs(rule) for v in s for x in PANNEAUX_EXCLUS):
             continue
+        voile = any(x in str(v) for s in _selecteurs(rule) for v in s for x in PANNEAUX_VOILES)
         for p in rule["m_Properties"]:
             if p["m_Id"] == FOND_ID and any(v["m_ValueType"] == 8 and v["valueIndex"] < len(chaines)
                                             and chaines[v["valueIndex"]] == PANNEAUX_VARIABLE for v in p["m_Values"]):
-                p["m_Values"] = [{"m_ValueType": 4, "valueIndex": _rgba(tt, rgb, a)}]
+                if voile and not _ESSAI_PANNEAUX_ON:   # plein écran : transparence de FM gardée
+                    p["m_Values"] = [{"m_ValueType": 4, "valueIndex": _rgba(tt, rgb, a * TUILES_PANNEAU_ALPHA)}]
+                else:
+                    p["m_Values"] = [{"m_ValueType": 4, "valueIndex": couleur(" , ".join(
+                        " ".join(map(str, s)) for s in _selecteurs(rule)))}]
                 n += 1
     return n
 
@@ -875,6 +910,41 @@ def _essai_fenetres(tt):
     return n
 
 
+# v25 (2026-11-14, le joueur : « je veux juste que ce soit vide le fond ») : plein écran .sipopup-container (bleu de
+# l'essai fenêtres : derrière les Préférences, « Passer au match ? ») = transparent, tous thèmes, même sans couleur
+# choisie. Séparé de la règle partagée avec .sicard-container-large (Traitement / options du match : clé ombrage).
+# ANNULÉ (essai 5 VU : les Préférences = .sicard-container-large, pas .sipopup-container ; le joueur : « comme FM de
+# base », Préférences un peu ombrées, match jamais) -> vide = rien touché, FM d'origine
+POPUP_VIDE = ()
+
+
+def _popup_vide(tt):
+    """fond des sélecteurs POPUP_VIDE -> transparent (séparés de leur règle si elle est partagée) ; renvoie le nombre"""
+    n = 0
+    regles = tt.get("m_Rules") or []
+    for rule in list(regles):
+        css = rule.get("m_ComplexSelectors") or []
+        cles = [tuple(p["m_Value"] for s in cs["m_Selectors"] for p in s["m_Parts"]) for cs in css]
+        for cs, k in zip(list(css), cles):
+            if k not in POPUP_VIDE:
+                continue
+            props = [p for p in rule["m_Properties"] if p["m_Id"] == FOND_ID]
+            if not props:   # règle sans fond (états d'ouverture / fondu) : pas concernée
+                continue
+            r = rule
+            if len(rule["m_ComplexSelectors"]) > 1:   # copie avec ce seul sélecteur, ajoutée à la fin
+                rule["m_ComplexSelectors"] = [c for c in rule["m_ComplexSelectors"] if c is not cs]
+                r = copy.deepcopy(rule)
+                r["m_ComplexSelectors"] = [copy.deepcopy(cs)]
+                r["m_ComplexSelectors"][0]["ruleIndex"] = len(regles)
+                regles.append(r)
+            for p in r["m_Properties"]:
+                if p["m_Id"] == FOND_ID:
+                    p["m_Values"] = [{"m_ValueType": 4, "valueIndex": _rgba(tt, (0, 0, 0), 0.0)}]
+            n += 1
+    return n
+
+
 def _partie(nom):
     return {"m_Value": nom[1:], "m_Type": 6} if nom.startswith("#") else {"m_Value": nom, "m_Type": 3}
 
@@ -957,7 +1027,8 @@ def ecrire_styles(infobulle="marqueur", cfg=None, essai=False):
     connaissance = connaissance_active()
     if (menu_btn is None and infobulle is None and accent is None and texte is None and panneau is None and terrain is None
             and tuiles is None and not match and menus is None and panneaux is None and fiche is None
-            and not postes and not essai and not connaissance and ombrage is None and polygone is None):
+            and not postes and not essai and not connaissance and ombrage is None and polygone is None
+            and not POPUP_VIDE and OMBRAGE_BASE == OMBRAGE_FM):   # v26 : fond vide écrit même sans couleur (FM)
         for path in STYLES:
             if os.path.exists(backup.backup_path(path)):
                 if not DRY_RUN:
@@ -1007,9 +1078,15 @@ def ecrire_styles(infobulle="marqueur", cfg=None, essai=False):
             n = _panneaux(tt, panneaux, a_panneaux)
             if n:
                 fait.append(f"panneaux {n}")
-        n = _ombrage(tt, OMBRAGE_FM if ombrage is None else ombrage)   # v19 : toujours en couleur
+        # v24 (2026-11-14, le joueur : voile en match derrière les options + noir derrière les Préférences « rien à
+        # foutre là ») : retour avant v19, ombrage écrit SEULEMENT s'il est choisi ; sinon la règle de FM (rien en match)
+        if _popup_vide(tt):   # avant l'ombrage : .sipopup-container sort de la règle partagée
+            fait.append("fond des fenêtres vide")
+        # v26 (2026-11-14, essai 6 VU, le joueur : « je veux juste que ce soit vide le fond ») : de base (rien choisi) =
+        # plein écran derrière les fenêtres TRANSPARENT (0 %), tous les thèmes ; « Gérer l'opacité » = le % choisi
+        n = _ombrage(tt, OMBRAGE_BASE if ombrage is None else ombrage)
         if n:
-            fait.append(f"ombrage {OMBRAGE_FM if ombrage is None else ombrage} %")
+            fait.append(f"ombrage {OMBRAGE_BASE if ombrage is None else ombrage} %")
         if fiche:
             n = _fonds_selecteurs(tt, FICHE_SELECTEURS, fiche, a_fiche)
             if n:
@@ -1565,7 +1642,7 @@ def lire_args(args, cfg):
             if v.lower() in ("", "fm", "auto", "base"):
                 cfg[k] = None
             elif v.isdigit() and int(v) <= 100:
-                cfg[k] = None if int(v) == OMBRAGE_FM else int(v)
+                cfg[k] = int(v)   # 2026-11-14 : 65 choisi (« Gérer l'opacité ») = écrit partout ; FM = « fm »
             else:
                 sys.exit(f"ombrage : {v!r} pas compris (0 à 100, en %, ou fm)")
             continue
@@ -1665,6 +1742,15 @@ def main(argv):
     elif op == "essai-fenetres":   # styles seuls, couleurs enregistrées + ESSAI_FENETRES ; marqueur pas touché
         ecrire_styles(cfg=config(), essai="fenetres")
         print(ESSAI_FENETRES_TEXTE)
+    elif op == "essai-panneaux":   # styles seuls, couleurs enregistrées + une couleur par règle des panneaux
+        global _ESSAI_PANNEAUX_ON
+        _ESSAI_PANNEAUX_ON = True
+        cfg = config()
+        cfg["panneaux"] = cfg.get("panneaux") or "#FF00FF"   # sinon _panneaux n'est pas appelé
+        ecrire_styles(cfg=cfg)
+        print("ESSAI panneaux : une couleur par règle (n°, couleur, sélecteur) :")
+        for i, c, nom in ESSAI_PANNEAUX:
+            print(f"  #{i} {c} {nom}")
     else:
         sys.exit(__doc__)
 

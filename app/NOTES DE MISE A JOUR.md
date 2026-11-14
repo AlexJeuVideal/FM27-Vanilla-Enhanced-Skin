@@ -6,6 +6,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v1.97 (14 novembre 2026)
+
+**Couleurs**
+- **Correction : les fonds des compétitions sous licence** (merci stathisbi) : avec un fond en couleur, les compétitions sous licence (Premier League, EFL, Bundesliga, Ligue des champions, Europa League…) affichaient leur fond officiel au lieu de ta couleur, sur le portail et les pages. Tous les fonds plein écran prennent maintenant ta couleur, et le fond lisse est lisse partout. Avec le choix « fonds officiels », ils restent tous ceux de FM. Les vestiaires, la presse et les interviews gardent le décor de FM.
+- **Correction : voile sombre en match** : le skin posait toujours l'assombrissement de FM, même là où FM n'en met pas (options du match). Il n'est plus posé que si tu règles le curseur « Ombrage derrière les fenêtres » ; sinon, c'est comme dans FM.
+- **Correction : fond plein derrière les Préférences** : avec un thème, les Préférences cachaient tout l'écran derrière un fond uni. On revoit maintenant le jeu derrière (menu, vestiaire), légèrement teinté de la couleur des panneaux, comme dans FM.
+- **Écrans de chargement à la couleur du thème** : l'image des chargements (fond sombre et pointillé lumineux) garde son dessin, mais prend doucement la teinte de ton thème : le fond dans sa couleur, le pointillé un peu plus clair. Pour tous les thèmes en couleur.
+
 ### v1.96 (14 novembre 2026)
 
 **Couleurs**
@@ -1112,6 +1120,13 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## English
 
+### v1.97 (14 November 2026)
+
+**Colours**
+- **Fix: licensed competition backgrounds** (thanks stathisbi): with a coloured background, licensed competitions (Premier League, EFL, Bundesliga, Champions League, Europa League...) showed their official background instead of your colour, on the portal and on pages. Every full-screen background now takes your colour, and the smooth background is smooth everywhere. With the "official backgrounds" choice, they all stay FM's. Dressing rooms, press and interviews keep FM's scenery.
+- **Fix: dark veil during matches**: the skin always added FM's darkening, even where FM has none (match options). It is now only added if you set the "Shading behind windows" slider; otherwise it is the same as FM.
+- **Fix: solid background behind Preferences**: with a theme, Preferences hid the whole screen behind a solid background. The game is visible behind again (menu, dressing room), lightly tinted with the panel colour, as in FM.
+- **Loading screens in your theme colour**: the loading image (dark background and glowing dashed line) keeps its design but takes a soft tint of your theme: the background in its colour, the dashed line slightly lighter. For every coloured theme.
 ### v1.96 (14 November 2026)
 
 **Colours**
