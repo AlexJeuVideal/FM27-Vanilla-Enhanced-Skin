@@ -510,11 +510,12 @@ FONCTIONS = {
                                      en="Instructions: Pitch screen and FM24 view for team instructions, FM24 screen "
                                         "for player instructions (FM 27 | FM24 button)"),
     "kinito_raccourcis_selections": dict(cat="kinito",   # 26.23 (2026-11-14) ; de base le 2026-11-14 (le joueur) ; seul à toucher
-        # TacticalPlannerSpeakToActions (v6, gameworld ; v1-v5 : TacticalPlannerTeamShapeTableTemplate, nettoyé)
-        fr=("Tactiques : les 10 premières sélections d'équipe sauvegardées en boutons à droite de « Sélect. rapide » "
-            "(leur nom dessus) ; un clic charge la sélection"),
-        en=("Tactics: the first 10 saved team selections as buttons right of \"Quick Pick\" (their name on them); "
-            "one click loads the selection")),
+        # TacticalPlannerSpeakToActions (option « haut ») ou TacticalPlannerTeamShapeTableTemplate (« filtre ») ; v8 :
+        # + TeamSquadBlock / SquadOverviewTableBlock (#QuickPick, après leurs propriétaires : SUIVANTS)
+        fr=("Tactiques et Effectif : les 10 premières sélections d'équipe sauvegardées en boutons à droite de "
+            "« Sélect. rapide » (leur nom dessus) ; un clic charge la sélection"),
+        en=("Tactics and Squad: the first 10 saved team selections as buttons right of \"Quick Pick\" (their name on "
+            "them); one click loads the selection")),
     # Match
     "kinito_fenetre_but": dict(cat="kinito",   # 26.18 (2026-11-08) ; de base depuis le 2026-11-09 (le joueur)
                                fr="Match : fenêtre de but avec la photo du buteur, ses buts dans le match et un "
@@ -628,7 +629,8 @@ OU = {
     "kinito_vue_equipes": ("Entraînement > Vue d'ensemble", "Training > Overview"),
     "kinito_consignes_essai_b": ("Tactiques > Consignes d'équipe et consignes individuelles",
                                  "Tactics > Team and Player Instructions"),
-    "kinito_raccourcis_selections": ("Tactiques, à droite de Sélect. rapide", "Tactics, right of Quick Pick"),
+    "kinito_raccourcis_selections": ("Tactiques, Effectif (Joueurs, Vue d'ensemble), à droite de Sélect. rapide",
+                                     "Tactics, Squad (Players, Overview), right of Quick Pick"),
     "kinito_fenetre_but": ("Match > Fenêtre de but", "Match > Goal pop-up"),
     "kinito_calendrier_rencontres": ("Portail > Calendrier", "Portal > Calendar"),
     "kinito_vacances_jour": ("Calendrier > Général", "Calendar > General"),
@@ -710,10 +712,13 @@ SUIVANTS = {
     # dans ORDRE_SKIN, effectif_equipes passe déjà après elles
     # + effectif_repos_equipe : bouton repos posé après leur calendrier (TeamSquadBlock / SquadOverviewTableBlock
     # repartent de l'original)
-    "effectif_boutons_entrainement": ["effectif_equipes", "effectif_repos_equipe"],
-    "effectif_equipes": ["effectif_repos_equipe"],
+    # + kinito_raccourcis_selections (v8, 2026-11-14) : boutons de sélections à droite du Sélect. rapide de
+    # TeamSquadBlock / SquadOverviewTableBlock (SUIVANTS pas en chaîne : listé partout où ces modèles sont refaits)
+    "effectif_boutons_entrainement": ["effectif_equipes", "effectif_repos_equipe", "kinito_raccourcis_selections"],
+    "effectif_equipes": ["effectif_repos_equipe", "kinito_raccourcis_selections"],
     # + couleurs_interface : tactiques_boutons repart de l'original de TacticalPlannerHeader (couleurs du bandeau)
-    "tactiques_boutons": ["effectif_equipes", "effectif_repos_equipe", "couleurs_interface"],
+    "tactiques_boutons": ["effectif_equipes", "effectif_repos_equipe", "couleurs_interface",
+                          "kinito_raccourcis_selections"],
     # couleurs du tableau de score de base (Scoreboard, bundle du match) : match_haut remet tout le bundle d'origine
     # quand on le retire (ou pour défaire son alignement)
     # + Kinito 26.18 : sa fenêtre de but (GoalScoredPopup, même bundle) est refaite ensuite
@@ -826,7 +831,7 @@ MIGRATION = {
     "infobulle_pour_contre": ["infobulle_pour_contre", "listes_pour_contre"],
     "photos_terrain": ["photos_tactiques", "photos_match"],
     "graphes_points": ["graphes_finances", "graphes_attributs"],
-    "entrainement_equipes": ["entrainement_equipes", "effectif_boutons_entrainement"],
+    "entrainement_equipes": ["entrainement_equipes", "effectif_boutons_entrainement", "kinito_raccourcis_selections"],
 }
 
 assert sorted(ORDRE_SKIN) == sorted(FONCTIONS), set(ORDRE_SKIN) ^ set(FONCTIONS)

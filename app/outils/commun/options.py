@@ -72,6 +72,16 @@ OPTIONS = {
                     ("texte", ("écrits", "written"))],
         "script": "effectif_equipes",
     },
+    # Kinito 26.23 (kinito_raccourcis_selections v8, 2026-11-14, le joueur) : « haut » de base ; « filtre » = la place
+    # de Kinito ; seulement l'écran Tactiques
+    "selections_emplacement": {
+        "titre": ("Tactiques : place des boutons de sélections", "Tactics: team selection buttons position"),
+        "valeurs": [("haut", ("en haut, à droite de « Sélect. rapide »", "at the top, right of \"Quick Pick\"")),
+                    ("filtre", ("au-dessus du tableau, à gauche de « Filtre » (place de Kinito)",
+                                "above the table, left of \"Filter\" (Kinito's position)"))],
+        "script": "kinito_raccourcis_selections",
+        "kinito": True,
+    },
     # version Kinito : ses scripts outils\kinito\kinito_rencontres_*.py, appliqués / retirés par rencontres_version.py
     "rencontres": {
         "titre": ("Calendrier, onglet Rencontres", "Calendar, Fixtures tab"),

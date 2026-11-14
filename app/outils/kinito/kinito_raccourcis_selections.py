@@ -124,17 +124,49 @@ from notes_installations import decode_args, encode_args, _enc_varint  # noqa: E
 #  RÉGLAGES (changer un réglage -> augmenter VERSION)
 # =====================================================================================================
 NOMBRE = 10                # Kinito (14/11) : 5 au plus ; Alex (14/11, v7) : 10
-ECART = 8                  # px avant chaque bouton (le 1er : après la flèche de Sélect. rapide)
-LARGEUR_MAX = 120          # px : un nom plus long finit en « … » (v6 : 120, la rangée du haut est partagée)
+ECART = 8                  # px entre deux boutons (en haut : avant chacun ; à gauche de Filtre : après chacun)
+LARGEUR_MAX = {"haut": 120, "filtre": 180}   # px : un nom plus long finit en « … » (en haut, la rangée est partagée)
 # =====================================================================================================
 
-VERSION = 7   # v7 (Alex) : 10 boutons au lieu de 5 ; v1 (14/11) : FM se fermait au clic (champs « null ») ; v2 et v3 : les vraies actions du menu
-#               (aucun bouton, vu en jeu : le jeu ne les donne à aucune liaison) ; v4 : valeurs fixes typées, mais la
-#               référence vide n'avait pas de valeur (boutons grisés, vu en jeu) ; v5 : références de la ligne d'en-tête
-#               v6 (Alex) : à droite de Sélect. rapide, noms en ForceUpdate
-MODELE = "TacticalPlannerSpeakToActions"            # v6 : la rangée de Sélect. rapide (#DropdownMode)
-MODELE_FILTRE = "TacticalPlannerTeamShapeTableTemplate"   # pièces de « Filtre » (original) ; zone de la v5, retirée
+# v8 (Alex, 14/11) : option de l'app (commun\options.py) « selections_emplacement » : « haut » (de base, à droite de
+# Sélect. rapide) ou « filtre » (la place de Kinito, v1-v5 : à gauche de Filtre, au-dessus du tableau)
+OPTION = "selections_emplacement"
+OPTION_VALEURS = ("haut", "filtre")
+
+
+def _emplacement():
+    force = os.environ.get("KINITO_OPTION_SELECTIONS")   # essais sur copies (bancs) : la valeur imposée
+    if force in OPTION_VALEURS:
+        return force
+    try:
+        import options
+        return options.get(OPTION)
+    except Exception:   # l'option n'est pas (encore) dans l'app
+        return "haut"
+
+
+EMPLACEMENT = _emplacement()
+EN_HAUT = EMPLACEMENT != "filtre"
+VERSION = "11" if EN_HAUT else "11-filtre"   # dépend de l'option (sinon « déjà appliqué ») ; v9 : speakto de l'écran
+#                                              (Effectif) ; v10 : DIAG ; v11 : DIAG coupé (VALIDÉ partout, 2026-11-14)
+# DIAG (v10, Effectif seulement) : repères « Z V N L 0 1 2 3 » après chaque condition (zone hors match, variables, au
+# moins 1 sélection, liste vide, 4 références). Relevé : N absent = équipe sans tactique (Sélect. rapide grisé), normal
+DIAG = False
+# v7 (Alex) : 10 boutons au lieu de 5 ; v1 (14/11) : FM se fermait au clic (champs « null ») ; v2 et v3 : les vraies
+# actions du menu (aucun bouton, vu en jeu : le jeu ne les donne à aucune liaison) ; v4 : valeurs fixes typées, mais la
+# référence vide n'avait pas de valeur (boutons grisés, vu en jeu) ; v5 : références de la ligne d'en-tête ;
+# v6 (Alex) : à droite de Sélect. rapide, noms en ForceUpdate ; v8 : option d'emplacement
+MODELE_HAUT = "TacticalPlannerSpeakToActions"              # la rangée de Sélect. rapide (#DropdownMode)
+MODELE_FILTRE = "TacticalPlannerTeamShapeTableTemplate"    # la rangée #Top de « Filtre » ; ses pièces (original)
+MODELE = MODELE_HAUT if EN_HAUT else MODELE_FILTRE         # où poser
+AUTRE = MODELE_FILTRE if EN_HAUT else MODELE_HAUT          # d'où retirer
 RANGEE = "DropdownMode"
+# v8 (le joueur, 14/11) : aussi sur les écrans Effectif (Joueurs, Vue d'ensemble), toujours à droite de leur Sélect.
+# rapide : chacun a son propre menu (BindingVariables #QuickPick : bouton + flèche, en rangée ; reçoit Tactic).
+# Propriétaires de ces modèles (repartent de l'original) : effectif_boutons_entrainement (TeamSquadBlock),
+# effectif_equipes (SquadOverviewTableBlock) -> ORDRE_SKIN après eux + SUIVANTS
+MODELES_EFFECTIF = ("TeamSquadBlock", "SquadOverviewTableBlock")
+RANGEE_EFFECTIF = "QuickPick"
 PREFIXE = "UIPickerKinito-raccourcis-sel"
 NOM = f"{PREFIXE}-v{VERSION}"
 MARKER = os.path.join(backup.BACKUP_DIR, "kinito_raccourcis_selections.actif")
@@ -142,7 +174,10 @@ MARKER = os.path.join(backup.BACKUP_DIR, "kinito_raccourcis_selections.actif")
 LISTE = "Tactic.TeamSelections"            # les sélections sauvegardées (FM.UI.TacticReference)
 CHEMIN_NOM = "DisplayValue"                # le nom d'une sélection (SaveLineupRow : row.DisplayValue)
 SPEAKTO = "Tactic.SpeakTo"                 # le « SpeakTo » de l'événement du menu (BindingRemapper de TacticalPlannerHeader)
-ACTIONS = "Tactic.SpeakTo.Actions.ActionsForDropdown"   # les lignes du menu Sélect. rapide (SpeakToActionsReference)
+ACTIONS_SOUS = "Actions.ActionsForDropdown"            # les lignes du menu Sélect. rapide (SpeakToActionsReference)
+ACTIONS = f"{SPEAKTO}.{ACTIONS_SOUS}"
+SPEAKTO_EFFECTIF = "speakto"   # v8 : écrans Effectif, le speakTo de l'écran (BindingRemapper speakto:tactic-speakto,
+#                                celui de leur menu Sélect. rapide) ; Tactic.SpeakTo n'y est peut-être pas rempli
 # v3 (relevé F7 de la sonde 0.28.2, 14/11 14:08) : chaque ligne de ActionsForDropdown est une ENVELOPPE
 # DynamicReference { RowData = l'action } ; c'est l'action qui porte SubmenuActionsList (code 3543446C), Event (43
 # pour la ligne « Sélect. rapide »), ActionData… (des DynamicReference, ActionDataReferences une liste). La v2 lisait
@@ -290,8 +325,9 @@ def chemins_evenement(b):
     return out
 
 
-def evenement_bouton(ev, rang):
-    """l'événement du menu, ses chemins remplacés : SpeakTo -> Tactic.SpeakTo, SelectedAction.<champ> -> notre chemin
+def evenement_bouton(ev, rang, speakto=SPEAKTO):
+    """l'événement du menu, ses chemins remplacés : SpeakTo -> speakto (Tactiques : Tactic.SpeakTo ; Effectif v8 : le
+    « speakto » de l'écran, celui de son propre menu), SelectedAction.<champ> -> notre chemin
     du type que lit le jeu (CHAMPS ; le rang de ce bouton pour ActionResponseValue) ; « null » (NPC, comme le menu de
     FM) gardé ; un champ inconnu : refus (rien posé)"""
     b = bytes(ev["m_bytes"])
@@ -302,7 +338,7 @@ def evenement_bouton(ev, rang):
     for debut, fin, c in morceaux:
         out += b[pos:debut]
         if c == "SpeakTo":
-            neuf = SPEAKTO
+            neuf = speakto
         elif c.lower().startswith("selectedaction."):
             champ = c.split(".", 1)[1].lower()
             neuf = V_RANG.format(rang) if champ == "actionresponsevalue" else CHAMPS.get(champ)
@@ -321,23 +357,38 @@ def evenement_bouton(ev, rang):
 
 
 # ---------- les pièces de FM ----------
+def pieces_filtre(tf):
+    """(Filtre, son SIVisible « hors match », la rangée #Top, son texte) dans l'arbre tf (None si absents)"""
+    filtre = next((r for r in tf.walk() if typ(tf, r) == "SIFloatingPopupWidget"), None)
+    hors_match = top = texte = None
+    if filtre is not None:
+        r = filtre
+        while r in tf.parent and not (typ(tf, r) == "SIVisible" and tf.binding(r) == "tactic.IsDuringMatch"
+                                      and tf.sd(r).get("InvertDirectBinding") == 1):
+            r = tf.parent[r]
+        if typ(tf, r) == "SIVisible" and r in tf.parent and tf.name(tf.parent[r]) == "Top":
+            hors_match, top = r, tf.parent[r]
+        texte = next((k for k in tf.children(filtre) if typ(tf, k) == "SIText"), None)
+    return filtre, hors_match, top, texte
+
+
 class Sources:
-    def __init__(self, t):
-        # v6 : dans le modèle touché, la rangée de Sélect. rapide
-        self.rangee = next((r for r in t.walk() if t.name(r) == RANGEE and typ(t, r) == "BindingVariables"), None)
+    def __init__(self, t, en_haut=None, rangee=RANGEE, speakto=SPEAKTO):
+        self.speakto = speakto
+        # dans le modèle touché : en haut, la rangée de Sélect. rapide (v6 ; écrans Effectif v8 : #QuickPick) ; à
+        # gauche de Filtre, #Top et le SIVisible « hors match » de Filtre (notre zone juste avant lui, comme Kinito)
+        self.en_haut = EN_HAUT if en_haut is None else en_haut
+        self.rangee = self.hors_match_cible = None
+        if self.en_haut:
+            self.rangee = next((r for r in t.walk() if t.name(r) == rangee and typ(t, r) == "BindingVariables"), None)
+        else:
+            _, self.hors_match_cible, self.rangee, _ = pieces_filtre(t)
         # dans l'ORIGINAL du modèle de « Filtre » : son SIVisible « hors match », son texte, #StoppageVisible
         f = ouvrir(MODELE_FILTRE, depart_original=True)
         tf = self.tf = f[3] if f else None
-        self.filtre = next((r for r in tf.walk() if typ(tf, r) == "SIFloatingPopupWidget"), None) if tf else None
-        self.hors_match = self.top = self.texte = self.visible_entier = None
-        if self.filtre is not None:
-            r = self.filtre
-            while r in tf.parent and not (typ(tf, r) == "SIVisible" and tf.binding(r) == "tactic.IsDuringMatch"
-                                          and tf.sd(r).get("InvertDirectBinding") == 1):
-                r = tf.parent[r]
-            if typ(tf, r) == "SIVisible" and r in tf.parent and tf.name(tf.parent[r]) == "Top":
-                self.hors_match, self.top = r, tf.parent[r]
-            self.texte = next((k for k in tf.children(self.filtre) if typ(tf, k) == "SIText"), None)
+        self.filtre = self.hors_match = self.top = self.texte = self.visible_entier = None
+        if tf:
+            self.filtre, self.hors_match, self.top, self.texte = pieces_filtre(tf)
         if tf:
             self.visible_entier = next((r for r in tf.walk() if typ(tf, r) == "SIVisible"
                                         and tf.name(r) == "StoppageVisible"
@@ -399,9 +450,9 @@ def fn_element(src, liste, destination, rang):
 
 
 # ---------- les pièces posées ----------
-def copie_vide(t, src_t, rid, parent):
-    """copie d'un élément d'un AUTRE modèle (src_t), sans ses enfants, en dernier sous parent"""
-    r = t.clone(rid, parent, src=src_t)
+def copie_vide(t, src_t, rid, parent, index=None):
+    """copie d'un élément d'un AUTRE modèle (src_t), sans ses enfants, sous parent (en dernier si index None)"""
+    r = t.clone(rid, parent, index, src=src_t)
     for k in list(t.children(r)):
         t.remove(k)
     recaler_parent(t, r)
@@ -411,10 +462,16 @@ def copie_vide(t, src_t, rid, parent):
 def zone(t, src, nom):
     """v6 : copie sans enfants du SIVisible « hors match » de Filtre, dernière de la rangée de Sélect. rapide (à droite
     de sa flèche), en rangée centrée, qui se tasse si la place manque"""
-    r = copie_vide(t, src.tf, src.hors_match, src.rangee)
+    if src.en_haut:
+        r = copie_vide(t, src.tf, src.hors_match, src.rangee)
+        css = {"flex-shrink": 1, "min-width": 0, "flex-direction": "row", "align-items": "center"}
+    else:   # option « filtre » (place de Kinito) : juste avant Filtre, prend la place libre, boutons collés à Filtre
+        r = copie_vide(t, src.tf, src.hors_match, src.rangee, t.children(src.rangee).index(src.hors_match_cible))
+        css = {"flex-grow": 1, "flex-shrink": 1, "min-width": 0, "flex-direction": "row",
+               "justify-content": "flex-end", "align-items": "center"}
     nommer(t, r, nom)
     t.elem(r)["m_Classes"], t.elem(r)["m_RuleIndex"] = [], -1
-    t.styles.style(t, r, {"flex-shrink": 1, "min-width": 0, "flex-direction": "row", "align-items": "center"})
+    t.styles.style(t, r, css)
     return r
 
 
@@ -447,7 +504,7 @@ def calcul(t, src, parent, nom):
     sd["ReferenceVariables_UxmlAttributeFlags"] = 1
     sd["BindFunction"] = ([fn_nombre(src, LISTE, V_NB)]
                           + [fn_element(src, LISTE, V_SEL.format(n), n) for n in range(NOMBRE)]
-                          + [fn_element(src, ACTIONS, V_LIGNE0, 0),
+                          + [fn_element(src, f"{src.speakto}.{ACTIONS_SOUS}", V_LIGNE0, 0),
                              fn_nul(src, LISTE_VIDE, "const.True", "const.False", V_LISTE_OK)]
                           + [fn_nul(src, f"{REF_LIGNE0}.{c}", "const.True", "const.False", V_REF_OK.format(k))
                              for k, c in enumerate(CHAMPS_REF)])
@@ -481,8 +538,9 @@ def bouton(t, src, parent, nom, n):
     nommer(t, b, nom)
     t.elem(b)["m_Classes"] = list(src.tf.elem(src.filtre).get("m_Classes") or [])   # celles de Filtre
     t.elem(b)["m_RuleIndex"] = -1
-    t.sd(b)["Events"], t.sd(b)["Events_UxmlAttributeFlags"] = evenement_bouton(src.evenement, n), 1
-    style_partage(t, b, {"margin-left": ECART, "max-width": LARGEUR_MAX, "flex-shrink": 1, "min-width": 0})
+    t.sd(b)["Events"], t.sd(b)["Events_UxmlAttributeFlags"] = evenement_bouton(src.evenement, n, src.speakto), 1
+    style_partage(t, b, {"margin-left" if src.en_haut else "margin-right": ECART,
+                         "max-width": LARGEUR_MAX["haut" if src.en_haut else "filtre"], "flex-shrink": 1, "min-width": 0})
     x = t.clone(src.texte, b, src=src.tf)
     recaler_parent(t, x)
     nommer(t, x, f"{nom}-nom")
@@ -497,22 +555,56 @@ def bouton(t, src, parent, nom, n):
     return b
 
 
-def construire(t):
-    src = Sources(t)
+_N_REPERE = [0]
+
+
+def repere(t, src, parent, texte, direct=False):
+    """DIAG (v10, temporaire) : un petit texte (celui de Filtre) dans parent : fixe, ou lié au chemin texte (direct)"""
+    x = t.clone(src.texte, parent, src=src.tf)
+    recaler_parent(t, x)
+    _N_REPERE[0] += 1
+    nommer(t, x, f"{PREFIXE}-diag{_N_REPERE[0]}")
+    t.elem(x)["m_RuleIndex"] = -1
+    sd = t.sd(x)
+    tb = sd["TextBinding"]
+    tb.setdefault("m_direct", {"Path": {"m_path": ""}, "Nullable": 0})
+    tb["m_visualFunction"]["m_target"]["m_guid"] = ""
+    tb["m_visualFunction"]["m_inputs"]["m_variable"]["m_argumentBytes"] = []
+    if direct:
+        tb["m_kind"], tb["m_direct"]["Path"]["m_path"], tb["m_direct"]["Nullable"] = 1, texte, 1
+    else:
+        sd["text"], sd["text_UxmlAttributeFlags"], sd["DebugDisplay"] = f" {texte} ", 1, texte
+        tb["m_kind"], tb["m_direct"]["Path"]["m_path"] = 0, ""
+    return x
+
+
+def construire(t, en_haut=None, rangee=RANGEE, speakto=SPEAKTO):
+    src = Sources(t, en_haut, rangee, speakto)
     if src.manque():
         return [f"pièces de FM introuvables : {', '.join(src.manque())} (mise à jour du jeu ?)"]
     try:
         z = zone(t, src, NOM)
+        diag = DIAG and src.speakto == SPEAKTO_EFFECTIF
+        if diag:
+            repere(t, src, z, "Z")
         sel = calcul(t, src, z, f"{PREFIXE}-variables")
+        if diag:
+            repere(t, src, sel, "V")
+            repere(t, src, visible_si(t, src, sel, f"{PREFIXE}-diagnb", V_NB, OPERATEUR_SUPERIEUR, 0), "N")
         garde = visible_si(t, src, sel, f"{PREFIXE}-garde", V_LISTE_OK, OPERATEUR_EGAL, 1)
+        if diag:
+            repere(t, src, garde, "L")
         for k in range(len(CHAMPS_REF)):   # v5 : une garde par champ « référence » de la ligne d'en-tête
             garde = visible_si(t, src, garde, f"{PREFIXE}-garde{k}", V_REF_OK.format(k), OPERATEUR_EGAL, 1)
+            if diag:
+                repere(t, src, garde, str(k))
         for n in range(NOMBRE):
             v = visible_si(t, src, garde, f"{PREFIXE}-si{n}", V_NB, OPERATEUR_SUPERIEUR, n)
             bouton(t, src, v, f"{PREFIXE}-bouton{n}", n)
     except ValueError as e:
         return [f"{e} : rien posé"]
-    return [f"les {NOMBRE} premières sélections sauvegardées (tactic.TeamSelections) en boutons à droite de Sélect. rapide, "
+    return [f"les {NOMBRE} premières sélections sauvegardées (tactic.TeamSelections) en boutons "
+            + ("à droite de Sélect. rapide" if src.en_haut else "à gauche de Filtre") + ", "
             f"leur nom dessus ; clic = l'événement « Utiliser sélection » du menu, champs du type lu par le jeu "
             f"(références de la ligne d'en-tête du menu, liste vide) ; rien pendant un match"]
 
@@ -557,36 +649,45 @@ def a_jour(t):
 
 
 def retirer_ancien():
-    """v6 : la zone des v1-v5, à gauche de Filtre, retirée de son modèle (True si retirée)"""
-    o = ouvrir(MODELE_FILTRE)
+    """v8 : la zone de l'AUTRE emplacement retirée de son modèle (True si retirée)"""
+    o = ouvrir(AUTRE)
     if o is None or not marques(o[3]):
         return False
     retirer_zone(o)
     enregistrer(*o)
-    print("[Kinito] Raccourcis des sélections : ancienne zone (à gauche de Filtre) retirée")
+    print("[Kinito] Raccourcis des sélections : ancienne place retirée ("
+          + ("à gauche de Filtre" if EN_HAUT else "à droite de Sélect. rapide") + ")")
     return True
 
 
+def cibles():
+    """(modèle, en haut ?, rangée) où poser : les Tactiques selon l'option, et (v8, le joueur) les écrans Effectif
+    TOUJOURS à droite de leur Sélect. rapide (#QuickPick, même rangée que celle des Tactiques), quelle que soit l'option"""
+    return [(MODELE, EN_HAUT, RANGEE, SPEAKTO)] + [(m, True, RANGEE_EFFECTIF, SPEAKTO_EFFECTIF)
+                                                  for m in MODELES_EFFECTIF]
+
+
 def cmd_appliquer():
-    o = ouvrir(MODELE)
-    if o is None:
-        print(f"[Kinito] Raccourcis des sélections : {MODELE} introuvable (renommé par une mise à jour ?), ignoré")
-        return
-    if a_jour(o[3]):
-        print("[Kinito] Raccourcis des sélections : déjà appliqué")
-        if retirer_ancien():
-            nb.save_all()
-    else:
-        retirer_ancien()   # enregistré avec la nouvelle zone (rien si la pose échoue : l'ancienne reste)
+    change = retirer_ancien()   # enregistré avec le reste (rien si la pose échoue : l'ancienne reste)
+    for modele, en_haut, rangee, speakto in cibles():
+        o = ouvrir(modele)
+        if o is None:
+            print(f"[Kinito] Raccourcis des sélections : {modele} introuvable (renommé par une mise à jour ?), ignoré")
+            continue
+        if a_jour(o[3]):
+            print(f"[Kinito] Raccourcis des sélections : {modele} déjà appliqué")
+            continue
         if marques(o[3]):   # une ancienne version : retirée dans le même arbre, en mémoire, avant de reposer
             retirer_zone(o)
-        msgs = construire(o[3])
+        msgs = construire(o[3], en_haut, rangee, speakto)
         for m in msgs:
-            print(f"[Kinito] Raccourcis des sélections : {m}")
+            print(f"[Kinito] Raccourcis des sélections : {modele} : {m}")
         if any("introuvable" in m or "rien posé" in m for m in msgs):
-            print("[Kinito] Raccourcis des sélections : rien enregistré")
-            return
+            print(f"[Kinito] Raccourcis des sélections : {modele} : rien enregistré")
+            continue
         enregistrer(*o)
+        change = True
+    if change:
         nb.save_all()
     if not nb.DRY_RUN:
         with open(MARKER, "w", encoding="utf-8") as f:
@@ -596,28 +697,33 @@ def cmd_appliquer():
 def cmd_retirer():
     if os.path.exists(MARKER) and not nb.DRY_RUN:
         os.remove(MARKER)
-    ancien = retirer_ancien()
-    o = ouvrir(MODELE)
-    if o is None or not marques(o[3]):
-        if ancien:
-            nb.save_all()
-        else:
-            print("rien à retirer")
-        return
-    retirer_zone(o)
-    enregistrer(*o)
-    nb.save_all()
-    print(f"{MODELE} : raccourcis des sélections retirés (le reste du modèle n'est pas touché)")
+    change = False
+    for modele in (MODELE_HAUT, MODELE_FILTRE) + MODELES_EFFECTIF:
+        o = ouvrir(modele)
+        if o is None or not marques(o[3]):
+            continue
+        retirer_zone(o)
+        enregistrer(*o)
+        change = True
+        print(f"{modele} : raccourcis des sélections retirés (le reste du modèle n'est pas touché)")
+    if change:
+        nb.save_all()
+    else:
+        print("rien à retirer")
 
 
 def cmd_etat():
-    o = ouvrir(MODELE)
-    if o is None:
-        print(f"{MODELE} : introuvable")
-    else:
-        t = o[3]
-        print(f"{MODELE} : " + (f"raccourcis présents (à jour, v{VERSION})" if a_jour(t)
-                                else ("ANCIENNE version" if marques(t) else "pas de raccourcis")))
+    for modele, *_ in cibles():
+        o = ouvrir(modele)
+        if o is None:
+            print(f"{modele} : introuvable")
+        else:
+            t = o[3]
+            print(f"{modele} : " + (f"raccourcis présents (à jour, v{VERSION})" if a_jour(t)
+                                    else ("ANCIENNE version" if marques(t) else "pas de raccourcis")))
+    a = ouvrir(AUTRE)
+    if a is not None and marques(a[3]):
+        print(f"{AUTRE} : raccourcis encore là (autre emplacement : retirés au prochain « appliquer »)")
     print("réapplication automatique après mise à jour (menu, choix 1) :", "oui" if os.path.exists(MARKER) else "non")
 
 

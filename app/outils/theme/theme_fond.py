@@ -375,6 +375,93 @@ def cible(mode, d, model):
     return None if src is None else json.loads(json.dumps({k: src[k] for k in CHAMPS}))
 
 
+# Overview du portail (PortalScreen) : pas de cadre à lui, on y voit le fond général GameWorldBackground (laissé à FM
+# pour les sièges des interviews / la presse) -> FM y montrait son fond officiel (ex. Premier League). Retour v1.95
+# (2026-11-14), le joueur : la couleur choisie sur l'Overview, PAS sur la presse. En mode "portail", #Overview est
+# enveloppé dans un SIImage (copie du background_image de GameWorldBackground) qui affiche notre image fixe.
+# v2 (2026-11-14, vu en jeu) : l'enveloppe v1 ne prenait pas la largeur (SIImage = sa propre taille) : tout le portail
+# écrasé dans une bande de ~10 px à gauche. Désormais l'image est une SŒUR posée juste AVANT #Overview, en position
+# absolue sur toute la surface (left / top / right / bottom 0) : #Overview et la mise en page de FM ne bougent plus.
+ECRAN_PORTAIL = "PortalScreen"
+CLASSE_PORTAIL = "uipicker-fond-portail-v2"
+FOND_GENERAL = "GameWorldBackground"
+
+
+def _arbre():
+    import arbre
+    return arbre
+
+
+def backup_original_feuille(bundle, obj):
+    """feuille de style intégrée d'ORIGINE du modèle obj (sauvegarde), None si introuvable"""
+    import hierarchie_pyramide as hp
+    orig = hp.original(bundle, obj)
+    return orig and hp.original(bundle, obj, orig["inlineSheet"]["m_PathID"])
+
+
+def fond_portail(mode):
+    arbre = _arbre()
+    bundle, obj, tt = nb.find_vta(ECRAN_PORTAIL)
+    if tt is None:
+        print(f"{ECRAN_PORTAIL} : introuvable (le jeu a changé ?), ignoré")
+        return
+    t = arbre.Tree(tt)
+    avant = json.dumps(tt, sort_keys=True)
+    if mode == "portail":   # déjà en place (version actuelle, image fixe) : rien à faire
+        deja = [r for r in t.walk() if CLASSE_PORTAIL in (t.elem(r).get("m_Classes") or [])]
+        if len(deja) == 1 and t.sd(deja[0]).get("StaticImage", {}).get("m_AssetGUID") == GUID_DEFAULT:
+            return
+    # retire nos enveloppes (toute version) : leurs enfants reprennent leur place
+    for r in [r for r in t.walk() if any(c.startswith("uipicker-fond-portail-") for c in t.elem(r).get("m_Classes") or [])]:
+        p = t.parent[r]
+        kids = t.elem(p)["m_Children"]
+        i = next(k for k, c in enumerate(kids) if c["rid"] == r)
+        for j, c in enumerate(t.children(r)):
+            t.elem(c)["m_Parent"] = {"rid": p}
+            t.parent[c] = p
+            kids.insert(i + 1 + j, {"rid": c})
+        t.elem(r)["m_Children"] = []
+        t.remove(r)
+    st = arbre.Styles(bundle, tt)
+    if mode == "portail":
+        ov = [r for r in t.walk() if t.name(r) == "Overview"]
+        _, _, tg = nb.find_vta(FOND_GENERAL)
+        src = arbre.Tree(tg) if tg is not None else None
+        img = [r for r in src.walk() if src.name(r) == "background_image"] if src else []
+        if len(ov) != 1 or not img:
+            print(f"{ECRAN_PORTAIL} : #Overview ou image de fond introuvable (le jeu a changé ?), ignoré")
+        else:
+            ov = ov[0]
+            p = t.parent[ov]
+            kids = t.elem(p)["m_Children"]
+            i = next(k for k, c in enumerate(kids) if c["rid"] == ov)
+            fond = t.clone(img[0], p, i, src=src)   # juste avant #Overview : dessiné derrière lui
+            for k in list(t.children(fond)):
+                t.remove(k)
+            e = t.elem(fond)
+            e["m_RuleIndex"] = -1
+            e["m_Classes"] = ["siimage", CLASSE_PORTAIL]
+            d = t.sd(fond)
+            d["name"] = "uipicker_fond_portail"
+            d.update(cible("portail", d, FOND_GENERAL))
+            for nom_css, pid_type in {"position": (131102, 7), "left": (131089, 3), "top": (131104, 3),
+                                      "right": (131103, 3), "bottom": (131080, 3)}.items():
+                arbre.PROPRIETES.setdefault(nom_css, pid_type)
+            st.style(t, fond, {"position": "absolute", "left": 0, "top": 0, "right": 0, "bottom": 0})
+    else:   # plus rien de nous : la feuille de style d'origine si aucune règle ajoutée n'est utilisée
+        orig = backup_original_feuille(bundle, obj)
+        if orig is not None and all(t.elem(r).get("m_RuleIndex", -1) < len(orig["m_Rules"]) for r in t.walk()) \
+                and st.sh != orig:
+            st.sh, st.changed = orig, True
+    t.finish()
+    st.save()
+    if json.dumps(tt, sort_keys=True) != avant or st.changed:
+        print(f"{ECRAN_PORTAIL} : " + ("fond de la couleur choisie" if mode == "portail" else "fond de FM"))
+        obj.save_typetree(tt)
+        nb._ecrits[(bundle, obj.path_id)] = tt   # relu tel quel par find_vta dans le même passage
+        nb._dirty.add(bundle)
+
+
 def cadres(mode):
     """mode "portail" : voir PAGES_CLUB ; tout autre réglage = "origine" (cadres de FM)"""
     mode_pages = mode if mode == "portail" else "origine"
@@ -397,6 +484,7 @@ def cadres(mode):
         obj.save_typetree(tt)
         nb._dirty.add(bundle)
     cartes_match(mode_pages)
+    fond_portail(mode_pages)
     nb.save_all()
 
 
@@ -467,12 +555,13 @@ def marker():
 
 
 def cmd_retirer():
-    if os.path.exists(MARKER):
+    # --dry-run respecté (2026-11-14 : il manquait, un « retirer --dry-run » a réécrit le fond du vrai jeu)
+    if os.path.exists(MARKER) and not DRY_RUN:
         os.remove(MARKER)
     cadres("origine")
     infobulles(None)
     import fonds_jeu   # fond d'origine ; le stade générique de la page club reste s'il est actif
-    fonds_jeu.ecrire(theme=None)
+    fonds_jeu.ecrire(theme=None, a_blanc=DRY_RUN)
 
 
 def cmd_etat():
