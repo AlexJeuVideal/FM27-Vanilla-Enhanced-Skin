@@ -326,21 +326,27 @@ FONCTIONS = {
                          fr="Photos des joueurs : terrain du match et barre du bas",
                          en="Player photos: match pitch and bottom bar"),
     # 2026-11-13, le joueur : Hauteur / Zoom de la caméra -20..20 (FM 0-10), molette comprise, Caméras TV débloquée
-    "match_camera_limites": dict(cat="match", facultatif=True,
-                                 fr="WIP Caméra du match : Hauteur et Zoom de -60 à 60 (au lieu de 0 à 10, molette "
+    "match_camera_limites": dict(cat="match",   # de base le 2026-11-14 (le joueur)
+                                 fr="Caméra du match : Hauteur et Zoom de -60 à 60 (au lieu de 0 à 10, molette "
                                     "comprise), Hauteur aussi en Caméras TV",
-                                 en="WIP Match camera: Height and Zoom from -60 to 60 (instead of 0 to 10, mouse wheel "
+                                 en="Match camera: Height and Zoom from -60 to 60 (instead of 0 to 10, mouse wheel "
                                     "included), Height in TV Cameras too"),
     # 2026-11-13, le joueur : x 1.4 entre 1.25 et 1.5 (liste dans les données de FM)
-    "match_vitesses": dict(cat="match", facultatif=True,
-                           fr="WIP Vitesse du match pendant les temps forts : cran x 1.4 ajouté (entre x 1.25 et x 1.5)",
-                           en="WIP Match speed during highlights: x 1.4 step added (between x 1.25 and x 1.5)"),
+    "match_vitesses": dict(cat="match",   # de base le 2026-11-14 (le joueur)
+                           fr="Vitesse du match pendant les temps forts : cran x 1.4 ajouté (entre x 1.25 et x 1.5)",
+                           en="Match speed during highlights: x 1.4 step added (between x 1.25 and x 1.5)"),
     # 2026-11-09 (le joueur) : validé en jeu (v5), pour la release v1.71
     "match_cartons_buts": dict(cat="match",
                                fr="Terrain du match : pastille du poste en jaune après un carton, buts et passes D "
                                   "à côté du nom",
                                en="Match pitch: position badge turns yellow after a booking, goals and assists next "
                                   "to the name"),
+    # 2026-11-14 (demande Discord) : PAS VU en jeu
+    "buteurs_survol": dict(cat="match",
+                           fr="WIP Buteurs : fiche du joueur au survol de son nom (autres matchs du jour, résultats, "
+                              "calendrier, résumé du match)",
+                           en="WIP Goalscorers: player tooltip when hovering their name (other matches of the day, "
+                              "results, calendar, match summary)"),
     # --- Calendrier ---
     "rencontres_stade_spectateurs": dict(cat="calendrier",
                                          fr="Rencontres : colonnes Stade et Spectateurs",
@@ -413,17 +419,17 @@ FONCTIONS = {
                                fr="Recherches ciblées : tête du joueur, vues personnalisables (Insérer colonne)",
                                en="Recruitment focuses: player face, custom views (Insert column)"),
     # 2026-11-10, le joueur (à la place d'une carte du monde) ; styles écrits par couleurs_interface (son marqueur)
-    "connaissance_couleurs": dict(cat="recrutement", facultatif=True,
+    "connaissance_couleurs": dict(cat="recrutement",   # de base le 2026-11-14 (le joueur ; tuile encore WIP)
                                   fr="WIP Niveaux de connaissance en couleurs, du rouge (basique) au vert (inégalée) : "
                                      "pays et régions de « Connaissance du monde », recruteurs",
                                   en="WIP Knowledge levels in colour, from red (basic) to green (peerless): "
                                      "« World Knowledge » nations and regions, scouts"),
-    # 2026-11-13, le joueur (né de essai_selection_top50) : WIP = pas testable chez lui, on ne sait pas si FM l'accepte
+    # 2026-11-13, le joueur (né de essai_selection_top50) ; v2 2026-11-14 : un bouton par carte (WIP tant que pas vu)
     "selection_top50": dict(cat="recrutement",
                             fr="WIP Messages NXGN et 50 meilleurs joueurs du monde : bouton « Ajouter à la "
-                               "sélection » pour les 50 joueurs du message, à faire observer ensuite",
-                            en="WIP NXGN and world's 50 best players messages: « Add to shortlist » button for the "
-                               "message's 50 players, to scout them afterwards"),
+                               "sélection » sous chaque joueur, en un clic",
+                            en="WIP NXGN and world's 50 best players messages: one-click « Add to shortlist » "
+                               "button under each player"),
     # --- Vues d'AlexJeuVideal (hors_jeu : fichiers hors du jeu, retirés aussi par « Désinstaller tout ») ---
     "vues_alexjeuvideal": dict(cat="vues", hors_jeu=True,   # 2026-11-12, le joueur ; de base 2026-10-31
                                fr="Vues d'AlexJeuVideal, optimisées pour l'affichage Small : Effectif, Tactiques "
@@ -464,16 +470,19 @@ FONCTIONS = {
                                   en="Squad registration: rules shown in full (Large display), smaller Reg. switches in "
                                      "a column sized to them, header switch for the ticked players (trial)"),
     "kinito_cartes_jeunes": dict(
-        cat="kinito", textes=True, facultatif=True,   # 26.19 (2026-11-08) ; v31 + 26.22 v18 (2026-11-10) : révélation comprise, choix dans le message
+        cat="kinito", textes=True, facultatif=True,   # 26.19 (2026-11-08) ; v31 + 26.22 v18 (2026-11-10) : révélation comprise, choix dans le message ;
+        # v33 + 26.22 v20 (2026-11-13, Kinito) : « Réglages » sur la 1re rangée, textes dans la langue du jeu
         fr=("Message des jeunes : cartes à retourner et révélation d'un jeune (clic par carte, Tout retourner par "
             "groupe ; 1er clic sur le dos d'une carte : la carte en grand ; clic sur son nom : le dossier, puis sa "
-            "fiche dévoilée). Style, Révélation (non, élite, élite et excellents, tous), Fiche (fondu, rideau, "
-            "portes) et Auto | Manuel se choisissent dans le message ; au départ : style J (dossier du recruteur), "
-            "révélation des candidats d'élite, manuel"),
+            "fiche dévoilée). Style, Révélation (aucune, élite, élite et excellents, tous) et Dévoiler la fiche "
+            "(fondu, rideau, portes ; tout seul ou à la main) se choisissent dans le message, par « Réglages » sur la "
+            "1re rangée ; au départ : style J (dossier du recruteur), révélation des candidats d'élite, à la main. "
+            "Les textes suivent la langue du jeu"),
         en=("Youth intake message: cards to flip and a youngster's reveal (click a card, Flip all per group; first "
             "click on a card's back: the card shown large; click their name: the file, then their profile revealed). "
-            "Style, Reveal (no, elite, elite and top, all), Profile (fade, curtain, doors) and Auto | Manual are "
-            "chosen in the message; to start: style J (scout's file), reveal for elite prospects, manual"),
+            "Style, Reveal (none, elite, elite and top, all) and Reveal the profile (fade, curtain, doors; auto or by "
+            "hand) are chosen in the message, with \"Settings\" on the first row; to start: style J (scout's file), "
+            "reveal for elite prospects, by hand. Texts follow the game language"),
         aide=(("Faite par-dessus « Jeunes à l'essai (message et écran Jeunes candidats) comme FM24 » (Effectif) : les "
                "cartes prennent la couleur de ses groupes. Les choix faits dans le message sont gardés d'une partie à "
                "l'autre."),
@@ -500,6 +509,12 @@ FONCTIONS = {
                                         "consignes individuelles (bouton FM 27 | FM24)",
                                      en="Instructions: Pitch screen and FM24 view for team instructions, FM24 screen "
                                         "for player instructions (FM 27 | FM24 button)"),
+    "kinito_raccourcis_selections": dict(cat="kinito",   # 26.23 (2026-11-14) ; de base le 2026-11-14 (le joueur) ; seul à toucher
+        # TacticalPlannerSpeakToActions (v6, gameworld ; v1-v5 : TacticalPlannerTeamShapeTableTemplate, nettoyé)
+        fr=("Tactiques : les 10 premières sélections d'équipe sauvegardées en boutons à droite de « Sélect. rapide » "
+            "(leur nom dessus) ; un clic charge la sélection"),
+        en=("Tactics: the first 10 saved team selections as buttons right of \"Quick Pick\" (their name on them); "
+            "one click loads the selection")),
     # Match
     "kinito_fenetre_but": dict(cat="kinito",   # 26.18 (2026-11-08) ; de base depuis le 2026-11-09 (le joueur)
                                fr="Match : fenêtre de but avec la photo du buteur, ses buts dans le match et un "
@@ -525,7 +540,7 @@ FONCTIONS = {
                                    en="Contracts and transfers: padlocks as icons on the right of each line"),
     # Pays et sélections
     "kinito_pays_formation": dict(
-        cat="kinito", facultatif=True,   # 26.21 v8 (2026-11-10) : seul à toucher ses deux en-têtes (pays, sélection)
+        cat="kinito",   # de base le 2026-11-14 (le joueur) ; 26.21 v8 (2026-11-10) : seul à toucher ses deux en-têtes (pays, sélection)
         fr=("Page d'un pays et d'une sélection : note de formation des jeunes sur 200 au départ et dates d'arrivée "
             "des jeunes, hommes et femmes (sur une sélection, son sexe ; pays sans championnat : la plage relevée en "
             "jeu), à côté de Population et du Classement mondial"),
@@ -584,6 +599,8 @@ OU = {
     "match_cartons_buts": ("Match en direct (formations)", "Live match (formations)"),
     "match_camera_limites": ("Match en direct > Caméra", "Live match > Camera"),
     "match_vitesses": ("Match en direct > Temps forts", "Live match > Highlights"),
+    "buteurs_survol": ("Autres matchs du jour, résultats d'une compétition, calendrier, résumé du match",
+                       "Other matches of the day, competition results, calendar, match summary"),
     "rencontres_stade_spectateurs": ("Calendrier > Rencontres", "Calendar > Fixtures"),
     "recherches_ciblees": ("Recrutement > Recherches ciblées", "Scouting > Recruitment Focuses"),
     "connaissance_couleurs": ("Recrutement > Recrutement > tuile Connaissance du monde",
@@ -611,6 +628,7 @@ OU = {
     "kinito_vue_equipes": ("Entraînement > Vue d'ensemble", "Training > Overview"),
     "kinito_consignes_essai_b": ("Tactiques > Consignes d'équipe et consignes individuelles",
                                  "Tactics > Team and Player Instructions"),
+    "kinito_raccourcis_selections": ("Tactiques, à droite de Sélect. rapide", "Tactics, right of Quick Pick"),
     "kinito_fenetre_but": ("Match > Fenêtre de but", "Match > Goal pop-up"),
     "kinito_calendrier_rencontres": ("Portail > Calendrier", "Portal > Calendar"),
     "kinito_vacances_jour": ("Calendrier > Général", "Calendar > General"),
@@ -642,7 +660,9 @@ ORDRE_SKIN = [
     "colonne_temperament",   # après colonne_personnalite (placée après Personnalité) et recherches_ciblees
     "finances_tuile_unique", "graphes_finances",
     "graphes_attributs",
-    "hierarchie_pyramide", "photos_tactiques", "photos_match", "match_cartons_buts", "match_camera_limites", "match_vitesses", "attributs_tout_cocher", "nation_drapeau_seul", "suspensions_noms_courts",
+    "hierarchie_pyramide", "photos_tactiques", "photos_match", "match_cartons_buts", "match_camera_limites", "match_vitesses",
+    "buteurs_survol",   # seul sur ses 5 modèles (repart de l'original)
+    "attributs_tout_cocher", "nation_drapeau_seul", "suspensions_noms_courts",
     "tuile_forme", "fiche_ordre_tuiles", "tuile_carriere", "fiche_contexte_equipe",
     "moral_icone_seule",
     "rencontres_place_championnat",
@@ -672,6 +692,7 @@ ORDRE_SKIN = [
     "kinito_cartes_jeunes",   # 26.19 : après jeunes_candidats_fm24 (posée par-dessus son tableau)
     "kinito_entete_large",    # 26.20 : après tes fonctions de la fiche (entete_fiche, fiche_joueur_plus...)
     "kinito_pays_formation",  # 26.21 : seul à toucher ses deux en-têtes (pays, sélection) : n'importe où
+    "kinito_raccourcis_selections",  # 26.23 : seul à toucher son modèle (Tactiques) : n'importe où
     # v6 : retouche PlayerReport (règle « pas en Large ») sur place : après kinito_cartes_jeunes (révélation des
     # jeunes), qui le refait depuis l'original
     "tuile_blessures",
@@ -763,7 +784,8 @@ AVEC_GURU = ["entete_fiche", "style_mediatique", "hors_defaut", "listes_pour_con
 
 # zones d'essai : jamais dans le choix 1, retirées au début du choix 1
 ESSAIS = ["essai_noms_installations", "essai_retour_entrainement", "essai_ids_attributs",
-          "essai_raccourcis_selections",   # 2026-11-13 : sonde des sous-entrées de Sélect. rapide (écran Effectif)
+          "essai_raccourcis_selections",   # 2026-11-13 : sonde des sous-entrées de Sélect. rapide ; 2026-11-14 :
+                                           # remplacé par kinito_raccourcis_selections, gardé pour retirer l'essai
           "essai_valeurs_criteres",   # 2026-11-12 : valeur cachée des conditions de recherche (notes du staff ?)
           "essai_fiche_bas_bloc",     # 2026-11-12 : rangée du bas de la fiche en un bloc, sélecteurs gardés
           "essai_repos_effectif",     # 2026-10-30 : devenu effectif_repos_equipe ; gardé pour retirer l'essai

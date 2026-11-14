@@ -1,4 +1,6 @@
 """[AJOUT KINITO] Négociation de contrat : le menu du cadenas devient des icônes visibles à droite de la ligne.
+v26 : un seul cadenas, qui montre l'état en cours et passe à l'option suivante à chaque clic, et « Retirer et exclure ».
+v27 : la poubelle a son infobulle (texte de l'interface de FM). Tous les textes affichés sont ceux du jeu, dans sa langue.
 
 Ajout de la version Kinito (pas du skin d'AlexJeuVideal) : tous les ajouts Kinito sont dans outils\\kinito\\,
 fichiers kinito_*.py, marqueurs backups\\kinito_*.actif, catégorie 26 « Ajouts Kinito » du menu (outils\\commun\\catalogue.py, voir « AJOUTS KINITO.md »).
@@ -66,9 +68,17 @@ LIGNE_HAUTEUR = 32      # px, hauteur d'une ligne de prime / clause (FM : 38) = 
 LIGNE_ECART = 1         # px, marge au-dessus et au-dessous de chaque ligne (FM : 6 et 6) ; v14 : 2 dessous
 LIGNE_PAS = LIGNE_HAUTEUR + 2 * LIGNE_ECART   # px, place réservée à une ligne par la liste des primes (FM : 50, fixe)
 MOLETTE = False         # pourcentages et années dans le champ des montants : ESSAI RATÉ (v14, v15 : la molette et les -/+ ne font rien sur ces lignes), menu d'origine gardé
+CADENAS_UNIQUE = True   # v26 : un seul cadenas qui tourne (ouvert -> semi -> non négociable -> ouvert) + « Retirer et exclure » ;
+                        # False : la rangée de la v25 (une icône par option, Négociable caché)
+BULLE_POUBELLE = (6819, "Delete")   # v27 : l'infobulle de la poubelle : le texte n° 6819 de l'interface de FM (« Delete » des
+                        # sauvegardes), traduit par le jeu dans sa langue ; None : pas d'infobulle
 # =====================================================================================================
 
-VERSION = 25  # v25 : temps de jeu futur : son menu borné (150 à 260 px) — vide, il s'étirait sur toute la ligne
+VERSION = 27  # v27 : une infobulle sur la poubelle de chaque ligne (texte de l'interface de FM, dans la langue du jeu)
+# v26 : un seul cadenas par ligne, qui montre l'état en cours ; un clic passe à l'option suivante de la ligne
+# (ouvert -> semi-négociable -> non négociable -> ouvert ; sans semi-négociable : ouvert -> non négociable -> ouvert) ;
+# « Retirer et exclure » reste à part ; rangée à la largeur de son contenu (liste non virtualisée d'Alex)
+# v25 : temps de jeu futur : son menu borné (150 à 260 px) — vide, il s'étirait sur toute la ligne
 # v24 : temps de jeu futur : le nom prend la place libre (menu et icônes à droite), menu d'objectif plafonné
 # v23 : les offres de transfert comme les contrats (icônes, rond barré, poubelle, lignes serrées)
 # v22 : la variante _FMC des lignes de promesse en icônes aussi
@@ -137,6 +147,14 @@ ICONE_EXCLURE = "ui-concepts-remove-from-list_small"  # rond barré de FM (16 px
 COULEUR_EXCLURE = "transfer-comment-neutral-icon-colour"  # la couleur que la table donne à l'option 3
 SOURCE_ICONE_SIMPLE = ("ContractNegotiationAddOnItem", "ui-concepts-delete_small")   # icône FM sans liaison (la poubelle)
 VALEUR = "row.RowData"                               # une option de la liste = DynamicReference { RowData = 0..3 } (relevé en jeu)
+# v26 : le cadenas qui tourne
+CE = "uipickercadenasaffiche"                        # l'état montré par le cadenas : la donnée, 0 (ouvert) si « Retirer et exclure »
+CIBLE_CYCLE = "uipickercadenassuivantclic"           # ce que le clic du cadenas écrit : l'option suivante du cycle
+SUIVANT = "uipickercadenassuivant"                   # la 2e option de la ligne (celle qui suit Négociable : semi ou non négociable)
+SUIVANT_C = SUIVANT + ".RowData"                     # contrats : l'option est une DynamicReference { RowData }
+SUIVANT_T = SUIVANT                                  # transferts : l'option est le nombre lui-même
+SOURCE_ELEMENT = ("TransferBlockMainFrame", "firstItem")   # fonction FM « élément n d'une liste » (21ee6b43, comme 26.13 v36)
+UN, DEUX = "const.One", "const.Two"
 LISTE_EQUIPES = "row.teamcontainer.Teams"            # ce que compte le bouton d'Alex pour savoir s'il est le dernier
 PREFIXE = "UIPickerKinito"
 NOM_GROUPE = f"{PREFIXE}-cadenas-v{VERSION}"
@@ -260,14 +278,119 @@ class Sources:
         n = ouvrir(SOURCE_NOMBRE[0])
         self.vn = n and n[3]
         self.nombre = self.vn and first(self.vn, lambda r: self.vn.name(r) == SOURCE_NOMBRE[1] and typ(self.vn, r) == "SIVisible")
+        self.fn_element = fonction_element() if CADENAS_UNIQUE else False   # v26
+        self.traduit = liaison_traduite() if BULLE_POUBELLE else False      # v27
 
     def ok(self):
-        return None not in (self.bouton, self.icone, self.texte_binding, self.bulle, self.nombre) and self.mx.ok()
+        return None not in (self.bouton, self.icone, self.texte_binding, self.bulle, self.nombre, self.fn_element,
+                            self.traduit) and self.mx.ok()
 
 
-def construire_cellule(t, src, nom=None, valeur=None, evenement=None, extra=(), cellule=None):
+SOURCE_TRADUIT = ("GenericModalDialog", "do-not-show-panel")   # v27 : un SIText de FM au texte traduit (comme 26.13 v10)
+FONCTION_TRADUIT = "eae2be944eee9e2449baef416111a087"          # « texte n° TranslationID de l'interface, dans la langue du jeu »
+
+
+def liaison_traduite():
+    """v27 : la liaison de texte de FM qui affiche un texte de l'interface par son n° (TranslationID), traduit par le
+    jeu : celle de la case « Ne plus afficher ce message. » de GenericModalDialog (fonction eae2be944…, un seul
+    argument : n° + texte anglais de secours), recopiée ; None si introuvable ou d'une autre forme"""
+    o = ouvrir(SOURCE_TRADUIT[0], depart_original=True)
+    if o is None:
+        return None
+    tf = o[3]
+    case = first(tf, lambda r: tf.name(r) == SOURCE_TRADUIT[1])
+    if case is None:
+        return None
+    for r in tf.walk(case):
+        tb = tf.sd(r).get("TextBinding") if typ(tf, r) == "SIText" else None
+        f = (tb or {}).get("m_visualFunction") or {}
+        if (f.get("m_target") or {}).get("m_guid") == FONCTION_TRADUIT:
+            args = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+            if len(args) == 1 and bytes(args[0][0]).endswith(b"[SI.Translation.TranslationID]"):
+                return copy.deepcopy(tb)
+    return None
+
+
+def texte_traduit(liaison, numero, anglais):
+    """v27 : la liaison de FM recopiée avec le texte n° <numero> (texte anglais de secours <anglais>)"""
+    tb = copy.deepcopy(liaison)
+    f = tb["m_visualFunction"]
+    args = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+    b = anglais.encode("utf-8")
+    args[0][1] = struct.pack("<i", numero) + b"\x01" + _enc_varint(len(b)) + b
+    f["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(args)
+    return tb
+
+
+def bulle_poubelle(t, src, racine):
+    """v27 (Kinito, 14/11/2026 : « il manque une infobulle sur la poubelle ; elle est sur les cadenas et le retirer et
+    exclure mais pas la poubelle ») : sur le bouton de FM qui porte la poubelle de la ligne (l'élément nommé
+    ui-concepts-delete_small, sous racine), la même infobulle que nos boutons (Tooltip > SIText de RoleLabelwIcon), son
+    texte = le texte n° BULLE_POUBELLE[0] de l'interface de FM, traduit par le jeu ; [] ou un message d'erreur"""
+    if not BULLE_POUBELLE:
+        return []
+    icones = [r for r in t.walk(racine) if t.name(r) == "ui-concepts-delete_small"]
+    boutons = []
+    for r in icones:
+        p = t.parent.get(r)
+        while p is not None and typ(t, p) != "SIButton":
+            p = t.parent.get(p)
+        if p is not None and p not in boutons:
+            boutons.append(p)
+    if len(boutons) != 1:
+        return [f"bouton de la poubelle introuvable ({len(boutons)} trouvé(s))"]
+    b = boutons[0]
+    bulle = t.clone(src.bulle, b, src=src.bu)
+    t.styles.copy_from(src.bu.styles, t, bulle)
+    if "m_ParentId" in t.elem(bulle):
+        t.elem(bulle)["m_ParentId"] = t.elem(b).get("m_Id", t.elem(bulle)["m_ParentId"])
+    t.sd(bulle)["name"], t.sd(bulle)["name_UxmlAttributeFlags"] = f"{PREFIXE}-poubelle-bulle", 1
+    texte = t.children(bulle)[0]
+    st = t.sd(texte)
+    st["name"], st["name_UxmlAttributeFlags"] = f"{PREFIXE}-poubelle-bulle-texte", 1
+    st["TextBinding"] = texte_traduit(src.traduit, *BULLE_POUBELLE)   # (le SIText de RoleLabelwIcon a déjà sa liaison)
+    if "DebugDisplay" in st:
+        st["DebugDisplay"] = BULLE_POUBELLE[1]
+    return []
+
+
+def fonction_element():
+    """v26 : la fonction de FM « élément n d'une liste » (BindListItemUsingIndexToDestination, 21ee6b43), celle de
+    TransferBlockMainFrame qui met le 1er élément dans firstItem, recopiée avec ses arguments (comme 26.13 v36 et 26.20,
+    vues en jeu) ; None si introuvable"""
+    o = ouvrir(SOURCE_ELEMENT[0], depart_original=True)
+    if o is None:
+        return None
+    tm = o[3]
+    for r in tm.walk():
+        fs = tm.sd(r).get("BindFunction") if r in tm.refs else None
+        for f in fs if isinstance(fs, list) else []:
+            if (f.get("m_target") or {}).get("m_guid", "").startswith("21ee6b43"):
+                args = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+                chemins = [a for a in args if bytes(a[0]).endswith(b"[SI.Bindable.BindingPath]")]
+                if len(chemins) == 2 and bytes(chemins[1][1]).endswith(SOURCE_ELEMENT[1].encode()) \
+                        and sum(1 for a in args if bytes(a[0]).endswith(b"Int32VisualArg")) == 1:
+                    return copy.deepcopy(f)
+    return None
+
+
+def element_de_liste(fn, liste, index, destination):
+    """v26 : la fonction de FM recopiée : l'élément <index> de <liste> dans <destination>"""
+    f = copy.deepcopy(fn)
+    args = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+    chemins = [a for a in args if bytes(a[0]).endswith(b"[SI.Bindable.BindingPath]")]
+    for a, c in zip(chemins, (liste, destination)):
+        a[1] = b"\x01" + _enc_varint(len(c)) + c.encode()
+    next(a for a in args if bytes(a[0]).endswith(b"Int32VisualArg"))[1] = struct.pack("<i", index)
+    f["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(args)
+    return f
+
+
+def construire_cellule(t, src, nom=None, valeur=None, evenement=None, extra=(), cellule=None, evenement_cycle=None,
+                       suivant=None):
     """nom / valeur / evenement / extra (paramètres de plus) / cellule : pour la 2e cellule (transferts, v23) ; par
-    défaut ceux des contrats"""
+    défaut ceux des contrats. v26 : evenement_cycle (le clic du cadenas qui tourne) et suivant (chemin de la valeur de
+    la 2e option de la ligne : SUIVANT_C aux contrats, SUIVANT_T aux transferts)"""
     nom = nom or NOM_CELLULE
     VALEUR = valeur or globals()["VALEUR"]
     cellule = cellule or CELLULE
@@ -420,6 +543,16 @@ def construire_cellule(t, src, nom=None, valeur=None, evenement=None, extra=(), 
             if not any(a[1] == b"\x01\x03row" for a in args):
                 return ["icône ou texte du menu FM : donnée « row » introuvable"]
             entrees["m_argumentBytes"] = encode_args(ee._chemins(args, {"row": VALEUR}))
+    if CADENAS_UNIQUE:
+        suivant = suivant or SUIVANT_C
+        ev_cycle = evenement_cycle or evenement_copier(CIBLE_CYCLE, PARAM)
+        m = cadenas_unique(t, c, reglage, variables, src, VALEUR, ev_cycle, suivant, reference=(suivant == SUIVANT_C))
+        if m:
+            return m
+        return [f"bouton : {cellule}, icône + infobulle du menu FM (d'après {VALEUR}) ; un cadenas qui montre l'état "
+                f"({CE}) et dont le clic écrit l'option suivante ({CIBLE_CYCLE} : 1 -> 2, 2 -> 0, 0 -> {suivant}), "
+                + ("action du jeu" if evenement else f"{CIBLE_CYCLE} -> {PARAM}")
+                + f" ; « Retirer et exclure » à part en {ICONE_EXCLURE} (clic {CIBLE} : 0 si déjà en cours)"]
     if CACHER_NEGOCIABLE:
         # tout le bouton sous un SIVisible « row.RowData différent de 0 » (comparaison d'Alex) : plus de bouton Négociable
         s_cmp, vis = ni.visible_model(ni.SOURCE_COMPARE, ni.FN_COMPARE)
@@ -436,6 +569,150 @@ def construire_cellule(t, src, nom=None, valeur=None, evenement=None, extra=(), 
     return [f"bouton : {cellule}, icône + infobulle du menu FM (d'après {VALEUR}), clic = "
             + ("action du jeu" if evenement else f"{CIBLE} -> {PARAM}") + " (0 si déjà en cours)"
             + (", Négociable caché" if CACHER_NEGOCIABLE else "") + f", Retirer et exclure en {ICONE_EXCLURE}"]
+
+
+def _chemins_de(args):
+    """les chemins de données (BindingPath) d'une fonction, en texte"""
+    out = []
+    for a in args:
+        if bytes(a[0]).startswith(b"SI.VisualScripting.GenericVisualArg`1[SI.Bindable.BindingPath]"):
+            p = bytes(a[1])[1:]
+            out.append(p[1:1 + p[0]].decode(errors="replace"))
+    return out
+
+
+def cadenas_unique(t, c, reglage, variables, src, valeur, ev_cycle, suivant, reference):
+    """v26 (demande de Kinito, 13/11/2026 : « regrouper les deux cadenas ; blanc pour négociable, orange pour semi,
+    rouge pour non négo ; cliquer fait changer le cadenas de blanc à orange, d'orange à rouge et de rouge à blanc ») :
+    dans chaque cellule (une option de la ligne, valeur v ; la donnée du cadenas de la ligne : PARAM)
+      - SIVisible v == 3 : le bouton « Retirer et exclure » de la v25, tel quel (rond barré, cadre quand il est en
+        cours, clic = CIBLE : 3, ou 0 s'il l'était déjà) ;
+      - SIVisible v == CE : une copie du même bouton = le cadenas qui tourne, jamais encadré (sa couleur dit l'état),
+        icône et infobulle de l'option v (celles du menu de FM), clic = CIBLE_CYCLE.
+    Fonctions ajoutées au BindingSetterComponent de la cellule (celui de FM y enchaîne déjà lastindex -> is-start /
+    is-end -> buttontype), copies de la fonction isSelected d'Alex (« destination = valeur si A op B »), comme CIBLE
+    (v15) :
+      - SUIVANT = 2e option de la ligne (fonction de FM « élément n d'une liste », index 1, placée en tête) : une ligne a
+        au moins 2 options, rangées dans l'ordre, la 1re étant Négociable (relevé en jeu) ; c'est donc l'option qui suit
+        Négociable : semi-négociable, ou non négociable sur une ligne qui n'a pas de semi ;
+      - CE = 0 si PARAM == 3, PARAM sinon : un seul cadenas visible dans la ligne, celui de l'option en cours (l'ouvert
+        quand c'est « Retirer et exclure » : un clic l'annule et passe à l'option suivante) ;
+      - CIBLE_CYCLE = 2 si v == 1, 0 si v == 2, SUIVANT si v == 0.
+    reference : SUIVANT est une référence (option DynamicReference des contrats), sinon un nombre (transferts)"""
+    fonctions = t.refs[reglage]["data"]["BindFunction"]
+
+    def isselected(valeur_vraie):
+        for f in fonctions:
+            ch = _chemins_de(decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"]))
+            if "isSelected" in ch and valeur_vraie in ch and valeur in ch and PARAM in ch:
+                return f
+        return None
+
+    egal, diff = isselected("const.True"), isselected("const.False")
+    if egal is None or diff is None:
+        return ["fonctions isSelected du bouton introuvables (cadenas qui tourne)"]
+
+    def copie(f, remplacer, attendus):
+        f2 = copy.deepcopy(f)
+        f2["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(
+            ee._chemins(decode_args(f2["m_inputs"]["m_variable"]["m_argumentBytes"]), remplacer))
+        ch = _chemins_de(decode_args(f2["m_inputs"]["m_variable"]["m_argumentBytes"]))
+        return f2 if sorted(ch) == sorted(attendus) else None
+
+    nouvelles = [
+        copie(egal, {"isSelected": CE, valeur: PARAM, PARAM: EXCLURE, "const.True": NEGOCIABLE},
+              [CE, PARAM, EXCLURE, NEGOCIABLE]),
+        copie(diff, {"isSelected": CE, valeur: PARAM, PARAM: EXCLURE, "const.False": PARAM},
+              [CE, PARAM, EXCLURE, PARAM]),
+        copie(egal, {"isSelected": CIBLE_CYCLE, PARAM: UN, "const.True": DEUX}, [CIBLE_CYCLE, valeur, UN, DEUX]),
+        copie(egal, {"isSelected": CIBLE_CYCLE, PARAM: DEUX, "const.True": NEGOCIABLE},
+              [CIBLE_CYCLE, valeur, DEUX, NEGOCIABLE]),
+        copie(egal, {"isSelected": CIBLE_CYCLE, PARAM: NEGOCIABLE, "const.True": suivant},
+              [CIBLE_CYCLE, valeur, NEGOCIABLE, suivant]),
+    ]
+    if None in nouvelles:
+        return ["fonctions isSelected du bouton : forme inattendue (cadenas qui tourne)"]
+    fonctions[0:0] = [element_de_liste(src.fn_element, PARAM_CHOIX, 1, SUIVANT)]
+    fonctions.extend(nouvelles)
+    # déclarations (comme CIBLE, v15) : CE et CIBLE_CYCLE (nombres) ; SUIVANT : une référence sans type aux contrats
+    # (comme 26.13 v36), un nombre aux transferts
+    d = t.refs[variables]["data"]
+    vv = d.setdefault("ValueVariables", [])
+    for n_ in (CE, CIBLE_CYCLE) + (() if reference else (SUIVANT,)):
+        if not any(v["m_name"] == n_ for v in vv):
+            v = copy.deepcopy(vv[0])
+            v["m_name"], v["m_scopeValue"]["m_serializedData"] = n_, "Int|0|"
+            vv.append(v)
+    if reference:
+        rv = d.setdefault("ReferenceVariables", [])
+        if not any(v["m_name"] == SUIVANT for v in rv):
+            rv.append({"m_type": {"id": 0}, "m_initToNull": 1, "m_name": SUIVANT})
+    _drapeaux(d, "ValueVariables", "ReferenceVariables")
+    # l'affichage en deux branches
+    s_cmp, vis = ni.visible_model(ni.SOURCE_COMPARE, ni.FN_COMPARE)
+    if vis is None:
+        return ["SIVisible de comparaison de FM introuvable"]
+
+    def visible(index, nom, a, b):
+        v = ni.new_visible(t, s_cmp, vis, c, index, f"{PREFIXE}-{nom}",
+                           ni.make_binding(s_cmp.sd(vis)["Binding"], OP_EGAL, [a, b]))
+        if "m_ParentId" in t.elem(v):
+            t.elem(v)["m_ParentId"] = t.elem(c).get("m_Id", t.elem(v)["m_ParentId"])
+        return v
+
+    # seulement l'affichage : les composants de liaison (BindingExpect / Variables / Setter) restent sur la cellule
+    enfants = [k for k in t.children(c) if not typ(t, k).endswith("Component")]
+    exclure = visible(0, "cadenas-exclure-seul", valeur, EXCLURE)
+    for k in enfants:
+        deplacer(t, k, exclure)
+    cycle = visible(1, "cadenas-qui-tourne", valeur, CE)
+    for k in t.children(exclure):
+        r = t.clone(k, cycle)
+        if "m_ParentId" in t.elem(r):
+            t.elem(r)["m_ParentId"] = t.elem(cycle).get("m_Id", t.elem(r)["m_ParentId"])
+    boutons = actifs = 0
+    for r in t.walk(cycle):
+        if typ(t, r) == "SIButton":
+            t.sd(r)["Events"]["m_bytes"] = list(ev_cycle)
+            boutons += 1
+        elif typ(t, r) == "SIStyleSetter":
+            entrees = ((t.sd(r).get("BindFunction") or {}).get("m_inputs") or {}).get("m_variable") or {}
+            args = decode_args(entrees.get("m_argumentBytes") or [])
+            for a in args:
+                if a[0] == b"SI.VisualScripting.StringVisualArg" and a[1][2:].decode(errors="replace") == BOUTON_ACTIF:
+                    a[1] = b"\x01" + _enc_varint(len(BOUTON_INACTIF)) + BOUTON_INACTIF.encode()
+                    actifs += 1
+            if args:
+                entrees["m_argumentBytes"] = encode_args(args)
+    if not boutons or actifs not in (3, 4):
+        return [f"cadenas qui tourne : boutons ou styles introuvables ({boutons} boutons, {actifs} styles actifs)"]
+    return []
+
+
+def rangee_auto(t, src, parent, liste, guid=None):
+    """v26 : la rangée à la largeur de son contenu (liste non virtualisée d'Alex, WrappedObjectList de FM, comme ses
+    boutons d'équipes séparés : ee.rangee) : les options cachées n'y prennent pas de place, sans largeur à calculer"""
+    mx = src.mx
+    w = t.clone(mx.wliste, parent, src=mx.wlst)
+    ee._vide(t, w)
+    if "m_ParentId" in t.elem(w):
+        t.elem(w)["m_ParentId"] = t.elem(parent).get("m_Id", t.elem(w)["m_ParentId"])
+    wd = t.sd(w)
+    wd["name"], wd["name_UxmlAttributeFlags"] = f"{PREFIXE}-cadenas-liste", 1
+    wd["ItemTemplate"] = {"m_AssetGUID": guid or GUID_CELLULE, "m_SubObjectName": "", "m_SubObjectType": ""}
+    wd["VisualFuncBinding"] = path_arg(wd["VisualFuncBinding"], liste)
+    wd["ItemParamName"] = "row"
+    wd["ItemUssClassName"] = "flex-no-shrink-class"
+    t.styles.style(t, w, {"flex-direction": "row", "flex-wrap": "nowrap", "flex-shrink": 0, "height": HAUTEUR})
+    return w
+
+
+def alias_rang(sd, modele):
+    """v26 : la liste non virtualisée ne donne pas de rowindex à ses cellules ; on leur donne 1 (forme « milieu » ou
+    « fin » du bouton d'Alex, celles des options 1 à 3 de la v25 ; -1 ne choisirait ni début ni fin)"""
+    x = copy.deepcopy(modele)
+    x["from"], x["to"]["m_path"], x["type"]["id"] = "rowindex", UN, 0
+    sd["Mappings"].append(x)
 
 
 def deplacer(t, rid, parent):
@@ -534,14 +811,19 @@ def construire_ligne(t, src, fixe=False, sortie=None):
     if sortie is not None:
         sortie["rm"] = rm
         sortie["menu"] = t.elem(menus[0])["m_Id"]   # l'instance du menu du cadenas dans le modèle
-    # une rangée par nombre d'options, à sa largeur exacte, une seule visible : collée à la poubelle même à 2 ou 3 options
-    plus3 = visible_nombre(t, src, rm, choix, "const.Three", False, "4")         # plus de 3 options
-    rangee(t, src, plus3, choix, 4)
-    pas3 = visible_nombre(t, src, rm, choix, "const.Three", True, "3-ou-moins")  # 3 ou moins
-    plus2 = visible_nombre(t, src, pas3, choix, "const.Two", False, "3")
-    rangee(t, src, plus2, choix, 3)
-    pas2 = visible_nombre(t, src, pas3, choix, "const.Two", True, "2")
-    rangee(t, src, pas2, choix, 2)
+    if CADENAS_UNIQUE:
+        # v26 : une rangée à la largeur de son contenu (le cadenas, et « Retirer et exclure » si la ligne l'a)
+        alias_rang(sd, m)
+        rangee_auto(t, src, rm, choix)
+    else:
+        # une rangée par nombre d'options, à sa largeur exacte, une seule visible : collée à la poubelle même à 2 ou 3 options
+        plus3 = visible_nombre(t, src, rm, choix, "const.Three", False, "4")         # plus de 3 options
+        rangee(t, src, plus3, choix, 4)
+        pas3 = visible_nombre(t, src, rm, choix, "const.Three", True, "3-ou-moins")  # 3 ou moins
+        plus2 = visible_nombre(t, src, pas3, choix, "const.Two", False, "3")
+        rangee(t, src, plus2, choix, 3)
+        pas2 = visible_nombre(t, src, pas3, choix, "const.Two", True, "2")
+        rangee(t, src, pas2, choix, 2)
     # le cadenas de gauche disparaît
     t.remove(cadenas)
     # le nom ne s'écrase plus ; le sélecteur de date (clauses à échéance) ne prend plus toute la place
@@ -595,7 +877,9 @@ def construire_ligne(t, src, fixe=False, sortie=None):
             + (", date plafonnée" if date is not None else "") + f", ligne {LIGNE_HAUTEUR} px au moins + {LIGNE_ECART} + {LIGNE_ECART}"
             + (", nom étiré (menu et icônes à droite)" if nom_etire else "")
             + (f", menu d'objectif {OBJECTIF_LARGEUR_MAX} px au plus" if objectif is not None and not fixe else "")
-            + (f", menu du temps de jeu {MENU_TEMPS_LARGEUR[0]} à {MENU_TEMPS_LARGEUR[1]} px" if menu_temps else "")]
+            + (f", menu du temps de jeu {MENU_TEMPS_LARGEUR[0]} à {MENU_TEMPS_LARGEUR[1]} px" if menu_temps else "")
+            + (f", infobulle n° {BULLE_POUBELLE[0]} sur la poubelle" if BULLE_POUBELLE else "")]
+    msgs += bulle_poubelle(t, src, ligne)   # v27
     if MOLETTE and first(t, lambda r: t.name(r) == "button-2-remapper") is not None:
         msgs += molette_numerique(t)
     return msgs
@@ -645,13 +929,17 @@ def construire_ligne_transfert(t, src):
     sd["Mappings"] = alias
     t.styles.style(t, rm, {"height": HAUTEUR, "flex-shrink": 0})
     choix = "lock.PossibleLockStatuses"
-    plus3 = visible_nombre(t, src, rm, choix, "const.Three", False, "4")
-    rangee(t, src, plus3, choix, 4, GUID_CELLULE_T)
-    pas3 = visible_nombre(t, src, rm, choix, "const.Three", True, "3-ou-moins")
-    plus2 = visible_nombre(t, src, pas3, choix, "const.Two", False, "3")
-    rangee(t, src, plus2, choix, 3, GUID_CELLULE_T)
-    pas2 = visible_nombre(t, src, pas3, choix, "const.Two", True, "2")
-    rangee(t, src, pas2, choix, 2, GUID_CELLULE_T)
+    if CADENAS_UNIQUE:   # v26 : comme aux contrats
+        alias_rang(sd, m)
+        rangee_auto(t, src, rm, choix, GUID_CELLULE_T)
+    else:
+        plus3 = visible_nombre(t, src, rm, choix, "const.Three", False, "4")
+        rangee(t, src, plus3, choix, 4, GUID_CELLULE_T)
+        pas3 = visible_nombre(t, src, rm, choix, "const.Three", True, "3-ou-moins")
+        plus2 = visible_nombre(t, src, pas3, choix, "const.Two", False, "3")
+        rangee(t, src, plus2, choix, 3, GUID_CELLULE_T)
+        pas2 = visible_nombre(t, src, pas3, choix, "const.Two", True, "2")
+        rangee(t, src, pas2, choix, 2, GUID_CELLULE_T)
     # le bouton qui retire la clause : la poubelle de FM (il avait le rond barré)
     for r in t.walk(ligne):
         if t.name(r) == "ui-concepts-delete_small":
@@ -659,7 +947,9 @@ def construire_ligne_transfert(t, src):
     t.styles.style(t, ligne, {"height-auto": 2, "min-height": LIGNE_HAUTEUR, "margin-top": LIGNE_ECART,
                               "margin-bottom": LIGNE_ECART})
     return [f"cadenas -> icônes à droite, avant le bouton qui retire la clause (devenu poubelle), ligne "
-            f"{LIGNE_HAUTEUR} px au moins + {LIGNE_ECART} + {LIGNE_ECART}"]
+            f"{LIGNE_HAUTEUR} px au moins + {LIGNE_ECART} + {LIGNE_ECART}"
+            + (f", infobulle n° {BULLE_POUBELLE[0]} sur la poubelle" if BULLE_POUBELLE else "")] \
+        + bulle_poubelle(t, src, ligne)   # v27
 
 
 def construire_bloc_transfert(t, guids):
@@ -863,7 +1153,8 @@ def cmd_appliquer():
         # offres de transfert (v23)
         msgs += [f"{CELLULE_T} : {x}" for x in construire_cellule(
             travail[CELLULE_T][3], src, nom=NOM_CELLULE_T, valeur=VALEUR_T, cellule=CELLULE_T,
-            evenement=evenement_action(PARAM_HANDLER, CIBLE, ACTION_CADENAS), extra=(PARAM_HANDLER,))]
+            evenement=evenement_action(PARAM_HANDLER, CIBLE, ACTION_CADENAS), extra=(PARAM_HANDLER,),
+            evenement_cycle=evenement_action(PARAM_HANDLER, CIBLE_CYCLE, ACTION_CADENAS), suivant=SUIVANT_T)]
         for m in LIGNES_TRANSFERT:
             msgs += [f"{m} : {x}" for x in construire_ligne_transfert(travail[m][3], src)]
         nom_vers_guid = {n: g for g, n in catalogue().items()}

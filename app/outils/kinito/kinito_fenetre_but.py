@@ -100,7 +100,97 @@ def _toutes():
 
 
 TOUTES = _toutes()
-VERSION = "11-toutes" if TOUTES else 11   # dépend de l'option (règle d'Alex : sinon « déjà appliqué »)
+VERSION = "17-toutes" if TOUTES else "17"   # dépend de l'option (règle d'Alex : sinon « déjà appliqué »)
+#             v17 (Kinito, 14/11 : la v17essai vue en Premier League, jeu en français puis en allemand — « LANGUE :
+#             GERMAN », la phrase allemande, « ÉGALE : OUI », « VAR : OUI ») : la v17essai sans ses deux lignes jaunes
+#             (DIAG_VAR = False). Rien d'autre ne change.
+#             v17essai (Kinito, 14/11 : la v16essai n'a rien traduit — « traduite : » vide — et sa phrase vide égalait
+#             toutes les cases vides : VAR vue partout ; « oui, prépare-la », la table des phrases) : VERSION DE TEST. La
+#             phrase de la VAR dans les 25 langues du jeu (PHRASES_VAR_LANGUES, relevée dans languages.fmf), choisie par
+#             la langue du jeu : le conteneur de langue de FM au-dessus de tout (conteneur_langue), puis, dans la
+#             BindingSetter des règles, « deux textes égaux » languagesetting.PropertyValue == chaque langue et « poser
+#             si » sa phrase (choix_langue) ; les variables de phrase partent de l'anglais (jamais vides). Une seule
+#             variable VAR (UNE_VAR) pour le bandeau et le compteur, comme la v16essai. Lignes jaunes : VAR, en match,
+#             télé, TV, puis la langue du jeu, la phrase choisie et « égale »
+#             v16essai (Kinito, 14/11 : « il faut que ça puisse être lu dans toutes les langues du jeu, pas juste anglais et
+#             français ») : VERSION DE TEST. FM traduit lui-même les deux phrases de la VAR dans la langue du jeu
+#             (TranslateWithArgumentsAndSetToDestination, fn_traduire, IDS_VAR) ; les règles leur sont comparées comme
+#             aux phrases fr / en, gardées en secours ; une seule variable VAR (VAR_TOUTES) pour le bandeau de toutes les
+#             langues et le compteur du match (plus d'interrupteur « english », plus de conteneur de langue au compteur).
+#             Lignes jaunes : VAR, « trad. en match », « trad. télé », TV, puis la phrase traduite et « égale ». Aucun
+#             écran de FM ne fait traduire un texte du jeu (identifiants 0x1007…) : c'est ce que l'essai dira
+#             v15 (Kinito, 14/11, v15essai en jeu : Coupe de France 11e tour « VAR : non » et « Sarr : 6e passe D »
+#             juste ; quart de finale « VAR : OUI » et « Mendy : 2e passe D » juste ; Premier League « VAR : OUI ») : la
+#             v15essai sans ses lignes jaunes (DIAG_VAR = False). Rien d'autre ne change
+#             v15essai (Kinito, 14/11 : la page « Règles » de la Coupe de France n'écrit la VAR que dans les règles du quart
+#             de finale, et la phase qu'elle montre d'abord n'est PAS le tour en cours ; or c'est elle que lisait la v14,
+#             DefaultStageForRules) : VERSION DE TEST, les règles de la phase lues dans la phase EN COURS
+#             (match.Competition.CurrentStage.Rules, CHEMIN_PHASE), comme l'écran d'avant-match de FM ; les lignes
+#             jaunes remises (DIAG_VAR) pour le voir en Premier League, en Ligue 2 et en quart de Coupe de France. Rien
+#             d'autre ne change
+#             v14 (Kinito, 14/11, v14essai en Premier League : « VAR : OUI · EN MATCH : OUI », « Aït-Nouri : 2e passe D »
+#             pour sa 2e, « 1 » au compteur du match ; en Ligue 2 la v13 était déjà juste) : la v14essai sans ses lignes
+#             jaunes (DIAG_VAR = False). Rien d'autre ne change
+#             v14essai (Kinito, 14/11, capture de la v13essai en Premier League : « égale : OUI » sur la ligne de la VAR,
+#             mais « égales : 0 », « en match : NON », « VAR : NON ») : la comparaison marche, la mise en commun non. La
+#             liste des fonctions de FM (SI.Core.StructList) n'a que 10 cases (m_value0 à m_value9) : la v12 / v13 y
+#             passait 64 booléens, la ligne de la VAR de la Premier League était la 45e. Les OU se font maintenant par
+#             paquets de 10 au plus, puis un OU des paquets (ou_par_paquets, LISTE_MAX) ; fn_logique et fn_somme_bool
+#             refusent plus de 10 chemins. Les lignes jaunes restent (sans « égales », qui passait 64 chemins), pour le
+#             voir en un but. Rien d'autre ne change
+#             v13essai (Kinito, 14/11 : en Premier League, la 2e passe D de la saison de Cherki affichée « 1re » : FM en
+#             était à 1, le + 1 n'est pas venu, la v13 n'a donc pas vu la VAR ; la v12essai4 lisait bien la ligne de la
+#             VAR, mais la chaîne invisible de la v12 n'a jamais été vue au travail) : VERSION DE TEST, la v13 plus deux
+#             lignes jaunes sous le bandeau (DIAG_VAR, ligne_diag_var) : la variable VAR, « en match », « télé », la
+#             télévision, le nombre de lignes égales à la phrase, puis le groupe de la VAR de la Premier League, sa 1re
+#             ligne et « égale ». Rien d'autre ne change
+#             v13 (Kinito, 14/11, v12 en Ligue 2 : bandeau juste, « Fall : 1re passe D », « Sarr : 2e passe D » ; mais au
+#             bout de la bande du passeur, « 2 » pour la 1re passe du match de Fall, « 3 » pour la 2e de Sarr : sans VAR,
+#             FM avait AUSSI déjà compté la passe dans le match. La v12 avait gardé ce + 1, sur la foi d'une seule capture
+#             juste) : le compteur des passes D DU MATCH suit la même règle que le bandeau (passes_match) : + 1 si la
+#             compétition a la VAR, ou si FM en est à 0 passe D dans le match ; par langue comme le bandeau (un
+#             conteneur de langue de plus, « -passes-match-langue ») ; les autres langues gardent le + 1 toujours. Pour
+#             qu'il lise la VAR, regles_var passe AU-DESSUS de la rangée du haut et du bandeau (colonne sous
+#             #RootElement ; v12 : dans le bandeau). Rien d'autre ne change
+#             v12 (Kinito, 13/11 : en Ligue 2, « 2e passe D » pour une 1re ; la v12essai4 a lu en Premier League, dans
+#             les règles de la phase, « L'assistance vidéo à l'arbitrage (VAR) sera utilisée en match ») : le + 1 des
+#             passes D de la COMPÉTITION (le bandeau : « Benson : 5e passe D ») seulement quand la compétition a la VAR
+#             (FM ne compte alors la passe qu'après la vérification ; sans VAR, il l'a déjà comptée), ou quand FM en est
+#             encore à 0 (jamais « 0e »). En tête du bandeau, invisible (regles_var) : les contextes de FM, les groupes de
+#             règles générales et de la phase (12 + 20), leurs deux premières lignes comparées aux phrases de la VAR
+#             (en match ; pour les matchs télévisés, et alors avec match.IsOnTV), en français et en anglais (un
+#             interrupteur de langue « english » de plus) ; les autres langues du jeu gardent le + 1 toujours (v11).
+#             Les passes D DANS LE MATCH (au bout de la bande du passeur) gardent leur + 1 : FM ne les compte qu'après,
+#             VAR ou pas (« 1 » juste en Ligue 2). La ligne d'essai est retirée (ESSAI_VAR = False)
+#             v12essai4 (13/11 : la v12essai3 a laissé « règles de la phase » VIDE en Ligue 2 comme en Premier League,
+#             sans fermer le jeu) : lu dans le code du jeu (GetContextsInternal, lecture seule) :
+#             CompReference.DefaultStageForRules exige le contexte « NextSeason », CompetitionStageReference.Rules
+#             « StageRulesType » et « NextSeason » ; la page « Règles » de FM (AboutRulesBlock_8x4, #RootState) les
+#             donne par deux variables, nextseason = Bool|0| et stagerulestype = Int|-1|, au-dessus de ce qui lit
+#             comp.DefaultStageForRules. La fenêtre de but ne les a pas : le chemin ne menait à rien. La ligne d'essai
+#             les déclare pareil, dans une BindingSetter au-dessus de celle des règles (CONTEXTES_REGLES). Rien
+#             d'autre ne change
+#             v12essai3 (13/11 : en Ligue 2 la v12essai2 a lu 9 groupes généraux, sans VAR, sans fermer le jeu ; en
+#             Premier League, AUCUN groupe) : VERSION DE TEST, la ligne jaune lit en plus les règles de la PHASE de la
+#             compétition (match.Competition.DefaultStageForRules.Stage.Rules : ce que la page « Règles » de FM affiche
+#             pour la phase par défaut ; une compétition à une seule phase y range toutes ses règles), sous un titre
+#             « règles de la phase : » ; les générales sous « règles générales : » (10 groupes au lieu de 14, la
+#             Ligue 2 en a 9 ; 14 pour la phase). Rien d'autre ne change
+#             v12essai2 (Kinito, 13/11 : la v12essai a montré en Premier League que match.MatchRulesList n'a que deux
+#             lignes, sans la VAR ; « tente la compétition ») : VERSION DE TEST, la ligne jaune lit maintenant les
+#             règles GÉNÉRALES de la compétition (match.Competition.SharedRules, la page « Règlement général » où Kinito a
+#             vu la VAR de la Ligue 1) : les N_GROUPES premiers groupes, pris un par un par leur rang (fonction de FM
+#             « élément n d'une liste, s'il existe »), leur titre, leurs deux premières lignes, et « ◄ VAR » / « ◄ VAR
+#             télé » quand une ligne est la phrase de FM (comparaison de textes de FM, sûre sur un texte vide) ; et
+#             toujours « télévisé : oui / non ». Pas de « la liste contient » : elle plante sur une liste absente (lu
+#             dans le code du jeu : TypedListContainsValue lance une erreur sur une liste nulle)
+#             v12essai (Kinito, 13/11 : en Ligue 2, sans VAR, « 2e passe D » pour une 1re : FM y compte déjà la passe en
+#             cours, notre + 1 la compte deux fois ; en Ligue 1, Premier League, Europa League, avec VAR, il ne la compte
+#             qu'après la vérification ; « oui, cherche » si le skin peut savoir que le match a la VAR) : VERSION DE TEST,
+#             la v11 plus une ligne jaune sous le bandeau (ESSAI_VAR) : « la liste des règles du match
+#             (match.MatchRulesList, celle du bloc CompetitionInfo de FM) contient la phrase de la VAR » oui / non, la
+#             phrase « VAR pour les matchs télévisés » oui / non, match.IsOnTV oui / non, puis la liste elle-même (la
+#             StreamedObjectList de CompetitionInfo recopiée, ses lignes de FM). Rien d'autre ne change
 #             v11 (Kinito, 11/11, capture d'un 1er but de Kevin Carlos en Ligue 1 : « sur le 1er but c'est marqué
 #             1ère ») : le rang de FM ([%number#1-nth]) écrit « 1ère » pour 1 en français ; quand le buteur en est à
 #             son 1er but dans la compétition (goalplayer.GoalsInThisCompThisSeason == 1, le calcul de FM de la v3),
@@ -199,6 +289,154 @@ ESSAI_TEXTES = [   # v6essai3 (v6essai2 : Goals / compét. · saison A / B / C /
       ("goalplayer.Player.SeasonStats.SeasonStatsSelectedCompetitionsData.Appearances", "2"),
       ("goalplayer.Player.SeasonStats.SeasonStatsCombinedRow.Goals", "3")])]
 TYPE_COMPETITION = 1145176089   # v6essai3 : type « comp » d'un BindingRemapper (relevé dans PlayerReportSeasonStatsBlock)
+# v12essai : la VAR du match (False pour retirer la ligne). Lu dans le jeu le 13/11 : le « match » de la fenêtre
+# (FM.UI.MatchReference) dérive de FixtureReference (son nombre de propriétés = celui de FixtureReference + 123), qui a
+# MatchRulesList (liste de textes : CompetitionAdditionalInfoRow lie « row » à un SIText) et IsOnTV (booléen)
+ESSAI_VAR = False   # v12 : la ligne d'essai retirée (v12essai à v12essai4 : True)
+# v12 : le + 1 des passes D de la COMPÉTITION seulement quand la compétition a la VAR (voir VERSION) ; False : le + 1
+# toujours, comme la v11
+VAR_SELON_REGLES = True
+# v13essai : deux lignes jaunes sous le bandeau, chaque maillon de la chaîne de regles_var (False pour les retirer).
+# DIAG_GROUPE : le groupe « Règlement aide à l'arbitrage » de la Premier League (11e de ses règles de phase, capture
+# v12essai4 du 13/11 : rang 10), après les 12 groupes généraux (vides en Premier League)
+DIAG_VAR = False   # v17 : retirées (v16essai, v17essai : True ; v15 : False ; v13essai, v14essai, v15essai : True)
+DIAG_GROUPE = 12 + 10
+# v12essai2 : les règles générales de la compétition (FM.UI.CompReference.SharedRules : liste de StageRuleReference,
+# RuleHeading + RuleTexts, lues par AboutRulesBlockRuleRow : SIText path=row.RuleHeading, liste de row.RuleTexts)
+CHEMIN_GROUPES = "match.Competition.SharedRules"
+# v12essai3 : la Premier League n'a montré AUCUN groupe dans SharedRules (13/11). La page « Règles » de FM
+# (AboutRulesBlock_8x4, lue le 13/11) montre aussi les règles de la PHASE : une fonction de FM y copie
+# comp.DefaultStageForRules dans « selectedstagemenu », puis une GridSelector lit selectedstagemenu.Stage.Rules (liste de
+# StageRuleReference, même gabarit de ligne que SharedRules) ; sans nom de phase, FM titre cette liste « Shared Rules »
+# v15essai : la phase EN COURS (CurrentStage, une CompetitionStageReference : FM la lit dans le bundle du match,
+# PreMatchLeagueTable, « match.Competition.CurrentStage.LeagueTable » ; contexte « team » exigé, que le BindingRemapper
+# de la fenêtre de but donne déjà : team -> match.MatchTeam). v12essai3 à v14 : DefaultStageForRules, la phase que la
+# page « Règles » montre d'abord : en Coupe de France ce n'est pas le tour en cours (Kinito, 14/11), et la VAR n'y est
+# écrite que dans les règles du quart de finale
+CHEMIN_PHASE = "match.Competition.CurrentStage.Rules"
+# (nom affiché, chemin, groupes lus) ; v12 : 12 et 20 (v12essai4 : 10 et 14 ; la Ligue 2 a 9 groupes généraux, la
+# Premier League au moins 14 groupes de phase, la VAR au 12e)
+LISTES = [("générales", CHEMIN_GROUPES, 12), ("de la phase", CHEMIN_PHASE, 20)]
+N_GROUPES, N_TEXTES = sum(n for _, _, n in LISTES), 2   # groupes en tout ; lignes lues par groupe (VAR, goal-line)
+# v12essai4 : les contextes qu'exigent DefaultStageForRules (NextSeason) et Stage.Rules (StageRulesType, NextSeason),
+# déclarés comme dans #RootState d'AboutRulesBlock_8x4 (FM cherche un contexte par son nom, sans les majuscules)
+CONTEXTES_REGLES = [("nextseason", False), ("stagerulestype", -1)]
+H_GROUPE = 16
+H_LISTE = (N_GROUPES + len(LISTES)) * H_GROUPE   # une ligne de titre par liste
+L_TITRE, L_TEXTE = 190, 270     # largeurs (u) des colonnes de la ligne d'un groupe, texte coupé au-delà
+CHEMIN_TELE = "match.IsOnTV"
+# « élément n d'une liste » de FM : celui de TransferBlockMainFrame (gameworld, firstItem), comme 26.13 v36, recopié
+# puis tourné vers sa variante « s'il existe » (mêmes entrées, dans le même ordre : lu dans les deux graphes ; la
+# variante ne pose rien quand le rang manque : GetTypedValueOrNullAtIndex puis IsNullValue, sûrs sur le vide)
+SOURCE_ELEMENT = "TransferBlockMainFrame"
+FONCTION_ELEMENT = "21ee6b430323a494099e32901c5497cb"        # BindListItemUsingIndexToDestination
+FONCTION_ELEMENT_SI = "1f968d66d61c9a443ae9625b7a6ef5e3"     # BindListItemUsingIndexToDestinationIfNotNull
+# l'aiguillage « deux textes égaux » de FM (TrainingOverviewTile_2x1, #HasReport : const.EmptyString contre
+# Person.InjuryPreventingTraining, souvent vide : FM s'en sert sur du vide) ; rang 0 différents, rang 1 égaux
+SOURCE_COMPARE = ("TrainingOverviewTile_2x1", "HasReport")
+FONCTION_COMPARE = "45ff404d74e03fa42b6a86df09674c74"        # BindStringComparisonToSwitch
+SOURCE_DIRECT = ("AboutRulesBlockRuleRow", "text")            # un SIText de FM à liaison directe (path=row.RuleHeading)
+# les phrases de FM (data\game_simulation\languages.fmf, 10070847 et 10070849, apostrophe ASCII), en variables texte
+ESSAI_PHRASES = [("kinitovartexte", "L'assistance vidéo à l'arbitrage (VAR) sera utilisée en match"),
+                 ("kinitovartele",
+                  "L'assistance vidéo à l'arbitrage (VAR) sera utilisée pour les matchs retransmis à la télévision")]
+# v12 : les phrases de la VAR par langue de nos textes (fichier de langues de FM 27 : 10070847 « en match », 10070849
+# « matchs télévisés » ; français et anglais, mot pour mot, apostrophe ASCII)
+PHRASES_VAR = {"fr": ("L'assistance vidéo à l'arbitrage (VAR) sera utilisée en match",
+                      "L'assistance vidéo à l'arbitrage (VAR) sera utilisée pour les matchs retransmis à la télévision"),
+               "en": ("Matches have Video Assistant Referees (VAR)",
+                      "Televised matches have Video Assistant Referees (VAR)")}
+# v17essai : la phrase de la VAR dans chaque langue du jeu (valeur de languagesetting.PropertyValue -> (« en match »,
+# « matchs télévisés »)), relevée dans data\game_simulation\languages.fmf de FM 27 (10070847, 10070849, une seule
+# forme chacune) ; tchèque, thaï : l'anglais ; chinois traditionnel : le simplifié ; espagnol d'Amérique latine : la
+# table espagnole (FM 27 n'a pas les leurs : comme 26.19). À relever de nouveau après une mise à jour du jeu
+PHRASES_VAR_LANGUES = {
+    'english': ('Matches have Video Assistant Referees (VAR)',
+                  'Televised matches have Video Assistant Referees (VAR)'),
+    'english (us)': ('Matches have Video Assistant Referees (VAR)',
+                       'Televised matches have Video Assistant Referees (VAR)'),
+    'french': ("L'assistance vidéo à l'arbitrage (VAR) sera utilisée en match",
+                 "L'assistance vidéo à l'arbitrage (VAR) sera utilisée pour les matchs retransmis à la télévision"),
+    'german': ('Der Videoassistent (VAR) kommt bei allen Spielen zum Einsatz',
+                 'Bei Spielen, welche im Fernsehen übertragen werden, kommen Videoassistenten (VAR) zum Einsatz'),
+    'italian': ('Le partite sono supportate da Video Assistant Referees (VAR)',
+                  'Le partite con copertura televisiva sono supportate da Video Assistant Referees (VAR)'),
+    'spanish': ('Los partidos utilizan el Árbitro Asistente de Vídeo (VAR)',
+                  'Los partidos televisados utilizan el Árbitro Asistente de Vídeo (VAR)'),
+    'spanish (latam)': ('Los partidos utilizan el Árbitro Asistente de Vídeo (VAR)',
+                          'Los partidos televisados utilizan el Árbitro Asistente de Vídeo (VAR)'),
+    'portuguese': ('Jogos têm Vídeo-Árbitro (VAR)',
+                     'Jogos transmitidos pela televisão têm Vídeo-Árbitro (VAR)'),
+    'portuguese (bra)': ('Jogos têm Vídeo-Árbitro (VAR)',
+                           'Jogos transmitidos pela televisão têm Vídeo-Árbitro (VAR)'),
+    'dutch': ('Wedstrijden beschikken over VAR (videoscheidsrechter)',
+                'Uitgezonden wedstrijden beschikken over VAR (videoscheidsrechter)'),
+    'danish': ('Kampe benytter Video Assistant Referees (VAR)',
+                 'TV-kampe benytter Video Assistant Referees (VAR)'),
+    'norwegian': ('Kampene har videodømming (VAR)',
+                    'TV-sendte kamper har videodømming (VAR)'),
+    'swedish': ('Matcher har videodomare (VAR)',
+                  'TV-sända matcher har videodomare (VAR)'),
+    'polish': ('Mecze korzystają z systemu VAR',
+                 'Mecze transmitowane w telewizji korzystają z systemu VAR'),
+    'czech': ('Matches have Video Assistant Referees (VAR)',
+                'Televised matches have Video Assistant Referees (VAR)'),
+    'russian': ('На матчах используется система видеоповтора',
+                  'На матчах, транслируемых по ТВ, используется система видеоповтора'),
+    'turkish': ('Maçlarda Video Yardımcı Hakem (VAR) kullanılacak',
+                  "TV'de yayınlanacak maçlarda Video Yardımcı Hakem uygulaması kullanılacak (VAR)"),
+    'greek': ('Οι αγώνες έχουν Διαιτητές VAR',
+                'Οι αγώνες που καλύπτονται τηλεοπτικά έχουν Διαιτητές VAR'),
+    'indonesian': ('Pertandingan menggunakan Video Assistant Referees (VAR)',
+                     'Pertandingan yang disiarkan di televisi menggunakan Video Assistant Referees (VAR)'),
+    'japanese': ('試合に\u200bは\u200bビ\u200bデ\u200bオ\u200bア\u200bシ\u200bス\u200bタント\u200bレ\u200bフェリー\u200b（VAR）が\u200b導入さ\u200bれ\u200bる',
+                   'テ\u200bレ\u200bビ\u200b中継が\u200bあ\u200bる\u200b試合に\u200bは\u200bビ\u200bデ\u200bオ\u200bア\u200bシ\u200bス\u200bタント\u200bレ\u200bフェリー\u200b（VAR）が\u200b導入さ\u200bれ\u200bる'),
+    'korean': ('경기에서는 비디오 보조 심판(VAR)이 있습니다',
+                 'TV 경기에서는 비디오 보조 심판(VAR)이 있습니다'),
+    'chinese': ('比\u200b赛使\u200b用视\u200b频裁\u200b判技\u200b术 (VAR)',
+                  '在\u200b电视\u200b直播\u200b的场\u200b次中\u200b使用\u200b视频\u200b裁判\u200b技术 (VAR)'),
+    'chinese (traditional)': ('比\u200b赛使\u200b用视\u200b频裁\u200b判技\u200b术 (VAR)',
+                                '在\u200b电视\u200b直播\u200b的场\u200b次中\u200b使用\u200b视频\u200b裁判\u200b技术 (VAR)'),
+    'thai': ('Matches have Video Assistant Referees (VAR)',
+               'Televised matches have Video Assistant Referees (VAR)'),
+    'arabic': ('مباريات بها تقنية حكم الفيديو المساعد (VAR)',
+                 'مباريات منقولة تلفزيونيًا بها تقنية حكم الفيديو المساعد (VAR)'),
+}
+# v12 : quatre fonctions de FM, recopiées d'un de ses modèles (gameworld / global), arguments lus dans ses usages :
+# « deux textes égaux -> booléen » (GenericControllerMap : destination, ForceUpdate, texte 1, texte 2, inverser ;
+# graphe : Get<string> ×2, String Equals, XOR inverser, SetBinding), « booléens combinés » (TeamTalkBlock : liste de
+# (chemin, inverser), opérateur, destination ; ApplyOperatorLogic lu dans le code : 0 = ET, 1 = OU), « somme de
+# booléens -> entier » (ManagerPersonaNationStep : liste de chemins, destination) et « entier comparé -> booléen »
+# (ClubsListPanel : destination, ForceUpdate, opérateur (2 = égal, comme OPERATEUR_EGAL), chemin, entier)
+SOURCE_TEXTE_EGAL, FONCTION_TEXTE_EGAL = "GenericControllerMap", "da91a2414bf58d34f943f1c659c75e1a"
+SOURCE_LOGIQUE, FONCTION_LOGIQUE = "TeamTalkBlock", "b6e89d1f787dcc1418384a60680a7f5a"
+SOURCE_SOMME_BOOL, FONCTION_SOMME_BOOL = "ManagerPersonaNationStep", "a29d32cb62360f048a75d5784d24ee90"
+SOURCE_ENTIER_EGAL, FONCTION_ENTIER_EGAL = "ClubsListPanel", "ffe24c8d915bd7449b8ba72442257e41"
+# v16essai (Kinito, 14/11 : « il faut que ça puisse être lu dans toutes les langues du jeu ») : FM traduit lui-même les
+# deux phrases de la VAR dans la langue du jeu (TranslateWithArgumentsAndSetToDestination, 3fc177dc… : identifiant de
+# texte, arguments, destination ; graphe : sans argument, Translate(id), puis SetBinding ; recopiée de Dugout_4x4,
+# bundle global). L'identifiant s'écrit : 4 octets (petit-boutiste), puis 1 + texte de secours (relevé sur les écrans de
+# FM : « dc 39 00 00 01 11 No data available »). Les phrases fr / en restent, en secours, tant que l'essai n'a rien dit
+TRADUIRE_VAR = False   # v17essai : abandonné (v16essai, vu en jeu le 14/11 : FM ne rend rien pour un texte du jeu)
+# v17essai : la phrase de la langue du jeu, choisie dans PHRASES_VAR_LANGUES par la langue du jeu (le conteneur de langue
+# de FM, comme 26.19 : languagesetting.PropertyValue), par « deux textes égaux » puis « poser si » (5116d1ee, recopiée
+# de TrainingScheduleSelectorPopup : source, destination, ForceUpdate, conditions (liste de (chemin, inverser)),
+# opérateur ; graphe : conditions vraies -> SetBinding(destination, source), sinon rien). Les variables de phrase
+# partent de la phrase anglaise (jamais vides : une phrase vide égale toutes les cases vides, piège de la v16essai)
+TOUTES_LANGUES = True
+UNE_VAR = TRADUIRE_VAR or TOUTES_LANGUES   # une seule variable VAR, quelle que soit la langue (v16essai, v17essai)
+CHEMIN_LANGUE_JEU = "languagesetting.PropertyValue"
+SOURCE_POSER_SI, FONCTION_POSER_SI = "TrainingScheduleSelectorPopup", "5116d1eea3b6b50438201e93682cd198"
+IDS_VAR = (0x10070847, 0x10070849)   # « … (VAR) sera utilisée en match », « … pour les matchs retransmis à la télévision »
+SECOURS_TRADUCTION = "?"             # ce que rend FM s'il ne connaît pas l'identifiant (visible dans l'essai)
+SOURCE_TRADUIRE, FONCTION_TRADUIRE = "Dugout_4x4", "3fc177dcdc761f0459409be116779052"
+LANGUE_JEU = "jeu"                   # la « langue » des phrases traduites par FM (variables kinito…_jeu…)
+ET, OU = 0, 1
+# v14essai : la liste des fonctions de FM (SI.Core.StructList) n'a que 10 cases (m_value0 à m_value9, lu dans
+# BepInEx\interop\SI.Core.dll) : jamais plus de LISTE_MAX chemins dans une liste (ou_par_paquets)
+LISTE_MAX = 10
+CHEMIN_PASSES_COMPET = "match.MatchLowerThirdPlayer2.AssistsInThisCompThisSeason"
+CHEMIN_PASSES_MATCH = "match.MatchLowerThirdPlayer2.Assists"   # v13 (v6 : écrit dans poser)
 # v6 : les calculs (voir VERSION)
 CHEMIN_BUTS_COMPET = "goalplayer.GoalsInThisCompThisSeason"
 CHEMIN_BUTS_AVANT = "goalplayer.Player.SeasonStats.SeasonStatsSelectedCompetitionsData.Goals"   # contexte Competition
@@ -216,7 +454,12 @@ FOND_BANDEAU = (0x16 / 255, 0x18 / 255, 0x20 / 255, 1.0)
 BLANC = (1.0, 1.0, 1.0, 1.0)
 GRIS = (0x6f / 255, 0x74 / 255, 0x82 / 255, 1.0)
 # langue du jeu (valeurs de languagesetting.PropertyValue, en minuscules : recette 19) -> nos textes ; défaut : anglais
-LANGUES = [("french", "fr")]
+# v12 : l'anglais a son interrupteur (mêmes textes que le défaut) : c'est la seule façon de savoir que les règles sont
+# écrites en anglais ; les autres langues (défaut) gardent le + 1 toujours, comme la v11
+LANGUES = [("french", "fr")] + ([("english", "en")] if VAR_SELON_REGLES and not UNE_VAR else [])
+# v16essai : avec les phrases traduites, la VAR ne dépend plus de la langue : une seule variable pour tout le bandeau et
+# le compteur du match (plus d'interrupteur « english », plus de conteneur de langue pour le compteur)
+VAR_TOUTES = "kinitovar"
 DEFAUT = "en"
 TEXTES = {"fr": {"but": "BUT !", "buteur": "[%number#1-nth] but en [%comp#2-short]",
                  "passeur": "[%person#1-surname] : [%number#2-nth] passe D",
@@ -428,11 +671,63 @@ class Sources:
                            and any(m.get("from") == "goalplayer" for m in (t.sd(r).get("Mappings") or []))), None)
         self.meme = par_nom(t, "SameTeam")
         self.botte = par_nom(t, "BootIcon")
+        # v12essai2 : trois pièces de FM du bundle gameworld, lues seulement : la fonction « élément n d'une liste »
+        # (TransferBlockMainFrame), l'aiguillage « deux textes égaux » (TrainingOverviewTile_2x1) et un SIText à liaison
+        # directe (AboutRulesBlockRuleRow)
+        self.fn_element = self.tcmp = self.compare = self.tdir = self.direct = None
+        self.fn_texte_egal = self.fn_logique = self.fn_somme_bool = self.fn_entier_egal = self.fn_traduire = None
+        if VAR_SELON_REGLES and TRADUIRE_VAR:   # v16essai
+            self.fn_traduire = fonction_de_fm(SOURCE_TRADUIRE, FONCTION_TRADUIRE)
+        self.fn_poser_si = None
+        if VAR_SELON_REGLES and TOUTES_LANGUES:   # v17essai
+            self.fn_poser_si = fonction_de_fm(SOURCE_POSER_SI, FONCTION_POSER_SI)
+        if ESSAI_VAR or VAR_SELON_REGLES:
+            self.fn_element = fonction_de_fm(SOURCE_ELEMENT, FONCTION_ELEMENT)
+        if VAR_SELON_REGLES:   # v12
+            self.fn_texte_egal = fonction_de_fm(SOURCE_TEXTE_EGAL, FONCTION_TEXTE_EGAL)
+            self.fn_logique = fonction_de_fm(SOURCE_LOGIQUE, FONCTION_LOGIQUE)
+            self.fn_somme_bool = fonction_de_fm(SOURCE_SOMME_BOOL, FONCTION_SOMME_BOOL)
+            self.fn_entier_egal = fonction_de_fm(SOURCE_ENTIER_EGAL, FONCTION_ENTIER_EGAL)
+        if ESSAI_VAR:
+            c2 = ouvrir(SOURCE_COMPARE[0], depart_original=True)
+            self.tcmp = c2[3] if c2 else None
+            self.compare = next((r for r in self.tcmp.walk() if self.tcmp.name(r) == SOURCE_COMPARE[1] and ((((
+                self.tcmp.sd(r) or {}).get("Binding") or {}).get("m_visualFunction") or {}).get("m_target") or {}).get(
+                "m_guid") == FONCTION_COMPARE), None) if self.tcmp else None
+        if ESSAI_VAR or DIAG_VAR:
+            d2 = ouvrir(SOURCE_DIRECT[0], depart_original=True)
+            self.tdir = d2[3] if d2 else None
+            self.direct = next((r for r in self.tdir.walk() if typ(self.tdir, r) == "SIText"
+                                and self.tdir.name(r) == SOURCE_DIRECT[1]), None) if self.tdir else None
 
     def manque(self):
         noms = ("ecusson", "racine", "contenu", "flex", "nom_passeur", "sw_csc", "sw_passeur", "meme_equipe", "photo",
                 "langue_env", "langue_sw", "calcul", "somme", "egal", "remap", "meme", "botte")
+        if ESSAI_VAR:
+            noms += ("fn_element", "compare", "direct")
+        if VAR_SELON_REGLES:
+            noms += ("fn_element", "fn_texte_egal", "fn_logique", "fn_somme_bool", "fn_entier_egal")
+        if DIAG_VAR:
+            noms += ("direct",)
+        if VAR_SELON_REGLES and TRADUIRE_VAR:
+            noms += ("fn_traduire",)
+        if VAR_SELON_REGLES and TOUTES_LANGUES:
+            noms += ("fn_poser_si",)
         return [n for n in noms if getattr(self, n) is None]
+
+
+def fonction_de_fm(modele, guid):
+    """v12 : une copie de la première fonction de FM (BindFunction) de ce GUID dans ce modèle d'origine (None sinon).
+    Lue dans toutes ses références : chez FM, ces fonctions sont souvent dans un composant (BindingSetterComponent),
+    pas dans l'élément (relevé le 13/11 : les quatre de la v12)"""
+    o = ouvrir(modele, depart_original=True)
+    tt = o[3] if o else None
+    for ref in (((tt.tt.get("references") or {}).get("RefIds") or []) if tt else []):
+        fs = (ref.get("data") or {}).get("BindFunction")
+        for f in fs if isinstance(fs, list) else []:
+            if isinstance(f, dict) and (f.get("m_target") or {}).get("m_guid") == guid:
+                return copy.deepcopy(f)
+    return None
 
 
 # ---------- pièces ----------
@@ -499,7 +794,16 @@ def calcul(t, src, parent, nom, variables, sommes, index=None):
     vs = []
     for nv, valeur in variables:
         v = copy.deepcopy(modele_v)
-        v["m_name"], v["m_scopeValue"]["m_serializedData"] = nv, f"Int|{valeur}|"
+        # v12essai : une valeur texte devient une variable String (même forme chez FM : « String|long| » de
+        # CompetitionInfo, « String|-| » de StaffSearchPreferedJobTypeCell)
+        if isinstance(valeur, str):
+            if "|" in valeur:
+                raise ValueError(f"variable texte {nv} : « | » interdit")
+            v["m_name"], v["m_scopeValue"]["m_serializedData"] = nv, f"String|{valeur}|"
+        elif isinstance(valeur, bool):   # v12essai4 : un booléen (même forme chez FM : « Bool|0| » de #RootState)
+            v["m_name"], v["m_scopeValue"]["m_serializedData"] = nv, f"Bool|{int(valeur)}|"
+        else:
+            v["m_name"], v["m_scopeValue"]["m_serializedData"] = nv, f"Int|{valeur}|"
         vs.append(v)
     fs = []
     for chemins, destination in sommes:
@@ -532,6 +836,390 @@ def egal(t, src, parent, nom, premier, second):
     f["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(a)
     t.styles.style(t, sw, {"flex-direction": "row", "align-items": "center", "flex-shrink": 0})
     return sw
+
+
+def egaux(t, src, parent, nom, valeur, autre):
+    """v12essai2 : l'aiguillage « deux textes égaux » de FM (TrainingOverviewTile_2x1 #HasReport,
+    BindStringComparisonToSwitch, vidé) : Binding = valeur, CompareBinding = autre (deux chemins) ; rang 0 = différents
+    ou texte absent (TryGet<string> manqué), rang 1 = égaux (graphe de FM lu le 13/11)"""
+    sw = t.clone(src.compare, parent, src=src.tcmp)
+    for k in list(t.children(sw)):
+        t.remove(k)
+    t.styles.copy_from(src.tcmp.styles, t, sw)
+    recaler_parent(t, sw)
+    nommer(t, sw, nom)
+    t.elem(sw)["m_Classes"], t.elem(sw)["m_RuleIndex"] = [], -1
+    f = t.sd(sw)["Binding"]["m_visualFunction"]
+    a = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+    chemins = {bytes(x[1]): x for x in a if bytes(x[0]).endswith(b"GenericVisualArg`1[SI.Bindable.BindingPath]")}
+    attendus = (chaine("Person.InjuryPreventingTraining"), chaine("const.EmptyString"))
+    if len(a) != 2 or set(chemins) != set(attendus):
+        raise ValueError(f"« deux textes égaux » de FM ({SOURCE_COMPARE[0]}) : arguments inattendus")
+    chemins[attendus[0]][1], chemins[attendus[1]][1] = chaine(valeur), chaine(autre)
+    f["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(a)
+    t.styles.style(t, sw, {"flex-direction": "row", "align-items": "center", "flex-shrink": 0})
+    return sw
+
+
+def direct(t, src, parent, nom, chemin, largeur, couleur):
+    """v12essai2 : le SIText de FM à liaison directe (AboutRulesBlockRuleRow #text, path=row.RuleHeading) sur un autre
+    chemin, « Nullable » mis à 1 (le chemin peut ne mener à rien : groupe absent) ; largeur fixe, texte coupé"""
+    r = t.clone(src.direct, parent, src=src.tdir)
+    t.styles.copy_from(src.tdir.styles, t, r)
+    recaler_parent(t, r)
+    nommer(t, r, nom)
+    tb = t.sd(r)["TextBinding"]
+    lien = (tb.get("m_direct") or {}).get("Path") or {}
+    if tb.get("m_kind") != 1 or lien.get("m_path") != "row.RuleHeading":
+        raise ValueError(f"SIText à liaison directe de FM ({SOURCE_DIRECT[0]}) : forme inattendue")
+    lien["m_path"] = chemin
+    tb["m_direct"]["Nullable"] = 1
+    t.elem(r)["m_Classes"], t.elem(r)["m_RuleIndex"] = ["body-sm-strong"], -1
+    t.styles.style(t, r, {"color": couleur, "white-space": "nowrap", "overflow": "hidden", "width": largeur,
+                          "min-width": largeur, "max-width": largeur, "flex-shrink": 0, "margin-right": 8})
+    return r
+
+
+def regles_competition(t, src, parent, nom):
+    """v12essai2 : une BindingSetter de FM (celle de calcul()) qui déclare les deux phrases de la VAR (texte), les
+    groupes de règles de la compétition (kinitogr<i> : référence sans type, nulle au départ, comme 26.13 v36) et leurs
+    premières lignes (kinitotx<i>_<j> : texte VIDE au départ, jamais nul), et les remplit par « élément n d'une liste,
+    s'il existe » : SharedRules[i] -> kinitogr<i>, puis kinitogr<i>.RuleTexts[j] -> kinitotx<i>_<j>"""
+    textes = [(f"kinitotx{i}_{j}", "") for i in range(N_GROUPES) for j in range(N_TEXTES)]
+    sel = calcul(t, src, parent, nom, ESSAI_PHRASES + textes, [])
+    sd = t.sd(sel)
+    sd["ReferenceVariables"] = [{"m_type": {"id": 0}, "m_initToNull": 1, "m_name": f"kinitogr{i}"}
+                                for i in range(N_GROUPES)]
+    sd["ReferenceVariables_UxmlAttributeFlags"] = 1
+    sd["BindFunction"], sd["BindFunction_UxmlAttributeFlags"] = fonctions_regles(src), 1
+    return sel
+
+
+# ---------- v12 : les fonctions de FM recopiées (arguments vérifiés, puis remplacés) ----------
+CHEMIN_ARG = b"GenericVisualArg`1[SI.Bindable.BindingPath]"
+
+
+def _args(f, n, formes, quoi):
+    """les arguments décodés de f, après vérification : n arguments, chacun finissant par sa forme attendue"""
+    a = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+    if len(a) != n or not all(bytes(x[0]).endswith(forme) for x, forme in zip(a, formes)):
+        raise ValueError(f"{quoi} de FM : arguments inattendus")
+    return a
+
+
+def _poser_args(f, a):
+    f["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(a)
+    return f
+
+
+def fn_element(src, source, destination, rang):
+    """« élément n d'une liste, s'il existe » (v12essai2) : source[rang] -> destination, rien si le rang manque"""
+    f = copy.deepcopy(src.fn_element)
+    f["m_target"]["m_guid"] = FONCTION_ELEMENT_SI
+    a = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+    chemins = [x for x in a if bytes(x[0]).endswith(b"[SI.Bindable.BindingPath]")]
+    entiers = [x for x in a if bytes(x[0]).endswith(b"Int32VisualArg")]
+    if len(chemins) != 2 or len(entiers) != 1:
+        raise ValueError(f"« élément n d'une liste » de FM ({SOURCE_ELEMENT}) : arguments inattendus")
+    chemins[0][1], chemins[1][1] = chaine(source), chaine(destination)
+    entiers[0][1] = struct.pack("<i", rang)
+    return _poser_args(f, a)
+
+
+def fonctions_regles(src):
+    """les groupes des listes de LISTES (kinitogr<i>, numérotés à la suite), puis leurs N_TEXTES premières lignes
+    (kinitotx<i>_<j>)"""
+    fs, debut = [], 0   # v12essai3 : chaque liste de LISTES remplit ses groupes, numérotés à la suite
+    for _, chemin, n in LISTES:
+        fs += [fn_element(src, chemin, f"kinitogr{debut + r}", r) for r in range(n)]
+        debut += n
+    fs += [fn_element(src, f"kinitogr{i}.RuleTexts", f"kinitotx{i}_{j}", j)
+           for i in range(N_GROUPES) for j in range(N_TEXTES)]
+    return fs
+
+
+def fn_texte_egal(src, destination, texte1, texte2):
+    """destination (booléen) = (texte1 == texte2) ; FM : GenericControllerMap"""
+    f = copy.deepcopy(src.fn_texte_egal)
+    a = _args(f, 5, (CHEMIN_ARG, b"BooleanVisualArg", CHEMIN_ARG, CHEMIN_ARG, b"BooleanVisualArg"),
+              f"« deux textes égaux » ({SOURCE_TEXTE_EGAL})")
+    a[0][1], a[1][1], a[2][1], a[3][1], a[4][1] = chaine(destination), b"\x00", chaine(texte1), chaine(texte2), b"\x00"
+    return _poser_args(f, a)
+
+
+def fn_logique(src, chemins, operateur, destination):
+    """destination (booléen) = chemins combinés par ET (0) ou OU (1), aucun inversé ; FM : TeamTalkBlock. La liste :
+    nombre, puis pour chaque booléen son chemin et l'octet « inverser » (relevé dans RemovePlayerCell)"""
+    if not 1 <= len(chemins) <= LISTE_MAX:   # v14essai
+        raise ValueError(f"« booléens combinés » : {len(chemins)} chemins (la liste de FM en tient {LISTE_MAX})")
+    f = copy.deepcopy(src.fn_logique)
+    a = _args(f, 3, (b"StructListVisualArg`1[SI.Bindable.BooleanArg]", b"VisibleFunctions+LogicOperator]", CHEMIN_ARG),
+              f"« booléens combinés » ({SOURCE_LOGIQUE})")
+    a[0][1] = bytes(_enc_varint(len(chemins))) + b"".join(chaine(c) + b"\x00" for c in chemins)
+    a[1][1], a[2][1] = struct.pack("<i", operateur), chaine(destination)
+    return _poser_args(f, a)
+
+
+def fn_somme_bool(src, chemins, destination):
+    """destination (entier) = nombre de booléens vrais parmi chemins ; FM : ManagerPersonaNationStep"""
+    if not 1 <= len(chemins) <= LISTE_MAX:   # v14essai
+        raise ValueError(f"« somme de booléens » : {len(chemins)} chemins (la liste de FM en tient {LISTE_MAX})")
+    f = copy.deepcopy(src.fn_somme_bool)
+    a = _args(f, 2, (b"StructListVisualArg`1[SI.Bindable.BindingPath]", CHEMIN_ARG),
+              f"« somme de booléens » ({SOURCE_SOMME_BOOL})")
+    a[0][1] = bytes(_enc_varint(len(chemins))) + b"".join(chaine(c) for c in chemins)
+    a[1][1] = chaine(destination)
+    return _poser_args(f, a)
+
+
+def fn_entier_egal(src, destination, chemin, valeur):
+    """destination (booléen) = (chemin == valeur) ; FM : ClubsListPanel (opérateur 2 = égal)"""
+    f = copy.deepcopy(src.fn_entier_egal)
+    a = _args(f, 5, (CHEMIN_ARG, b"BooleanVisualArg", b"GeneralVisualFunction+ComparisonOperator]", CHEMIN_ARG,
+                     b"Int32VisualArg"), f"« entier comparé » ({SOURCE_ENTIER_EGAL})")
+    a[0][1], a[1][1], a[2][1] = chaine(destination), b"\x00", struct.pack("<i", OPERATEUR_EGAL)
+    a[3][1], a[4][1] = chaine(chemin), struct.pack("<i", valeur)
+    return _poser_args(f, a)
+
+
+def fn_traduire(src, identifiant, destination):
+    """v16essai : destination (texte) = le texte de FM « identifiant » dans la langue du jeu, sans argument (FM :
+    Dugout_4x4). Texte de secours SECOURS_TRADUCTION, pour voir dans l'essai si FM ne connaît pas l'identifiant"""
+    f = copy.deepcopy(src.fn_traduire)
+    a = _args(f, 3, (b"GenericVisualArg`1[SI.Translation.TranslationID]",
+                     b"StructListVisualArg`1[SI.Bindable.TranslationArg]", CHEMIN_ARG),
+              f"« traduire et poser » ({SOURCE_TRADUIRE})")
+    secours = SECOURS_TRADUCTION.encode("utf-8")
+    a[0][1] = struct.pack("<I", identifiant) + b"\x01" + bytes(_enc_varint(len(secours))) + secours
+    a[1][1], a[2][1] = bytes(_enc_varint(0)), chaine(destination)
+    return _poser_args(f, a)
+
+
+def fn_poser_si(src, source, destination, conditions):
+    """v17essai : destination = la valeur de source, seulement quand les conditions (chemins booléens, OU entre eux, aucun
+    inversé) sont vraies ; sinon rien (FM : TrainingScheduleSelectorPopup)"""
+    if not 1 <= len(conditions) <= LISTE_MAX:
+        raise ValueError(f"« poser si » : {len(conditions)} conditions (la liste de FM en tient {LISTE_MAX})")
+    f = copy.deepcopy(src.fn_poser_si)
+    a = _args(f, 5, (CHEMIN_ARG, CHEMIN_ARG, b"BooleanVisualArg", b"StructListVisualArg`1[SI.Bindable.BooleanArg]",
+                     b"VisibleFunctions+LogicOperator]"), f"« poser si » ({SOURCE_POSER_SI})")
+    a[0][1], a[1][1], a[2][1] = chaine(source), chaine(destination), b"\x00"
+    a[3][1] = bytes(_enc_varint(len(conditions))) + b"".join(chaine(c) + b"\x00" for c in conditions)
+    a[4][1] = struct.pack("<i", OU)
+    return _poser_args(f, a)
+
+
+def ou_par_paquets(src, chemins, destination, variables, prefixe=None):
+    """v14essai : destination = OU de chemins, par paquets de LISTE_MAX au plus (la liste de FM, SI.Core.StructList, n'a
+    que 10 cases : la v12 / v13 en passait 64, la ligne de la VAR de la Premier League était la 45e et n'était pas lue).
+    Chaque paquet pose une variable « <destination>_p<n> » (ajoutée à variables, booléen faux au départ), puis un OU des
+    paquets (lui-même par paquets, « _pp<n> », s'il en faut plus de LISTE_MAX)"""
+    if len(chemins) <= LISTE_MAX:
+        return [fn_logique(src, chemins, OU, destination)]
+    prefixe = prefixe or f"{destination}_p"
+    paquets = [chemins[q:q + LISTE_MAX] for q in range(0, len(chemins), LISTE_MAX)]
+    noms = [f"{prefixe}{q}" for q in range(len(paquets))]
+    variables += [(nom, False) for nom in noms]
+    return [fn_logique(src, c, OU, nom) for nom, c in zip(noms, paquets)] + ou_par_paquets(
+        src, noms, destination, variables, prefixe + "p")
+
+
+def conteneur_langue(t, src, parent, nom, css):
+    """v17essai : le conteneur de FM qui lit la langue du jeu (tdd-messages-banner, recette 19, comme selon_langue),
+    vidé : ce qu'il contient voit languagesetting (CHEMIN_LANGUE_JEU)"""
+    env = t.clone(src.langue_env, parent, src=src.tg)
+    recaler_parent(t, env)
+    enfants_seuls(t, env, garder=("Component",))
+    t.styles.copy_from(src.tg.styles, t, env)
+    nommer(t, env, nom)
+    t.elem(env)["m_Classes"], t.elem(env)["m_RuleIndex"] = [], -1
+    donnees = json.dumps([(t.refs.get(c["rid"]) or {}).get("data") for c in t.sd(env).get("m_components") or []])
+    if "current_language" not in donnees or "app.NativeSettings" not in donnees:
+        raise ValueError("conteneur de langue de FM (tdd-messages-banner) : forme inattendue")
+    t.styles.style(t, env, css)
+    return env
+
+
+def choix_langue(src):
+    """v17essai : (variables, fonctions) qui posent dans kinitovp_<LANGUE_JEU>_0 / _1 les phrases de la VAR de la langue
+    du jeu : pour chaque valeur de PHRASES_VAR_LANGUES, kinitolg<i> = (languagesetting.PropertyValue == valeur), puis,
+    pour chaque paire de phrases (les langues qui ont les mêmes sont regroupées, 10 au plus par « poser si »), « poser
+    si » l'une de ses langues : kinitophr<p>_<k> -> kinitovp_<LANGUE_JEU>_<k>. Aucune langue reconnue : l'anglais reste"""
+    codes = list(PHRASES_VAR_LANGUES)
+    paires = []
+    for code in codes:
+        if PHRASES_VAR_LANGUES[code] not in paires:
+            paires.append(PHRASES_VAR_LANGUES[code])
+    variables = [(f"kinitolgn{i}", code) for i, code in enumerate(codes)]
+    variables += [(f"kinitolg{i}", False) for i in range(len(codes))]
+    variables += [(f"kinitophr{p}_{k}", paire[k]) for p, paire in enumerate(paires) for k in range(2)]
+    fs = [fn_texte_egal(src, f"kinitolg{i}", CHEMIN_LANGUE_JEU, f"kinitolgn{i}") for i in range(len(codes))]
+    for p, paire in enumerate(paires):
+        conditions = [f"kinitolg{i}" for i, code in enumerate(codes) if PHRASES_VAR_LANGUES[code] == paire]
+        fs += [fn_poser_si(src, f"kinitophr{p}_{k}", f"kinitovp_{LANGUE_JEU}_{k}", conditions) for k in range(2)]
+    return variables, fs
+
+
+def var_nom(langue):
+    """v12 : la variable « la compétition a la VAR pour ce match », par langue de PHRASES_VAR"""
+    return f"kinitovar_{langue}"
+
+
+def regles_var(t, src, parent, colonne=False):
+    """v12 : en tête du bandeau, invisible : une BindingSetter des contextes de FM (CONTEXTES_REGLES, comme v12essai4),
+    puis une BindingSetter qui lit les groupes de règles de la compétition (générales et de la phase, comme v12essai4),
+    compare chacune de leurs N_TEXTES premières lignes aux phrases de PHRASES_VAR (« deux textes égaux », un booléen
+    par ligne, par langue et par phrase), et pose par langue : kinitovm_<l> = une ligne dit « VAR en match »,
+    kinitovt_<l> = une ligne dit « VAR pour les matchs télévisés », kinitovtv_<l> = kinitovt_<l> ET match.IsOnTV,
+    kinitovar_<l> = kinitovm_<l> OU kinitovtv_<l>. Renvoie la BindingSetter des règles : le bandeau va dedans"""
+    # v13 : colonne (sous #RootElement : la rangée du haut puis le bandeau, chacun sur toute la largeur)
+    css = ({"flex-direction": "column", "align-items": "stretch", "flex-grow": 1} if colonne else
+           {"flex-direction": "row", "align-items": "center", "flex-grow": 1})
+    if TOUTES_LANGUES:   # v17essai : le conteneur de langue de FM au-dessus de tout (il donne languagesetting)
+        parent = conteneur_langue(t, src, parent, f"{NOM}-var-langue", css)
+    ctx = calcul(t, src, parent, f"{NOM}-var-contexte", CONTEXTES_REGLES, [])
+    t.styles.style(t, ctx, css)
+    lignes = [(i, j) for i in range(N_GROUPES) for j in range(N_TEXTES)]
+    choix_vars, choix_fs = [], []
+    if TOUTES_LANGUES:
+        # v17essai : une seule « langue », LANGUE_JEU : ses deux phrases partent de l'anglais, puis la phrase de la langue
+        # du jeu y est posée (choix_langue)
+        langues = [LANGUE_JEU]
+        phrases = [(f"kinitovp_{LANGUE_JEU}_{k}", PHRASES_VAR_LANGUES["english"][k]) for k in range(2)]
+        choix_vars, choix_fs = choix_langue(src)
+    else:
+        # v16essai : en tête, la « langue » LANGUE_JEU : ses deux phrases, vides au départ, traduites par FM
+        langues = ([LANGUE_JEU] if TRADUIRE_VAR else []) + list(PHRASES_VAR)
+        phrases = [(f"kinitovp_{l}_{k}", "" if l == LANGUE_JEU else PHRASES_VAR[l][k])
+                   for l in langues for k in range(2)]
+    phrases += choix_vars
+    textes = [(f"kinitotx{i}_{j}", "") for i, j in lignes]
+    egaux = [(f"kinitoeq{i}_{j}_{l}_{k}", False) for l in langues for k in range(2) for i, j in lignes]
+    resultats = [(f"kinitov{x}_{l}", False) for l in langues for x in ("m", "t", "tv")] + [
+        (var_nom(l), False) for l in langues] + ([(VAR_TOUTES, False)] if UNE_VAR else [])
+    fs = [fn_traduire(src, IDS_VAR[k], f"kinitovp_{LANGUE_JEU}_{k}") for k in range(2)] if TRADUIRE_VAR else []
+    fs += choix_fs
+    fs += fonctions_regles(src)
+    partiels = []   # v14essai : les « ou » par paquets (ou_par_paquets) déclarent leurs variables ici
+    for l in langues:
+        for k in range(2):
+            fs += [fn_texte_egal(src, f"kinitoeq{i}_{j}_{l}_{k}", f"kinitotx{i}_{j}", f"kinitovp_{l}_{k}")
+                   for i, j in lignes]
+        fs += ou_par_paquets(src, [f"kinitoeq{i}_{j}_{l}_0" for i, j in lignes], f"kinitovm_{l}", partiels)
+        fs += ou_par_paquets(src, [f"kinitoeq{i}_{j}_{l}_1" for i, j in lignes], f"kinitovt_{l}", partiels)
+        fs.append(fn_logique(src, [f"kinitovt_{l}", CHEMIN_TELE], ET, f"kinitovtv_{l}"))
+        fs.append(fn_logique(src, [f"kinitovm_{l}", f"kinitovtv_{l}"], OU, var_nom(l)))
+    if UNE_VAR:   # v16essai, v17essai : la VAR, quelle que soit la langue
+        fs.append(fn_logique(src, [var_nom(l) for l in langues], OU, VAR_TOUTES))
+    sel = calcul(t, src, ctx, f"{NOM}-var-regles", phrases + textes + egaux + resultats + partiels, [])
+    sd = t.sd(sel)
+    sd["ReferenceVariables"] = [{"m_type": {"id": 0}, "m_initToNull": 1, "m_name": f"kinitogr{i}"}
+                                for i in range(N_GROUPES)]
+    sd["ReferenceVariables_UxmlAttributeFlags"] = 1
+    sd["BindFunction"], sd["BindFunction_UxmlAttributeFlags"] = fs, 1
+    t.styles.style(t, sel, css)
+    return sel
+
+
+def booleen(t, src, parent, nom, chemin):
+    """v12essai : l'aiguillage « contre son camp » de FM recopié (liaison directe sur un booléen : rang 0 faux, rang 1
+    vrai), sur un autre chemin booléen (comme vaut_un)"""
+    sw = aiguillage(t, src, src.sw_csc, parent, nom)
+    lien = ((t.sd(sw).get("Binding") or {}).get("m_direct") or {}).get("Path") or {}
+    if lien.get("m_path") != "isowngoal":
+        raise ValueError("aiguillage de FM (isowngoal) : forme inattendue")
+    lien["m_path"] = chemin
+    return sw
+
+
+def ligne_diag_var(t, src, parent):
+    """v13essai : sous le bandeau (dans la BindingSetter des règles, qui voit leurs variables), en jaune, deux lignes :
+    « TEST VAR : … · en match : … · télé : … · TV : … · égales : N » (kinitovar_fr, kinitovm_fr, kinitovt_fr,
+    match.IsOnTV, nombre de lignes égales à la phrase « en match »), puis le titre et la 1re ligne du groupe DIAG_GROUPE
+    et « égale : … » (kinitoeq<g>_0_fr_0). Dit quel maillon manque quand le + 1 ne vient pas"""
+    p = f"{NOM}-diag"
+    d = boite(t, src, parent, p, {"flex-direction": "column", "height": 2 * H_ESSAI, "flex-shrink": 0,
+                                  "padding-left": MARGE_BANDEAU, "padding-right": MARGE_BANDEAU,
+                                  "background-color": FOND_ESSAI})
+    l1 = boite(t, src, d, f"{p}-l1", {"flex-direction": "row", "align-items": "center", "height": H_ESSAI,
+                                      "flex-shrink": 0})
+    texte(t, src, l1, f"{p}-titre", "TEST", ARGS_BUT, couleur=JAUNE_ESSAI, css={"margin-right": 8})
+    # v16essai : « VAR » = la variable commune ; « trad. en match / trad. télé » = trouvées par les phrases TRADUITES
+    lg = LANGUE_JEU if UNE_VAR else "fr"
+    reperes = [("VAR", VAR_TOUTES if UNE_VAR else var_nom("fr")),
+               ("trad. en match" if TRADUIRE_VAR else "en match", f"kinitovm_{lg}"),
+               ("trad. télé" if TRADUIRE_VAR else "télé", f"kinitovt_{lg}"), ("TV", CHEMIN_TELE)]
+    for k, (etiquette, chemin) in enumerate(reperes):
+        texte(t, src, l1, f"{p}-e{k}", f"{etiquette} :", ARGS_BUT, couleur=JAUNE_ESSAI, css={"margin-right": 4})
+        sw = booleen(t, src, l1, f"{p}-b{k}", chemin)
+        texte(t, src, sw, f"{p}-b{k}-non", "non", ARGS_BUT, couleur=JAUNE_ESSAI, css={"margin-right": 10})   # rang 0
+        texte(t, src, sw, f"{p}-b{k}-oui", "OUI", ARGS_BUT, couleur=JAUNE_ESSAI, css={"margin-right": 10})   # rang 1
+    # (v14essai : « égales : N » retiré : sa somme passait 64 chemins à une liste de FM de 10 cases)
+    l2 = boite(t, src, d, f"{p}-l2", {"flex-direction": "row", "align-items": "center", "height": H_ESSAI,
+                                      "flex-shrink": 0, "overflow": "hidden"})
+    g = DIAG_GROUPE
+    if TOUTES_LANGUES:   # v17essai : la langue du jeu telle que FM l'écrit, puis la phrase « en match » choisie
+        texte(t, src, l2, f"{p}-langue-e", "langue :", ARGS_BUT, couleur=JAUNE_ESSAI, css={"margin-right": 4})
+        direct(t, src, l2, f"{p}-langue", CHEMIN_LANGUE_JEU, 90, JAUNE_ESSAI)
+        direct(t, src, l2, f"{p}-ligne", f"kinitovp_{LANGUE_JEU}_0", 300, BLANC)
+    elif TRADUIRE_VAR:   # v16essai : la phrase « en match » telle que FM l'a traduite (« ? » : identifiant inconnu)
+        texte(t, src, l2, f"{p}-trad", "traduite :", ARGS_BUT, couleur=JAUNE_ESSAI, css={"margin-right": 4})
+        direct(t, src, l2, f"{p}-ligne", f"kinitovp_{LANGUE_JEU}_0", 340, BLANC)
+    else:
+        direct(t, src, l2, f"{p}-groupe", f"kinitogr{g}.RuleHeading", 170, JAUNE_ESSAI)
+        direct(t, src, l2, f"{p}-ligne", f"kinitotx{g}_0", 260, BLANC)
+    texte(t, src, l2, f"{p}-egale", "égale :", ARGS_BUT, couleur=JAUNE_ESSAI, css={"margin-right": 4})
+    sw = booleen(t, src, l2, f"{p}-egale-b", f"kinitoeq{g}_0_{lg}_0")
+    texte(t, src, sw, f"{p}-egale-non", "non", ARGS_BUT, couleur=JAUNE_ESSAI)   # rang 0
+    texte(t, src, sw, f"{p}-egale-oui", "OUI", ARGS_BUT, couleur=JAUNE_ESSAI)   # rang 1
+    return d
+
+
+def ligne_essai_var(t, src, racine):
+    """v12essai2 : sous le bandeau, en jaune : « TEST règles de la compétition · télévisé : non/OUI », puis une ligne
+    par groupe de règles de la compétition (N_GROUPES premiers) : son titre, ses deux premières lignes, et « ◄ VAR » /
+    « ◄ VAR télé » quand une de ces lignes est la phrase de FM"""
+    p = f"{NOM}-essai-var"
+    essai = boite(t, src, racine, p,
+                  {"flex-direction": "column", "height": H_ESSAI + H_LISTE, "flex-shrink": 0,
+                   "padding-left": MARGE_BANDEAU, "padding-right": MARGE_BANDEAU, "background-color": FOND_ESSAI})
+    ctx = calcul(t, src, essai, f"{p}-contexte", CONTEXTES_REGLES, [])   # v12essai4 : au-dessus des règles
+    t.styles.style(t, ctx, {"flex-direction": "column", "align-items": "flex-start", "flex-grow": 1})
+    decl = regles_competition(t, src, ctx, f"{p}-regles")
+    t.styles.style(t, decl, {"flex-direction": "column", "align-items": "flex-start", "flex-grow": 1})
+    ligne = boite(t, src, decl, f"{p}-ligne",
+                  {"flex-direction": "row", "align-items": "center", "height": H_ESSAI, "flex-shrink": 0})
+    texte(t, src, ligne, f"{p}-titre", "TEST  règles de la compétition", ARGS_BUT, couleur=JAUNE_ESSAI)
+    texte(t, src, ligne, f"{p}-point", "·", ARGS_BUT, couleur=GRIS, css={"margin-left": 6, "margin-right": 6})
+    texte(t, src, ligne, f"{p}-televise-etiquette", "télévisé :", ARGS_BUT, couleur=JAUNE_ESSAI, css={"margin-right": 4})
+    sw = booleen(t, src, ligne, f"{p}-televise-aiguillage", CHEMIN_TELE)
+    texte(t, src, sw, f"{p}-televise-non", "non", ARGS_BUT, couleur=JAUNE_ESSAI)   # rang 0
+    texte(t, src, sw, f"{p}-televise-oui", "OUI", ARGS_BUT, couleur=JAUNE_ESSAI)   # rang 1
+    debuts = {}   # v12essai3 : premier groupe de chaque liste -> son titre
+    d = 0
+    for k, (nom_liste, _, n) in enumerate(LISTES):
+        debuts[d] = (k, nom_liste)
+        d += n
+    for i in range(N_GROUPES):
+        if i in debuts:
+            k, nom_liste = debuts[i]
+            sous = boite(t, src, decl, f"{p}-liste{k}",
+                         {"flex-direction": "row", "align-items": "center", "height": H_GROUPE, "flex-shrink": 0})
+            texte(t, src, sous, f"{p}-liste{k}-titre", f"règles {nom_liste} :", ARGS_BUT, couleur=GRIS)
+        g = boite(t, src, decl, f"{p}-g{i}",
+                  {"flex-direction": "row", "align-items": "center", "height": H_GROUPE, "flex-shrink": 0,
+                   "overflow": "hidden"})
+        direct(t, src, g, f"{p}-g{i}-titre", f"kinitogr{i}.RuleHeading", L_TITRE, JAUNE_ESSAI)
+        for j in range(N_TEXTES):
+            direct(t, src, g, f"{p}-g{i}-t{j}", f"kinitotx{i}_{j}", L_TEXTE, BLANC)
+        for j in range(N_TEXTES):
+            for k, (var, marque) in enumerate(((ESSAI_PHRASES[0][0], "VAR"), (ESSAI_PHRASES[1][0], "VAR TELE"))):
+                s = egaux(t, src, g, f"{p}-g{i}-t{j}-v{k}", f"kinitotx{i}_{j}", var)
+                boite(t, src, s, f"{p}-g{i}-t{j}-v{k}-non", {"width": 0, "height": 0})   # rang 0
+                texte(t, src, s, f"{p}-g{i}-t{j}-v{k}-oui", f"= {marque} (ligne {j + 1})", ARGS_BUT,
+                      couleur=JAUNE_ESSAI, css={"margin-right": 6})                      # rang 1 (pas de « ◄ » :
+                # la police du jeu ne l'a peut-être pas)
+    return essai
 
 
 def contexte_competition(t, src, parent, nom, index=None):
@@ -611,11 +1299,12 @@ def buteur_matchs(t, src, parent, n, T):
     buteur(t, src, sw, f"{n}-buteur-1", T, "buteur_1match", ARGS_BUTEUR)        # rang 1 : un seul
 
 
-def contenu_bandeau(t, src, parent, langue, matchs=False):
+def contenu_bandeau(t, src, parent, langue, matchs=False, nom=None, var=None):
     """le texte du bandeau dans une langue : « BUT ! » puis, sauf contre son camp, la phrase du buteur et, s'il y a un
-    passeur de la même équipe, « · » et la sienne"""
+    passeur de la même équipe, « · » et la sienne. v12 : nom = le morceau des noms d'éléments (la langue par défaut) ;
+    var = la variable « la compétition a la VAR » de cette langue (None : le + 1 toujours, comme la v11)"""
     T = TEXTES[langue]
-    n = f"{NOM}-{langue}"
+    n = f"{NOM}-{nom or langue}"
     ligne = boite(t, src, parent, f"{n}-ligne", {"flex-direction": "row", "align-items": "center", "flex-grow": 1})
     texte(t, src, ligne, f"{n}-but", T["but"], ARGS_BUT, css={"margin-right": 8})
     csc = aiguillage(t, src, src.sw_csc, ligne, f"{n}-csc")   # isowngoal : rang 0 = but normal, rang 1 = c.s.c.
@@ -644,36 +1333,90 @@ def contenu_bandeau(t, src, parent, langue, matchs=False):
     oui = boite(t, src, inner, f"{n}-coequipier", {"flex-direction": "row", "align-items": "center"})
     texte(t, src, oui, f"{n}-point", "·", ARGS_BUT, couleur=GRIS, css={"margin-left": 6, "margin-right": 6})
     # v6 : passes D de la compétition + 1 (la passe en cours n'est pas encore comptée), « 1re » pour la première
-    calc = calcul(t, src, oui, f"{n}-passe-calcul", [(VAR_UN, 1), (VAR_PASSES, 0)],
-                  [(["match.MatchLowerThirdPlayer2.AssistsInThisCompThisSeason", VAR_UN], VAR_PASSES)])
+    if var is None:
+        calc = calcul(t, src, oui, f"{n}-passe-calcul", [(VAR_UN, 1), (VAR_PASSES, 0)],
+                      [([CHEMIN_PASSES_COMPET, VAR_UN], VAR_PASSES)])
+    else:
+        # v12 : + 1 seulement si la compétition a la VAR (var, posée en tête du bandeau : FM ne compte alors la passe
+        # qu'après la vérification) ou si FM en est encore à 0 passe D (il ne l'a donc pas comptée : jamais « 0e »).
+        # Sans VAR, FM a déjà compté la passe au moment de la fenêtre (Ligue 2, 13/11 : « 2e » pour une 1re)
+        calc = calcul(t, src, oui, f"{n}-passe-calcul",
+                      [(VAR_UN, 1), (VAR_PASSES, 0), ("kinitopaszero", False), ("kinitoplusb", False),
+                       ("kinitoplus", 0)],
+                      [([CHEMIN_PASSES_COMPET, "kinitoplus"], VAR_PASSES)])
+        sd = t.sd(calc)
+        sd["BindFunction"] = [fn_entier_egal(src, "kinitopaszero", CHEMIN_PASSES_COMPET, 0),
+                              fn_logique(src, [var, "kinitopaszero"], OU, "kinitoplusb"),
+                              fn_somme_bool(src, ["kinitoplusb"], "kinitoplus")] + sd["BindFunction"]
     sw = egal(t, src, calc, f"{n}-passe-une", VAR_PASSES, VAR_UN)
     texte(t, src, sw, f"{n}-passe", T["passeur"], ARGS_PASSEUR_PLUS)     # rang 0 : 2e, 3e…
     texte(t, src, sw, f"{n}-passe-1", T["passeur_1"], ARGS_PASSEUR_PLUS)  # rang 1 : la première
 
 
-def selon_langue(t, src, parent, matchs=False):
+def passes_match(t, src, parent, cle, var, index=None):
+    """v6 : les passes D du passeur DANS LE MATCH au bout de sa bande (#SameTeam, avant #BootIcon), puis l'icône de passe
+    D ; v6 à v12 : + 1 toujours (FM ne compte pas la passe en cours en Europa League, Premier League, Ligue 1). v13
+    (Kinito, 14/11 : en Ligue 2, « 2 » pour la 1re passe du match de Fall, « 3 » pour la 2e de Sarr : FM l'avait déjà
+    comptée) : var = la variable VAR de la langue (regles_var) : + 1 si var OU si FM en est à 0 passe D dans le match ;
+    var None (autres langues, ou VAR_SELON_REGLES False) : + 1 toujours. cle : le morceau du nom (la langue)"""
+    n = f"{NOM}-passes-match" + (f"-{cle}" if cle else "")
+    if var is None:
+        pm = calcul(t, src, parent, n, [("kinitounp", 1), ("kinitopassesm", 0)],
+                    [([CHEMIN_PASSES_MATCH, "kinitounp"], "kinitopassesm")], index=index)
+    else:
+        pm = calcul(t, src, parent, n, [("kinitounp", 1), ("kinitopassesm", 0), ("kinitopmzero", False),
+                                        ("kinitopmplusb", False), ("kinitopmplus", 0)],
+                    [([CHEMIN_PASSES_MATCH, "kinitopmplus"], "kinitopassesm")], index=index)
+        sd = t.sd(pm)
+        sd["BindFunction"] = [fn_entier_egal(src, "kinitopmzero", CHEMIN_PASSES_MATCH, 0),
+                              fn_logique(src, [var, "kinitopmzero"], OU, "kinitopmplusb"),
+                              fn_somme_bool(src, ["kinitopmplusb"], "kinitopmplus")] + sd["BindFunction"]
+    texte(t, src, pm, f"{n}-nombre", "[%number#1]", [("kinitopassesm", "1")],
+          css={"margin-left": MARGE_COMPTEUR, "margin-right": 6})
+    icone = boite(t, src, pm, f"{n}-icone", {"width": TAILLE_ICONE, "height": TAILLE_ICONE, "flex-shrink": 0})
+    t.elem(icone)["m_Classes"] = [ICONE_PASSE]
+    return pm
+
+
+def selon_langue(t, src, parent, matchs=False, construire=None, prefixe="langue", index=None, grandir=True):
     """recette 19 (26.13 v24) : le conteneur de FM qui lit la langue du jeu, puis un interrupteur par langue de LANGUES
-    (rang 1 = c'est elle) ; DEFAUT sinon"""
-    env = t.clone(src.langue_env, parent, src=src.tg)
+    (rang 1 = c'est elle) ; DEFAUT sinon. v13 : construire(par, code, nom, var) fait le contenu d'une langue (défaut :
+    le bandeau) ; prefixe nomme le conteneur et ses interrupteurs ; index = sa place dans parent ; grandir = flex-grow"""
+    if construire is None:
+        def construire(par, code, nom, var):
+            contenu_bandeau(t, src, par, code, matchs, nom=nom, var=var)
+    env = t.clone(src.langue_env, parent, index, src=src.tg) if index is not None else t.clone(
+        src.langue_env, parent, src=src.tg)
     recaler_parent(t, env)
     enfants_seuls(t, env, garder=("Component",))
     t.styles.copy_from(src.tg.styles, t, env)
-    nommer(t, env, f"{NOM}-langue")
+    nommer(t, env, f"{NOM}-{prefixe}")
     t.elem(env)["m_Classes"], t.elem(env)["m_RuleIndex"] = [], -1
     donnees = json.dumps([(t.refs.get(c["rid"]) or {}).get("data") for c in t.sd(env).get("m_components") or []])
     if "current_language" not in donnees or "app.NativeSettings" not in donnees:
         raise ValueError("conteneur de langue de FM (tdd-messages-banner) : forme inattendue")
-    t.styles.style(t, env, {"flex-direction": "row", "align-items": "center", "flex-grow": 1})
+    css = {"flex-direction": "row", "align-items": "center", "flex-grow": 1 if grandir else 0}
+    if not grandir:
+        css["flex-shrink"] = 0
+    t.styles.style(t, env, css)
+
+    def var_de(code):
+        """v16essai : avec les phrases traduites, la même variable VAR pour toutes les langues, défaut compris"""
+        if not VAR_SELON_REGLES:
+            return None
+        if UNE_VAR:   # v16essai, v17essai
+            return VAR_TOUTES
+        return var_nom(code) if code in PHRASES_VAR else None
 
     def suite(par, i):
         if i == len(LANGUES):
-            contenu_bandeau(t, src, par, DEFAUT, matchs)
+            construire(par, DEFAUT, None, var_de(None))
             return
         sw = t.clone(src.langue_sw, par, src=src.tg)
         recaler_parent(t, sw)
         enfants_seuls(t, sw)
         t.styles.copy_from(src.tg.styles, t, sw)
-        nommer(t, sw, f"{NOM}-langue-{i}")
+        nommer(t, sw, f"{NOM}-{prefixe}-{i}")
         t.elem(sw)["m_Classes"], t.elem(sw)["m_RuleIndex"] = [], -1
         f = t.sd(sw)["Binding"]["m_visualFunction"]
         a = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
@@ -682,9 +1425,10 @@ def selon_langue(t, src, parent, matchs=False):
             raise ValueError("interrupteur de langue de FM : arguments inattendus")
         mots[0][1] = chaine(LANGUES[i][0])
         f["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(a)
-        t.styles.style(t, sw, {"flex-direction": "row", "align-items": "center", "flex-grow": 1})
+        t.styles.style(t, sw, css)
         suite(sw, i + 1)                               # rang 0 : pas cette langue
-        contenu_bandeau(t, src, sw, LANGUES[i][1], matchs)     # rang 1 : c'est elle
+        code = LANGUES[i][1]   # rang 1 : c'est elle ; v12 : sa variable VAR, et un nom à part si ses textes sont le défaut
+        construire(sw, code, LANGUES[i][0] if code == DEFAUT else None, var_de(code))
 
     suite(env, 0)
     return env
@@ -723,12 +1467,24 @@ def poser(t, pal=None):
     t.styles.style(t, ph, {"width": PHOTO, "height": PHOTO, "flex-shrink": 0, "background-color": FOND_PHOTO})
     # #RootElement : colonne, plus haute du bandeau (v6essai : et de la ligne de test)
     t.styles.style(t, racine, {"flex-direction": "column",
-                               "height": H_HAUT + H_BANDEAU + (H_ESSAI if ESSAI_COMPTEURS else 0)})
-    bandeau = boite(t, src, racine, f"{NOM}-bandeau",
+                               "height": H_HAUT + H_BANDEAU + (H_ESSAI if ESSAI_COMPTEURS else 0)
+                               + (H_ESSAI + H_LISTE if ESSAI_VAR else 0)
+                               + (2 * H_ESSAI if DIAG_VAR and VAR_SELON_REGLES else 0)})
+    # v13 : la VAR de la compétition (regles_var) au-dessus de la rangée du haut ET du bandeau : le compteur des passes D
+    # du match (dans la rangée du haut) la lit aussi (v12 : dans le bandeau seulement)
+    porteur = racine
+    if VAR_SELON_REGLES:
+        porteur = regles_var(t, src, racine, colonne=True)
+        deplacer(t, haut, porteur, 0)
+    bandeau = boite(t, src, porteur, f"{NOM}-bandeau",
                     {"flex-direction": "row", "align-items": "center", "height": H_BANDEAU, "flex-shrink": 0,
                      "padding-left": MARGE_BANDEAU, "padding-right": MARGE_BANDEAU,
                      "background-color": FOND_BANDEAU})
     selon_langue(t, src, bandeau, matchs=True)   # v9 : le nombre de matchs dans les deux fenêtres (v3-v8 : licences)
+    if DIAG_VAR and VAR_SELON_REGLES:   # v13essai : chaque maillon de regles_var, sous le bandeau
+        ligne_diag_var(t, src, porteur)
+    if ESSAI_VAR:   # v12essai : la VAR du match, en jaune, et la liste des règles du match de FM
+        ligne_essai_var(t, src, racine)
     if ESSAI_COMPTEURS:   # v6essai : les valeurs candidates, en jaune, sous le bandeau
         # v6essai3 : la ligne est un BindingRemapper (copie de celui de la fenêtre) qui donne le contexte « Competition »
         remap = next((r for r in t.walk() if (t.elem(r).get("m_FullTypeName") or "").endswith("BindingRemapper")
@@ -798,14 +1554,15 @@ def poser(t, pal=None):
     boite(t, src, csc, f"{NOM}-buts-match-rien", {"width": 0, "height": 0})   # rang 1 : contre son camp
     # v6 : les passes D du passeur DANS LE MATCH (+ 1 : la passe en cours n'est pas encore comptée), au bout de sa
     # bande (#SameTeam : numéro, nom, puis #BootIcon de FM, invisible), et l'icône de passe D
-    pm = calcul(t, src, src.meme, f"{NOM}-passes-match", [("kinitounp", 1), ("kinitopassesm", 0)],
-                [(["match.MatchLowerThirdPlayer2.Assists", "kinitounp"], "kinitopassesm")],
-                index=t.children(src.meme).index(src.botte))
-    texte(t, src, pm, f"{NOM}-passes-match-nombre", "[%number#1]", [("kinitopassesm", "1")],
-          css={"margin-left": MARGE_COMPTEUR, "margin-right": 6})
-    icone = boite(t, src, pm, f"{NOM}-passes-match-icone",
-                  {"width": TAILLE_ICONE, "height": TAILLE_ICONE, "flex-shrink": 0})
-    t.elem(icone)["m_Classes"] = [ICONE_PASSE]
+    # v13 : par langue (comme le bandeau), + 1 seulement si la compétition a la VAR ou si FM en est à 0 (passes_match)
+    i_botte = t.children(src.meme).index(src.botte)
+    if VAR_SELON_REGLES and UNE_VAR:   # v16essai, v17essai : une seule variable VAR, plus de conteneur de langue
+        pm = passes_match(t, src, src.meme, None, VAR_TOUTES, index=i_botte)
+    elif VAR_SELON_REGLES:
+        pm = selon_langue(t, src, src.meme, prefixe="passes-match-langue", index=i_botte, grandir=False,
+                          construire=lambda par, code, nom, var: passes_match(t, src, par, nom or code, var))
+    else:
+        pm = passes_match(t, src, src.meme, None, None, index=i_botte)
     # v7 : aligné sur le ballon : #BootIcon de FM (invisible) ne prend plus de place, et notre groupe rattrape la marge
     # de la bande du passeur
     t.styles.style(t, src.botte, {"width": 0})
@@ -818,7 +1575,9 @@ def poser(t, pal=None):
             "le match, sans trahir l'arbitre (v6)",
             "passes D du passeur dans le match au bout de sa bande, avec l'icône de passe D (v6)",
             f"bandeau de {H_BANDEAU} sous la fenêtre : « {TEXTES['fr']['but']} » + buts en N matchs / passes D dans la "
-            f"compétition (français ; anglais pour les autres langues du jeu)"]
+            f"compétition (français ; anglais pour les autres langues du jeu)"] + (
+        ["passes D de la compétition (v12) et du match (v13) + 1 seulement si la compétition a la VAR (ses règles, en "
+         "français ou en anglais), ou à 0"] if VAR_SELON_REGLES else [])
 
 
 def habiller(t, src, pal, photo, bandeau):

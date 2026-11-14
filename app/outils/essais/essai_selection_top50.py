@@ -1,16 +1,19 @@
 """ESSAI : messages « NXGN » (50 meilleurs jeunes) et « 50 meilleurs joueurs du monde » (TopPlayersInTheWorldNews,
-un seul modèle pour les deux : TopPlayersInTheWorldNewsStoryBlock) : un bouton au-dessus de la liste qui ajoute les
-50 joueurs à la sélection (shortlist), pour les faire observer ensuite depuis l'écran Sélection.
+un seul modèle pour les deux : TopPlayersInTheWorldNewsStoryBlock). But : ajouter les 50 joueurs à la sélection d'un
+coup. Le bouton de la fonction recrutement\\selection_top50 (RecordsBinding `TopPlayers.Players`) n'apparaît PAS en jeu
+(2026-11-14) : liste de « joueur + rang » refusée, ou un joueur ne peut pas être ajouté ?
 
-Bouton = FMActionButton « Ajouter à la sélection » de FM (action 1097488485, gabarit d'actions 23461237…), copié de
-l'outil Recrutement (RecruitmentFocusToolMainBlock #matched-add-to-shortlist-button, où FM le branche déjà sur une
-LISTE de joueurs). Libellé = celui de l'action FM (traduit par le jeu).
+Bouton = FMActionButton « Ajouter à la sélection » de FM (action 1097488485), copié de l'outil Recrutement
+(RecruitmentFocusToolMainBlock #matched-add-to-shortlist-button). Libellé = celui de l'action FM.
 
-v1 (2026-11-13) : RecordsBinding = `TopPlayers.Players` (liste de la grille #PlayersGrid). Inconnu : ses éléments sont
-  des « joueur + rang » (playerWithRank, .Player = la personne), pas des personnes ; si FM refuse, bouton invisible.
-  Aussi caché par FM si un seul joueur ne peut pas être ajouté (déjà dans la sélection ?).
+v1 (2026-11-13) : bouton au-dessus de la liste (devenu la fonction selection_top50).
+v2 (2026-11-14) : test A / B sur chaque carte (TopPlayerRow, utilisé seulement par ce message) :
+  A (EN HAUT de la carte) : RecordsBinding `playerWithRank` (l'élément « joueur + rang » de la liste) ;
+  B (EN BAS de la carte)  : RecordsBinding `playerWithRank.Player` (le joueur).
+  A visible -> FM accepte les « joueur + rang » : le bouton des 50 est caché par un joueur qui ne peut pas être ajouté.
+  Seul B visible -> FM refuse ces éléments : pas de « 50 d'un coup » par le skin.
 Menu Outils FM.bat (jeu fermé) : 124 ; retiré par 105 / choix 1.
-Usage : essai_selection_top50.py appliquer [--dry-run] | retirer
+Usage : essai_selection_top50.py appliquer [--dry-run] | retirer [--dry-run]
 """
 import os
 import sys
@@ -18,16 +21,16 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "commun"))
 import chemins  # noqa: E402,F401  (dossiers des catégories : les scripts s'importent entre eux)
 import notes_au_lieu_des_libelles as nb  # noqa: E402
-import feliciter_coches as fc  # noqa: E402  (ouvrir, enregistrer, nommer)
+import feliciter_coches as fc  # noqa: E402  (ouvrir, enregistrer)
 from elements import src_tree, first, typ, copy_usings, plain  # noqa: E402
 
-MODELE = "TopPlayersInTheWorldNewsStoryBlock"
-VERSION = 1
+MODELES = ["TopPlayerRow", "TopPlayersInTheWorldNewsStoryBlock"]   # le 2e : seulement pour retirer la v1
+CARTE = "TopPlayerRow"
+VERSION = 2
 NOM = "UIPickerEssaiSelectionTop50"
 CLASSE = f"uipicker-essai-selection-top50-v{VERSION}"
 SOURCE, BOUTON = "RecruitmentFocusToolMainBlock", "matched-add-to-shortlist-button"
-LISTE = "TopPlayers.Players"
-AVANT = "players-list"          # le bouton se pose juste au-dessus de la liste (#Body)
+TESTS = [("A", "playerWithRank", 0), ("B", "playerWithRank.Player", None)]   # (nom, liaison, place dans #player)
 
 
 def retirer_ecran(t):
@@ -40,50 +43,64 @@ def retirer_ecran(t):
 
 
 def construire(t):
-    if any(CLASSE in (t.elem(r).get("m_Classes") or []) for r in t.walk() if t.name(r) == NOM):
+    if any(CLASSE in (t.elem(r).get("m_Classes") or []) for r in t.walk() if t.name(r).startswith(NOM)):
         return []
     retirer_ecran(t)
     s = src_tree(SOURCE)
     src = s and first(s, lambda r: s.name(r) == BOUTON and typ(s, r) == "FM.UI.FMActionButton")
-    liste = first(t, lambda r: t.name(r) == AVANT)
-    if src is None or liste is None:
-        return [f"{'bouton FM (' + SOURCE + ')' if src is None else '#' + AVANT} introuvable"]
-    corps = t.parent[liste]
-    rangee = plain(t, corps, t.children(corps).index(liste), ["row-direction-normal", "align-items-center", CLASSE],
-                   NOM)
-    t.elem(rangee)["m_RuleIndex"] = -1
-    b = t.clone(src, rangee, src=s)
+    carte = first(t, lambda r: t.name(r) == "player")
+    if src is None or carte is None:
+        return [f"{'bouton FM (' + SOURCE + ')' if src is None else '#player'} introuvable"]
+    for nom, liaison, place in TESTS:
+        index = len(t.children(carte)) if place is None else place
+        rangee = plain(t, carte, index, ["row-direction-normal", "align-items-center", "justify-content-center",
+                                         CLASSE], f"{NOM}{nom}")
+        t.elem(rangee)["m_RuleIndex"] = -1
+        b = t.clone(src, rangee, src=s)
+        for r in t.walk(b):
+            t.elem(r)["m_RuleIndex"] = -1
+        sd = t.sd(b)
+        sd["name"] = ""
+        sd["RecordsBinding"], sd["RecordsBinding_UxmlAttributeFlags"] = {"m_path": liaison}, 1
+        t.elem(b)["m_Classes"] = []
     copy_usings(t, s, src)
-    for r in t.walk(b):
-        t.elem(r)["m_RuleIndex"] = -1
-    sd = t.sd(b)
-    sd["name"] = ""
-    sd["RecordsBinding"], sd["RecordsBinding_UxmlAttributeFlags"] = {"m_path": LISTE}, 1
-    t.elem(b)["m_Classes"] = []
-    return [f"bouton FM « Ajouter à la sélection » posé au-dessus de la liste ({LISTE})"]
+    return ["boutons d'essai A (haut, playerWithRank) / B (bas, playerWithRank.Player) posés sur chaque carte"]
 
 
 def appliquer():
-    o = fc.ouvrir(MODELE)
-    if o is None:
-        return [f"{MODELE} introuvable"]
-    m = construire(o[3])
-    if m and not any("introuvable" in x for x in m):
-        fc.enregistrer(*o)
+    out = []
+    for modele in MODELES:
+        o = fc.ouvrir(modele)
+        if o is None:
+            out.append(f"{modele} introuvable")
+            continue
+        if modele == CARTE:
+            m = construire(o[3])
+        else:
+            m = ["essai v1 (bouton au-dessus de la liste) retiré"] if retirer_ecran(o[3]) else []
+        if m and not any("introuvable" in x for x in m):
+            fc.enregistrer(*o)
+        out += [f"{modele} : {x}" for x in m]
+    if out:
         nb.save_all()
-    return [f"{MODELE} : {x}" for x in m]
+    return out
 
 
 def retirer():
-    o = fc.ouvrir(MODELE)
-    if o and retirer_ecran(o[3]):
-        fc.enregistrer(*o)
+    out = []
+    for modele in MODELES:
+        o = fc.ouvrir(modele)
+        if o and retirer_ecran(o[3]):
+            fc.enregistrer(*o)
+            out.append(f"{modele} : essai Sélection top 50 retiré")
+    if out:
         nb.save_all()
-        return [f"{MODELE} : essai Sélection top 50 retiré"]
-    return []
+    return out
 
 
 def main(argv):
+    if "--dry-run" in argv:
+        nb.DRY_RUN = True
     argv = [a for a in argv if a != "--dry-run"]
     fn = {"appliquer": appliquer, "retirer": retirer}.get(argv[0] if argv else "")
     if fn is None:

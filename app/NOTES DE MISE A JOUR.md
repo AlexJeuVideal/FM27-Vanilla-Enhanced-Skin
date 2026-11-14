@@ -6,6 +6,28 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v1.94 (14 novembre 2026)
+
+**Couleurs**
+- **Correction : le jeu caché pendant le Traitement** : avec un thème (sauf FM d'origine), la fenêtre « Traitement » entre les jours et les options caméra du match cachaient tout le jeu derrière un fond opaque. Le jeu est de nouveau visible derrière, assombri comme dans FM de base, avec tous les thèmes.
+- **Correction : fenêtres transparentes** : avec certains thèmes, les options du match, la fenêtre « Traitement » et la Causerie laissaient voir le jeu à travers. Elles reprennent la couleur des tuiles du thème, opaque comme dans FM.
+- **Correction : fond uni pendant les interviews** : avec un thème, les interviews (bord du terrain, presse…) affichaient un fond uni à la place du décor de FM. Le décor d'origine (tribunes, salle de presse, 3D) revient, avec tous les thèmes.
+- **Ombrage derrière les fenêtres** (nouveau réglage, page Couleurs, sous Mes thèmes) : choisis à quel point FM assombrit le jeu derrière la fenêtre « Traitement » et les options caméra, de 0 % (jeu bien visible) à 100 % (jeu caché). De base : 65 %, comme FM. Vaut pour tous les thèmes.
+- **Couleur du polygone de la fiche joueur** (nouveau réglage, page Couleurs, Panneaux / tuiles / menus / boutons) : les polygones d'attributs (fiche joueur, infobulle, rapports) prennent la couleur que tu choisis, trait fin et remplissage léger (l'opacité règle le remplissage). Chaque thème a la sienne de base (sa couleur d'accent) ; sans thème, celle de FM.
+
+**Match**
+- **Buteurs : fiche du joueur au survol** (nouveau, à tester, dites-nous si ça marche) : passe la souris sur le nom d'un buteur pour voir l'infobulle du joueur, dans les autres matchs du jour, les résultats d'une compétition, le calendrier et le résumé du match.
+
+**Ajouts de Kinito**
+- **Tactiques : tes sélections sauvegardées en un clic** : juste à droite de « Sélect. rapide », un bouton par sélection d'équipe sauvegardée (les 10 premières), son nom dessus. Un clic la charge, sans passer par Sélect. rapide > Gérer sélection d'équipe. Une sélection ajoutée, supprimée ou renommée met les boutons à jour. Rien ne s'affiche pendant un match. Actif de base. (Petite note d'Alex : mon Claude a cherché 2 h sans rien trouver, celui de Kinito a trouvé. Le sien est meilleur, c'est officiel.)
+- **Fenêtre de but : la passe décisive comptée juste dans toutes les compétitions** : FM ne compte la passe décisive qu'une fois la vérification de la VAR faite. La fenêtre lit maintenant le règlement de la compétition (la phase en cours : en coupe, tour par tour) et n'ajoute la passe en cours que si la compétition a la VAR. En Ligue 2 ou aux premiers tours de la Coupe de France, une 1re passe décisive ne s'affiche plus « 2e », et le compteur du match non plus. La VAR est reconnue dans toutes les langues du jeu.
+- **Consignes dans la langue du jeu** : la vue Terrain et les vues FM24 (consignes d'équipe et consignes individuelles) s'écrivent dans la langue réglée dans FM, en direct. Un texte trop long est coupé avec « … » et se lit en entier au survol. Chaque option de la vue Terrain a l'infobulle de FM qui l'explique, comme en vue FM24.
+- **Calendrier, onglet Rencontres : masquer une compétition** : « Masquer cette compétition », dans le bandeau, masque la compétition du match sélectionné, aussi sur une saison passée. Le Filtre liste les compétitions masquées (« Remettre », « Réinitialiser »), avec Hors compétition, Domicile et Extérieur. Les textes suivent la langue du jeu, et le tableau se recharge après chaque geste du filtre (plus de tours de coupe qui manquent tant qu'on ne fait pas défiler).
+- **Contrats et transferts : un seul cadenas qui tourne** : sur chaque ligne, un cadenas montre l'état de la clause (ouvert : négociable, orange : semi-négociable, rouge : non négociable) et un clic passe au suivant. « Retirer et exclure » reste à côté. La poubelle a maintenant son infobulle, dans la langue du jeu.
+- **Message des jeunes : « Réglages » et langue du jeu** : les choix (style des cartes, révélation, dévoiler la fiche tout seul ou à la main) sont dans une bande « Réglages », à droite de « Tout retourner » sur la 1re rangée. En « tout seul », la fiche dévoilée montre de nouveau 2 s le récapitulatif (rapport, personnalité) avant son animation. Les textes des cartes et de la révélation suivent la langue du jeu.
+- **Page d'un pays et d'une sélection dans la langue du jeu** : la note de formation des jeunes et les dates d'arrivée des jeunes s'écrivent dans la langue du jeu (titres, mois et format de date de FM). En français, rien ne change.
+- **Maintenant actifs de base** : caméra plus libre (Hauteur et Zoom de -60 à 60), vitesse x 1.4 pendant les temps forts, niveaux de connaissance en couleurs (Recrutement), note de formation et dates d'arrivée des jeunes sur la page d'un pays et d'une sélection. Ils restent désactivables dans l'app.
+
 ### v1.93 (13 novembre 2026)
 
 **Staff**
@@ -1072,6 +1094,28 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v1.94 (14 November 2026)
+
+**Colours**
+- **Fix: game hidden during Processing**: with a theme (except FM original), the "Processing" window between days and the match camera options hid the whole game behind an opaque background. The game is visible again behind it, darkened as in base FM, with every theme.
+- **Fix: see-through windows**: with some themes, the match options, the "Processing" window and the team talk let the game show through. They use the theme's tile colour again, opaque as in FM.
+- **Fix: plain background during interviews**: with a theme, interviews (pitchside, press…) showed a plain background instead of FM's scenery. The original scenery (stands, press room, 3D) is back, with every theme.
+- **Shading behind windows** (new setting, Colours page, under My themes): choose how much FM darkens the game behind the "Processing" window and the camera options, from 0% (game fully visible) to 100% (game hidden). Default: 65%, like FM. Applies to every theme.
+- **Player profile polygon colour** (new setting, Colours page, Panels / tiles / menus / buttons): the attribute polygons (player profile, tooltip, reports) take the colour you choose, thin line and light fill (opacity sets the fill). Each theme has its own by default (its accent colour); without a theme, FM's.
+
+**Match**
+- **Goalscorers: player tooltip on hover** (new, to be tested, let us know if it works): hover a goalscorer's name to see the player tooltip, in other matches of the day, competition results, the calendar and the match summary.
+
+**Kinito's additions**
+- **Tactics: your saved selections in one click**: right next to "Quick Pick", one button per saved team selection (the first 10), its name on it. One click loads it, without going through Quick Pick > Manage Team Selection. Adding, deleting or renaming a selection updates the buttons. Nothing shows during a match. On by default. (A little note from Alex: my Claude searched for 2 hours and found nothing, Kinito's found it. Kinito's is better, it's official.)
+- **Goal pop-up: the assist counted right in every competition**: FM only counts the assist once the VAR check is done. The pop-up now reads the competition rules (the current stage: in cups, round by round) and only adds the assist being made when the competition uses VAR. In Ligue 2 or in the early rounds of the Coupe de France, a 1st assist no longer shows as the "2nd", and neither does the match counter. VAR is recognised in every game language.
+- **Instructions in the game language**: the Pitch view and the FM24 views (team instructions and player instructions) follow the language set in FM, live. A text that is too long is cut with "…" and reads in full on hover. Every option of the Pitch view has FM's tooltip explaining it, like the FM24 view.
+- **Calendar, Fixtures tab: hide a competition**: "Hide this competition", in the header, hides the selected match's competition, past seasons included. The Filter lists the hidden competitions (each with "Show"), next to FM's own reset, non-competitive and home / away options. The texts follow the game language, and the table reloads after every filter action (no more cup rounds missing until you scroll).
+- **Contracts and transfers: one padlock that cycles**: on each line, one padlock shows the clause's state (open: negotiable, orange: semi-negotiable, red: non-negotiable) and a click moves to the next one. "Remove and exclude" stays next to it. The bin now has its tooltip, in the game language.
+- **Youth intake message: "Settings" and game language**: the choices (card style, reveal, reveal the profile automatically or by hand) are in a "Settings" band, to the right of "Flip all" on the first row. On automatic, the revealed profile again shows the summary (report, personality) for 2 s before its animation. The cards' and the reveal's texts follow the game language.
+- **Nation and national team pages in the game language**: the youth rating and youth intake dates follow the game language (FM's own titles, month names and date format). Nothing changes in French.
+- **Now on by default**: freer camera (Height and Zoom from -60 to 60), x 1.4 speed during highlights, knowledge levels in colour (Scouting), youth rating and youth intake dates on nation and national team pages. They can still be turned off in the app.
 
 ### v1.93 (13 November 2026)
 

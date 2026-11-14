@@ -100,6 +100,7 @@ Usage (jeu fermé) :
   .venv\\Scripts\\python.exe outils\\kinito\\kinito_consignes_essai_b.py etat
 """
 import copy
+import json
 import math
 import os
 import re
@@ -418,7 +419,7 @@ def _option(nom):
 
 ONGLET24, ARRIVEE24, ARRIVEE_INDIV24 = (_option(OPTION_DISPOSITION), _option(OPTION_ARRIVEE),
                                              _option(OPTION_ARRIVEE_INDIV))
-VERSION = f"94-{ONGLET24}-{ARRIVEE24}-{ARRIVEE_INDIV24}{langue.SUFFIXE}"   # v48 : dépend des options (règle
+VERSION = f"99-{ONGLET24}-{ARRIVEE24}-{ARRIVEE_INDIV24}{langue.SUFFIXE}"   # v48 : dépend des options (règle
 #               d'Alex : sinon « déjà appliqué »)
 #               v54 (Kinito, 09/11 : « construis EXACTEMENT comme la maquette » 37, un essai d'abord) : en vue Terrain,
 #               l'écran de la maquette 37 sur tout l'onglet (kinito_consignes_ecran : trois terrains en perspective
@@ -551,6 +552,24 @@ VERSION = f"94-{ONGLET24}-{ARRIVEE24}-{ARRIVEE_INDIV24}{langue.SUFFIXE}"   # v48
 #               devant la règle) ; 3 440 Petit et Moyen : l'Entraînement remonté au niveau de Consignes particulières
 #               v94 (Kinito, 11/11, en match en 1080p : la vue FM24 défilait) : l'enveloppe plafonnée à
 #               HAUT_LIGNE_MATCH24 en match (règle 94.0) : dessinée, elle fait la hauteur de l'onglet
+#               v95 (Kinito, 13/11 : « traduire dans les langues du jeu », ses choix : la langue réglée dans FM, en
+#               direct ; « … » quand c'est trop long ; nos mots traduits par nous) : la vue Terrain dans la langue du
+#               jeu (kinito_consignes_ecran : noms de consigne et d'option par leur n° de traduction, nos mots et ceux de
+#               FM par langue, chaque texte sur sa place libre). ESSAI : la vue FM24 et les consignes individuelles
+#               ensuite
+#               v96 (Kinito, 13/11, v95 vue en anglais et en allemand : ça marche ; « l'infobulle correspondant au
+#               choix de la consigne, comme sur la vue FM24 », et la phrase entière au survol d'un texte coupé) :
+#               kinito_consignes_ecran (bulles_options, DisplayTooltipWhenElided de FM)
+#               v97 (Kinito, 13/11 : « fais les vues FM24 ») : la vue FM24 des consignes d'équipe, sa colonne des
+#               phases et les consignes individuelles FM24 dans la langue du jeu : nos mots (TEXTES24_LANGUES) en
+#               copies par langue sous un conteneur de langue par bloc (langue24, traduire24) ; les noms de FM y
+#               étaient déjà (données du jeu)
+#               v99 (Kinito, 14/11, v98 vue en espagnol : tout traduit, mais « Más en… / Más dir… » coupés sans
+#               moyen de lire la suite) : en vue FM24, un texte coupé par « … » reçoit le survol (la phrase entière,
+#               comme la vue Terrain en v96) quand il ne couvre aucune case (survol_libre24)
+#               v98 (Kinito, 13/11, v97 vue en italien : vue Terrain et vue FM24 d'équipe traduites, mais les mots
+#               des cases et les en-têtes des consignes individuelles restés en anglais) : un texte posé directement
+#               dans un interrupteur de FM passe d'abord dans une boîte (envelopper24)
 #               v53 (Kinito, 08/11, v52 vue en 3440 x 1440 : « le vert du vide n'est pas le même que celui des
 #               colonnes », « laisser la même marge sur le côté que sur le haut ») : en vue FM24, le cadre des
 #               proportions passe DANS le panneau sombre des colonnes : le panneau va d'un bord à l'autre (liseré
@@ -2114,6 +2133,452 @@ PHASES24 = [(langue.texte("AVEC LE BALLON", "IN POSSESSION"), ("AVEC LE BALLON",
             (langue.texte("SANS LE BALLON", "OUT OF POSSESSION"), ("SANS LE BALLON", "OUT OF POSSESSION"), SANS24)]
 # v21 : les terrains à zones, en % du terrain (attaque en haut), relevés sur la capture 7 de FM24 ; les phrases de
 # FM24 (vues sur la capture, en français ; en anglais : celles de FM) posées dans les zones
+# v97 (Kinito, 13/11 : « fais les vues FM24 », dans la langue du jeu comme la vue Terrain, v95) : nos mots des vues FM24
+# (consignes d'équipe, colonne des phases, consignes individuelles) dans chaque langue du jeu. Recopiés des fichiers des
+# langues de FM 24 (data\shared.fmf) et de FM 27 (languages.fmf) par la clé du texte français (sinon de l'anglais),
+# gardés quand l'anglais de la clé concorde ; relus et corrigés à la main là où FM parle d'autre chose (mot court hors
+# contexte : « Moins » = « Senken », « DIRECTION » = « direction du transfert » en coréen…) ; nos expressions (« Plus de
+# courses », « ATTAQUER LA SURFACE », « Plus durement »…) traduites par nous, relues par personne de langue
+# maternelle. Le français : toujours celui de la vue. Fusion : chantier-consignes\v97 (fusion24.py)
+ORDRE_TEXTES24 = ("english", "english (us)", "french", "german", "italian", "spanish", "spanish (latam)", "portuguese",
+                  "portuguese (bra)", "dutch", "danish", "norwegian", "swedish", "polish", "czech", "russian", "turkish",
+                  "greek", "indonesian", "japanese", "korean", "chinese", "chinese (traditional)", "thai", "arabic")
+TEXTES24_LANGUES = {   # (français, anglais) de nos mots -> leur texte dans chaque langue de ORDRE_TEXTES24
+    ('AVEC LE BALLON', 'IN POSSESSION'): (
+        'IN POSSESSION', 'IN POSSESSION', 'AVEC LE BALLON', 'IN BALLBESITZ', 'IN POSSESSO', 'CON POSESIÓN',
+        'CON POSESIÓN', 'COM POSSE DE BOLA', 'COM POSSE DE BOLA', 'IN BALBEZIT', 'I BOLDBESIDDELSE', 'MED BALL',
+        'MED BOLL', 'PRZY PIŁCE', 'IN POSSESSION', 'С МЯЧОМ', 'TOPA SAHİPKEN', 'ΚΑΤΟΧΗ', 'SAAT MENGUASAI BOLA',
+        'ポ\u200bゼッション時', '공 소유 시', '持\u200b球阶\u200b段', '持\u200b球阶\u200b段', 'IN POSSESSION', 'الاستحواذ',),
+    ('EN TRANSITION', 'IN TRANSITION'): (
+        'IN TRANSITION', 'IN TRANSITION', 'EN TRANSITION', 'UMSCHALTSPIEL', 'IN TRANSIZIONE', 'EN TRANSICIÓN',
+        'EN TRANSICIÓN', 'EM TRANSIÇÃO', 'EM TRANSIÇÃO', 'IN OMSCHAKELING', 'OMSTILLING', 'UNDER OVERGANGER',
+        'OMSTÄLLNINGAR', 'W PRZEJŚCIU', 'IN TRANSITION', 'ПЕРЕХОД МЯЧА', 'GEÇİŞ OYUNUNDA', 'ΜΕΤΑΒΑΣΗ',
+        'SAAT TRANSISI', 'ト\u200bランジ\u200bション時', '전환 시', '转\u200b换阶\u200b段', '转\u200b换阶\u200b段', 'IN TRANSITION',
+        'في التحول',),
+    ('SANS LE BALLON', 'OUT OF POSSESSION'): (
+        'OUT OF POSSESSION', 'OUT OF POSSESSION', 'SANS LE BALLON', 'GEGNER IN BALLBESITZ', 'NON IN POSSESSO',
+        'SIN POSESIÓN', 'SIN POSESIÓN', 'SEM POSSE DE BOLA', 'SEM POSSE DE BOLA', 'ZONDER BALBEZIT',
+        'UDEN BOLDBESIDDELSE', 'UTEN BALL', 'UTAN BOLL', 'BEZ PIŁKI', 'OUT OF POSSESSION', 'БЕЗ МЯЧА',
+        'TOP RAKİPTEYKEN', 'ΧΩΡΙΣ ΜΠΑΛΑ', 'SAAT TIDAK MENGUASAI BOLA', '非ポ\u200bゼッション時', '소유권 없을 때',
+        '无\u200b球阶\u200b段', '无\u200b球阶\u200b段', 'OUT OF POSSESSION', 'عدم الاستحواذ',),
+    ('Dédoublements extérieurs gauches', 'Overlap Left'): (
+        'Overlap Left', 'Overlap Left', 'Dédoublements extérieurs gauches', 'Hinterlaufen links',
+        'Cercate di sovrapporvi a sinistra', 'Doblar por la izquierda', 'Doblar por la izquierda',
+        'Sobrepo. Ext. Esquerda', 'Sobrepo. Ext. Esquerda', 'Links over elkaar heen gaan', 'Overlap venstre',
+        'Overlapp venstre', 'Överlappning vänster', 'Obieg z lewej', 'Overlap Left', 'Забегания по флангу слева',
+        'Sol Bek Desteğe Gelsin', 'Overlap Αριστερά', 'Overlap Kiri', '左サ\u200bイ\u200bド\u200bオーバーラップ', '왼쪽 오버래핑',
+        '左\u200b侧套\u200b边插\u200b上', '左\u200b侧套\u200b边插\u200b上', 'Overlap Left', 'أوفر لاب من ناحية اليسار',),
+    ('Dédoublements intérieurs gauches', 'Underlap Left'): (
+        'Underlap Left', 'Underlap Left', 'Dédoublements intérieurs gauches', 'Anspiel links innen',
+        'Cercate l’imbucata a sinistra', 'Doblar por dentro a la izquierda', 'Doblar por dentro a la izquierda',
+        'Sobrepo. Int. Esquerda', 'Sobrepo. Int. Esquerda', 'Links binnendoor snijden', 'Underlap venstre',
+        'Underlapp venstre', 'Insideslöpning vänster', 'Obieg od środka z lewej', 'Underlap Left',
+        'Подключаться в центр слева', 'Soldan İçe Bindirene Pas At', 'Underlap Αριστερά', 'Underlap Kiri',
+        '左サ\u200bイ\u200bド\u200bアンダーラップ', '왼쪽 언더래핑', '左\u200b侧肋\u200b部插\u200b上', '左\u200b侧肋\u200b部插\u200b上',
+        'Underlap Left', 'أندر لاب من ناحية اليسار',),
+    ('Dédoublements intérieurs droits', 'Underlap Right'): (
+        'Underlap Right', 'Underlap Right', 'Dédoublements intérieurs droits', 'Anspiel rechts innen',
+        'Cercate l’imbucata a destra', 'Doblar por dentro a la derecha', 'Doblar por dentro a la derecha',
+        'Sobrepo. Int. Direita', 'Sobrepo. Int. Direita', 'Rechts binnendoor snijden', 'Underlap højre',
+        'Underlapp høyre', 'Insideslöpning höger', 'Obieg od środka z prawej', 'Underlap Right',
+        'Подключаться в центр справа', 'Sağdan İçe Bindirene Pas At', 'Underlap Δεξιά', 'Underlap Kanan',
+        '右サ\u200bイ\u200bド\u200bアンダーラップ', '오른쪽 언더래핑', '右\u200b侧肋\u200b部插\u200b上', '右\u200b侧肋\u200b部插\u200b上',
+        'Underlap Right', 'أندر لاب من ناحية اليمين',),
+    ('Dédoublements extérieurs droits', 'Overlap Right'): (
+        'Overlap Right', 'Overlap Right', 'Dédoublements extérieurs droits', 'Hinterlaufen rechts',
+        'Cercate di sovrapporvi a destra', 'Doblar por la derecha', 'Doblar por la derecha', 'Sobrepo. Ext. Direita',
+        'Sobrepo. Ext. Direita', 'Rechts over elkaar heen gaan', 'Overlap højre', 'Overlapp høyre',
+        'Överlappning höger', 'Obieg z prawej', 'Overlap Right', 'Забегания по флангу справа',
+        'Sağ Bek Desteğe Gelsin', 'Overlap Δεξιά', 'Overlap Kanan', '右サ\u200bイ\u200bド\u200bオーバーラップ', '오른쪽 오버래핑',
+        '右\u200b侧套\u200b边插\u200b上', '右\u200b侧套\u200b边插\u200b上', 'Overlap Right', 'أوفر لاب من ناحية اليمين',),
+    ("Concentrez le jeu sur l'aile gauche", 'Focus Play Down The Left Flank'): (
+        'Focus Play Down The Left', 'Focus Play Down The Left', "Concentrez le jeu sur l'aile gauche",
+        'Linke Seite fokussieren', 'Concentrate il gioco sulla sinistra', 'Enfocar el juego por la izquierda',
+        'Enfocar el juego por la izquierda', 'Focar o Jogo pela Esquerda', 'Focar o Jogo pela Esquerda',
+        'Focus op spel vanaf linkerflank', 'Fokus på spil via venstre side', 'Fokus på spill på venstre side',
+        'Fokusera spel längs vänsterkanten', 'Ataki lewym skrzydłem', 'Focus Play Down The Left',
+        'Играть через левый фланг', 'Sol Kanadı Kullan', 'Εστίαση Παιχνιδιού Αριστερά', 'Fokus Main di Sisi Kiri',
+        '左サ\u200bイ\u200bド\u200b攻撃重視', '왼쪽 측면을 노려라', '多\u200b走左\u200b路', '多\u200b走左\u200b路',
+        'Focus Play Down The Left', 'تركيز اللعب على الجانب الأيسر',),
+    ("Concentrez le jeu dans l'axe", 'Focus Play Through The Middle'): (
+        'Focus Play Through The Middle', 'Focus Play Through The Middle', "Concentrez le jeu dans l'axe",
+        'Zentrum fokussieren', 'Concentrate il gioco al centro', 'Enfocar el juego por el centro',
+        'Enfocar el juego por el centro', 'Focar o Jogo Pelo Meio', 'Focar o Jogo Pelo Meio',
+        'Focus Op Spelen Door Het Midden', 'Fokus på spil gennem midten', 'Fokus på å spille gjennom midten',
+        'Fokusera spel via mitten', 'Ataki środkiem pola', 'Focus Play Through The Middle', 'Играть через центр',
+        'Göbekten Oyna', 'Εστίαση Παιχνιδιού Κεντρικά', 'Fokus Main di Area Tengah', '中央か\u200bら\u200b崩せ', '중앙을 노려라',
+        '多\u200b走中\u200b路', '多\u200b走中\u200b路', 'Focus Play Through The Middle', 'تركيز اللعب في المنتصف',),
+    ("Concentrez le jeu sur l'aile droite", 'Focus Play Down The Right Flank'): (
+        'Focus Play Down the Right', 'Focus Play Down the Right', "Concentrez le jeu sur l'aile droite",
+        'Rechte Seite fokussieren', 'Concentra il gioco sulla destra', 'Centrar el juego por la derecha',
+        'Centrar el juego por la derecha', 'Concentração no lado direito', 'Concentração no lado direito',
+        'Focus op spel vanaf rechterflank', 'Fokusér på opspil i højre side', 'Fokus på spill på høyre side',
+        'Fokusera spel längs högerkanten', 'Gra głównie prawym skrzydłem', 'Focus Play Down the Right',
+        'Играть через правый фланг', 'Sağ Kanadı Kullanın', 'Εστίαση Παιχνιδιού Από Τα Δεξιά',
+        'Fokus Main di Sisi Kanan', '右サ\u200bイ\u200bド\u200b集中攻撃', '오른쪽 측면을 노려라', '主\u200b攻右\u200b路',
+        '主\u200b攻右\u200b路', 'Focus Play Down the Right', 'تركيز اللعب على الجانب الأيمن',),
+    ('Empêchez rel. courtes du GB', 'Prevent Short GK Distribution'): (
+        'Prevent Short GK Distribution', 'Prevent Short GK Distribution', 'Empêchez rel. courtes du GB',
+        'TW an kurzem Abspiel hindern', 'Impedite i passaggi corti del Por', 'Evitar pases en corto del portero',
+        'Evitar pases en corto del portero', 'Evitar Distribuição Curta do GR', 'Evitar Distribuição Curta do GR',
+        'Kort afspelen van keeper voorkomen', 'Afskær målmanden fra at distribuere kort',
+        'Hindre korte avleveringer fra keeper', 'Hindra korta målvaktsuppspel',
+        'Przeszkadzaj bramkarzowi w krótkim rozegraniu', 'Prevent Short GK Distribution',
+        'Мешать короткому вводу мяча вратарем', 'Rakip Kaleci Top Çıkartırken Defansa Baskı',
+        'Εμποδίστε Κοντινό Μοίρασμα ΤΦ', 'Cegah Distribusi Bola Pendek',
+        'GKか\u200bら\u200bの\u200b短い\u200b配球を\u200b阻止', '상대 골키퍼 긴 패스 유도', '逼\u200b抢门\u200b将', '逼\u200b抢门\u200b将',
+        'Prevent Short GK Distribution', 'منع انتشار حارس المرمى القصير',),
+    ('Tirez à vue', 'Shoot On Sight'): (
+        'Shoot On Sight', 'Shoot On Sight', 'Tirez à vue', 'Schießen bei freier Bahn', 'Tirate appena possibile',
+        'Disparar cuando se pueda', 'Disparar cuando se pueda', 'Rematar Sempre que Possível',
+        'Rematar Sempre que Possível', 'Elke schietkans benutten', 'Skyd første gang', 'Skyt ved mulighet',
+        'Tidiga avslut', 'Strzały z każdej pozycji', 'Shoot On Sight', 'Бить при любой возможности',
+        'Kaleyi Gördüğünde Vur', 'Σουτ Σε Κάθε Ευκαιρία', 'Tembak Langsung', '積極的に\u200bシュート', '슛을 아끼지 말아라',
+        '有\u200b机会\u200b就射\u200b门', '有\u200b机会\u200b就射\u200b门', 'Shoot On Sight', 'التسديد متى سنحت الفرصة',),
+    ('Moins de tirs de loin', 'Shoot Less Often'): (
+        'Shoot Less Often', 'Shoot Less Often', 'Moins de tirs de loin', 'Seltener schießen', 'Tira di meno',
+        'Disparar menos a menudo', 'Disparar menos a menudo', 'Rematar Menos', 'Rematar Menos',
+        'Minder op doel schieten', 'Skyd mindre', 'Skyt sjeldnere', 'Skjut mindre', 'Rzadziej strzelaj',
+        'Shoot Less Often', 'Бить реже', 'Daha Az Şut Çek', 'Μη Σουτάρεις Τόσο Συχνά', 'Kurangi Tembakan',
+        'シュート\u200bを\u200b減ら\u200bせ', '적게 슈팅하라', '少\u200b些打\u200b门', '少\u200b些打\u200b门', 'Shoot Less Often',
+        'إرسال تسديدات أقل',),
+    ('SANS BALLON (ÉQUIPE)', 'TEAM OUT OF POSSESSION'): (
+        'TEAM OUT OF POSSESSION', 'TEAM OUT OF POSSESSION', 'SANS BALLON (ÉQUIPE)', 'MANNSCHAFT OHNE BALL',
+        'SQUADRA NON IN POSSESSO', 'EQUIPO SIN BALÓN', 'EQUIPO SIN BALÓN', 'EQUIPA SEM BOLA', 'EQUIPA SEM BOLA',
+        'TEAM ZONDER BAL', 'HOLD UDEN BOLD', 'LAG UTEN BALL', 'LAG UTAN BOLL', 'DRUŻYNA BEZ PIŁKI',
+        'TEAM OUT OF POSSESSION', 'КОМАНДА БЕЗ МЯЧА', 'TAKIM TOPSUZKEN', 'ΟΜΑΔΑ ΧΩΡΙΣ ΜΠΑΛΑ', 'TIM TANPA BOLA',
+        'チーム：非保持時', '팀 공 미소유 시', '团队无球', '团队无球', 'TEAM OUT OF POSSESSION', 'الفريق دون الكرة',),
+    ('PRESSING', 'PRESSING'): (
+        'PRESSING', 'PRESSING', 'PRESSING', 'PRESSING', 'PRESSING', 'PRESIÓN', 'PRESIÓN', 'PRESSÃO', 'PRESSÃO',
+        'PRESSING', 'PRES', 'PRESS', 'PRESS', 'PRESSING', 'PRESSING', 'ПРЕССИНГ', 'PRES', 'ΠΙΕΣΗ', 'PRESSING',
+        'プ\u200bレッシング', '압박 수비', '压\u200b迫', '压\u200b迫', 'PRESSING', 'الضغط',),
+    ('Moins', 'Less'): (
+        'Less', 'Less', 'Moins', 'Weniger', 'Meno', 'Menos', 'Menos', 'Menos', 'Menos', 'Minder', 'Mindre', 'Mindre',
+        'Mindre', 'Mniej', 'Less', 'Меньше', 'Daha az', 'Λιγότερο', 'Lebih sedikit', '少なく', '적게', '更少', '更少', 'Less',
+        'أقل',),
+    ('Plus', 'More'): (
+        'More', 'More', 'Plus', 'Mehr', 'Più', 'Más', 'Más', 'Mais', 'Mais', 'Meer', 'Mere', 'Mer', 'Mer', 'Więcej',
+        'More', 'Больше', 'Daha fazla', 'Περισσότερο', 'Lebih banyak', '多く', '많이', '更多', '更多', 'More', 'أكثر',),
+    ('MARQUAGE', 'MARKING'): (
+        'MARKING', 'MARKING', 'MARQUAGE', 'DECKUNG', 'MARCATURA', 'MARCAJE', 'MARCAJE', 'MARCAÇÃO', 'MARCAÇÃO',
+        'MANDEKKEN', 'MARKERING', 'MARKERING', 'MARKERINGSSPEL', 'KRYCIE', 'MARKING', 'ОПЕКА', 'MARKAJ',
+        'ΜΑΡΚΑΡΙΣΜΑ', 'PENJAGAAN', 'マーキング', '마크', '盯\u200b人', '盯\u200b人', 'MARKING', 'الرقابة',),
+    ('De plus près', 'Tighter'): (
+        'Tighter', 'Tighter', 'De plus près', 'Enger', 'Più stretta', 'Más cerca', 'Más cerca', 'Mais apertada',
+        'Mais apertada', 'Strakker', 'Tættere', 'Tettere', 'Tätare', 'Ciaśniej', 'Tighter', 'Плотнее', 'Daha sıkı',
+        'Πιο στενά', 'Lebih ketat', 'より密着', '더 밀착', '更紧', '更紧', 'Tighter', 'لصيقة أكثر',),
+    ('Plus durement', 'Harder'): (
+        'Harder', 'Harder', 'Plus durement', 'Härter', 'Più duri', 'Más fuerte', 'Más fuerte', 'Mais duro',
+        'Mais duro', 'Harder', 'Hårdere', 'Hardere', 'Hårdare', 'Ostrzej', 'Harder', 'Жёстче', 'Daha sert',
+        'Πιο σκληρά', 'Lebih keras', '激しく', '더 거칠게', '更凶狠', '更凶狠', 'Harder', 'بقوة أكبر',),
+    ('Moins durement', 'Ease off'): (
+        'Ease off', 'Ease off', 'Moins durement', 'Vorsichtiger', 'Meno duri', 'Más suave', 'Más suave',
+        'Menos duro', 'Menos duro', 'Voorzichtiger', 'Blødere', 'Mykere', 'Mjukare', 'Delikatniej', 'Ease off',
+        'Мягче', 'Daha yumuşak', 'Πιο ήπια', 'Lebih lunak', '控えめに', '덜 거칠게', '更克制', '更克制', 'Ease off', 'بقوة أقل',),
+    ('TACLES', 'TACKLING'): (
+        'TACKLING', 'TACKLING', 'TACLES', 'TACKLING', 'CONTRASTI', 'ENTRADAS', 'ENTRADAS', 'DESARME', 'DESARME',
+        'TACKELEN', 'TACKLINGER', 'TAKLINGER', 'TACKLINGAR', 'ODBIÓR PIŁKI', 'TACKLING', 'ОТБОР', 'TOPA HAMLE',
+        'ΤΑΚΛΙΝ', 'TEKEL', 'タック\u200bル', '태클', '铲\u200b抢', '铲\u200b抢', 'TACKLING', 'التدخل',),
+    ('Individuel', 'Man'): (
+        'Individual', 'Individual', 'Individuel', 'Individuell', 'Individuale', 'Individual', 'Individual',
+        'Individual', 'Individual', 'Individueel', 'Individuel', 'Individuell', 'Individuell', '1 na 1',
+        'Individual', 'Индивидуальные', 'Bireysel', 'Ατομική', 'Individu', '個別', '개인', '个\u200b人', '个\u200b人',
+        'Individual', 'رقابة اللاعب',),
+    ('De zone', 'Zonal'): (
+        'Zonal', 'Zonal', 'De zone', 'Zonal', 'A zona', 'En zona', 'En zona', 'Zonal', 'Zonal', 'Zonaal', 'Zonal',
+        'Zonal', 'Zonal', 'Strefowe', 'Zonal', 'Зональная', 'Alan', 'Ζώνη', 'Zona', 'ゾーン', '지역 방어', '区域防守',
+        '区\u200b域', 'Zonal', 'منطقة',),
+    ('TYPE DE MARQUAGE', 'MARKING TYPE'): (
+        'MARKING STYLE', 'MARKING STYLE', 'TYPE DE MARQUAGE', 'DECKUNGSART', 'TIPO DI MARCATURA', 'TIPO DE MARCAJE',
+        'TIPO DE MARCAJE', 'TIPO DE MARCAÇÃO', 'TIPO DE MARCAÇÃO', 'DEKKING', 'MARKERINGSSTIL', 'MARKERINGSTYPE',
+        'MARKERINGSTYP', 'RODZAJ KRYCIA', 'MARKING STYLE', 'ТИП ОПЕКИ', 'MARKAJ TARZI', 'ΣΤΥΛ ΜΑΡΚΑΡΙΣΜΑΤΟΣ',
+        'GAYA MARKING', 'マーキング\u200bス\u200bタ\u200bイ\u200bル', '수비 방식', '盯\u200b人方\u200b式', '盯\u200b人方\u200b式',
+        'MARKING STYLE', 'أسلوب يعتمد على الرقابة',),
+    ('AVEC BALLON (ÉQUIPE)', 'TEAM IN POSSESSION'): (
+        'TEAM IN POSSESSION', 'TEAM IN POSSESSION', 'AVEC BALLON (ÉQUIPE)', 'MANNSCHAFT IN BALLBESITZ',
+        'SQUADRA IN POSSESSO', 'EQUIPO CON BALÓN', 'EQUIPO CON BALÓN', 'EQUIPA COM BOLA', 'EQUIPA COM BOLA',
+        'TEAM IN BALBEZIT', 'HOLD MED BOLDEN', 'LAG MED BALL', 'LAG MED BOLL', 'DRUŻYNA PRZY PIŁCE',
+        'TEAM IN POSSESSION', 'КОМАНДА С МЯЧОМ', 'TAKIM TOPA SAHİPKEN', 'ΟΜΑΔΑ ΜΕ ΤΗΝ ΜΠΑΛΑ', 'TIM MENGUASAI BOLA',
+        'チーム：ボール保持時', '팀 공 소유 시', '团队持球', '团队持球', 'TEAM IN POSSESSION', 'الفريق مستحوذ على الكرة',),
+    ('ATTAQUER LA SURFACE', 'ATTACKING THE BOX'): (
+        'ATTACKING THE BOX', 'ATTACKING THE BOX', 'ATTAQUER LA SURFACE', 'STRAFRAUM ATTACKIEREN', "ATTACCARE L'AREA",
+        'ATACAR EL ÁREA', 'ATACAR EL ÁREA', 'ATACAR A ÁREA', 'ATACAR A ÁREA', 'DE ZESTIEN AANVALLEN',
+        'ANGRIB FELTET', 'ANGRIP BOKSEN', 'ANFALLA STRAFFOMRÅDET', 'ATAK NA POLE KARNE', 'ATTACKING THE BOX',
+        'АТАКА ШТРАФНОЙ', 'CEZA SAHASINA HÜCUM', 'ΕΠΙΘΕΣΗ ΣΤΗΝ ΠΕΡΙΟΧΗ', 'MENYERANG KOTAK PENALTI', 'ペナルティエリアへの侵入',
+        '박스 공략', '冲击禁区', '冲击禁区', 'ATTACKING THE BOX', 'مهاجمة منطقة الجزاء',),
+    ('Côté', 'Side'): (
+        'Side', 'Side', 'Côté', 'Seite', 'Lato', 'Lado', 'Lado', 'Lado', 'Lado', 'Kant', 'Side', 'Side', 'Sida',
+        'Strona', 'Side', 'Сторона', 'Bölge', 'Πλευρά', 'Sisi', 'サ\u200bイ\u200bド', '측면', '侧', '边\u200b路位\u200b置',
+        'Side', 'جانب',),
+    ('1er poteau', 'Near post'): (
+        'Near Post', 'Near Post', '1er poteau', 'Kurzer Pfosten', 'Primo palo', 'Primer palo', 'Primer palo',
+        'Primeiro poste', 'Primeiro poste', 'Eerste paal', 'Nærmeste stolpe', 'Nærmeste stolpe', 'Främre stolpen',
+        'Bliższy słupek', 'Near Post', 'Ближняя штанга', 'Yakın Direk', 'Πρώτο Δοκάρι', 'Tiang Dekat',
+        'ニ\u200bア\u200bポ\u200bス\u200bト', '가까운 포스트', '近\u200b门柱', '近\u200b门柱', 'Near Post', 'على القائم القريب',),
+    ('2e poteau', 'Far post'): (
+        'Far Post', 'Far Post', '2e poteau', 'Langer Pfosten', 'Secondo palo', 'Segundo palo', 'Segundo palo',
+        'Segundo poste', 'Segundo poste', 'Tweede paal', 'Fjerneste stolpe', 'Bortre stolpe', 'Bortre stolpen',
+        'Dalszy słupek', 'Far Post', 'Дальняя штанга', 'Uzak Direk', 'Δεύτερο Δοκάρι', 'Tiang Jauh',
+        'ファーポ\u200bス\u200bト', '먼 포스트', '远\u200b门柱', '远\u200b门柱', 'Far Post', 'على القائم البعيد',),
+    ('Gauche', 'Left'): (
+        'Left', 'Left', 'Gauche', 'Links', 'Sinistra', 'Izquierda', 'Izquierda', 'Esquerda', 'Esquerdo', 'Links',
+        'Venstre', 'Venstre', 'Vänster', 'Lewy', 'Left', 'Слева', 'Sol', 'Αριστερά', 'Kiri', '左', '왼쪽', '左', '左',
+        'Left', 'يسار',),
+    ('Centre', 'Centre'): (
+        'Centre', 'Centre', 'Centre', 'Zentral', 'Centro area', 'Centro', 'Centro', 'Centro', 'Centro', 'Centraal',
+        'Central', 'Sentral', 'Central', 'Środek', 'Centre', 'Центр', 'Merkez', 'Κέντρο', 'Tengah', 'センター', '중앙',
+        '中\u200b路', '中\u200b路', 'Centre', 'الوسط',),
+    ('Droite', 'Right'): (
+        'Right', 'Right', 'Droite', 'Rechts', 'Destra', 'Derecha', 'Derecha', 'Direita', 'Direita', 'Rechts',
+        'Højre', 'Høyre', 'Högra', 'Prawy', 'Right', 'Справа', 'Sağ', 'Δεξιά', 'Kanan', '右', '오른쪽', '右\u200b侧',
+        '右\u200b侧', 'Right', 'يمين',),
+    ('Profondeur', 'Depth'): (
+        'Depth', 'Depth', 'Profondeur', 'Tiefe', 'Profondità', 'Profundidad', 'Profundidad', 'Profundidade',
+        'Profundidade', 'Diepte', 'Dybde', 'Dybde', 'Djup', 'Głębokość', 'Depth', 'Глубина', 'Derinlik', 'Βάθος',
+        'Kedalaman', '深さ', '깊이', '纵深', '纵深', 'Depth', 'العمق',),
+    ('Attaquer la ligne', 'Attack the line'): (
+        'Attack the line', 'Attack the line', 'Attaquer la ligne', 'Linie attackieren', 'Attaccare la linea',
+        'Atacar la línea', 'Atacar la línea', 'Atacar a linha', 'Atacar a linha', 'Lijn aanvallen', 'Angrib linjen',
+        'Angrip linjen', 'Anfall linjen', 'Atak na linię', 'Attack the line', 'Атака линии', 'Çizgiye hücum',
+        'Επίθεση στη γραμμή', 'Serang garis', 'ラインを突く', '라인 공략', '冲击防线', '冲击防线', 'Attack the line', 'مهاجمة الخط',),
+    ('Arriver en retard', 'Arrive late'): (
+        'Arrive late', 'Arrive late', 'Arriver en retard', 'Spät nachrücken', 'Inserimento tardivo', 'Llegar tarde',
+        'Llegar tarde', 'Chegar tarde', 'Chegar tarde', 'Laat inlopen', 'Kom sent ind', 'Kom sent inn',
+        'Kom sent in', 'Późne wejście', 'Arrive late', 'Поздний подход', 'Geç gel', 'Καθυστερημένη άφιξη',
+        'Datang terlambat', '遅れて進入', '늦게 침투', '后插上', '后插上', 'Arrive late', 'الوصول متأخرًا',),
+    ('COURSES ET POSITION', 'RUNS AND POSITION'): (
+        'RUNS AND POSITION', 'RUNS AND POSITION', 'COURSES ET POSITION', 'LAUFWEGE UND POSITION',
+        'MOVIMENTI E POSIZIONE', 'DESMARQUES Y POSICIÓN', 'DESMARQUES Y POSICIÓN', 'DESMARCAÇÕES E POSIÇÃO',
+        'DESMARCAÇÕES E POSIÇÃO', 'LOOPACTIES EN POSITIE', 'LØB OG POSITION', 'LØP OG POSISJON',
+        'LÖPNINGAR OCH POSITION', 'WBIEGNIĘCIA I POZYCJA', 'RUNS AND POSITION', 'РЫВКИ И ПОЗИЦИЯ',
+        'KOŞULAR VE POZİSYON', 'ΚΙΝΗΣΕΙΣ ΚΑΙ ΘΕΣΗ', 'PERGERAKAN DAN POSISI', '走り込みとポジション', '침투와 위치', '跑位与站位',
+        '跑位与站位', 'RUNS AND POSITION', 'التحركات والتمركز',),
+    ("Dans l'axe", 'Narrower'): (
+        'Narrower', 'Narrower', "Dans l'axe", 'Enger', 'Stretti', 'Más estrecho', 'Más estrecho', 'Mais por dentro',
+        'Compacto', 'Smaller', 'Smallere', 'Smalere', 'Smalare', 'Węziej', 'Narrower', 'Более узко', 'Dar Alan',
+        'Στενότερα', 'Lebih Sempit', '幅を\u200b狭く', '좁게', '相\u200b对收\u200b缩', '相\u200b对收\u200b缩', 'Narrower', 'أضيق',),
+    ('Excentré', 'Wider'): (
+        'Wider', 'Wider', 'Excentré', 'Breiter', 'Larghi', 'Más ancho', 'Más ancho', 'Mais aberto', 'Largura',
+        'Breder', 'Bredere', 'Bredere', 'Bredare', 'Szerzej', 'Wider', 'Шире', 'Geniş Alan', 'Πλατύτερα',
+        'Lebih Lebar', '幅を\u200b広く', '넓게', '相\u200b对拉\u200b开', '相\u200b对拉\u200b开', 'Wider', 'أوسع',),
+    ('Plus de courses', 'More runs'): (
+        'More runs', 'More runs', 'Plus de courses', 'Mehr Läufe', 'Più inserimenti', 'Más desmarques',
+        'Más desmarques', 'Mais desmarcações', 'Mais desmarcações', 'Meer loopacties', 'Flere løb', 'Flere løp',
+        'Fler löpningar', 'Więcej wbiegnięć', 'More runs', 'Больше рывков', 'Daha çok koşu', 'Περισσότερες κινήσεις',
+        'Lebih banyak lari', '走り込みを増やす', '침투 늘리기', '多跑位', '多跑位', 'More runs', 'تحركات أكثر',),
+    ('Moins de courses', 'Fewer runs'): (
+        'Fewer runs', 'Fewer runs', 'Moins de courses', 'Weniger Läufe', 'Meno inserimenti', 'Menos desmarques',
+        'Menos desmarques', 'Menos desmarcações', 'Menos desmarcações', 'Minder loopacties', 'Færre løb',
+        'Færre løp', 'Färre löpningar', 'Mniej wbiegnięć', 'Fewer runs', 'Меньше рывков', 'Daha az koşu',
+        'Λιγότερες κινήσεις', 'Lebih sedikit lari', '走り込みを減らす', '침투 줄이기', '少跑位', '少跑位', 'Fewer runs', 'تحركات أقل',),
+    ('Prenez les espaces', 'Move into channels'): (
+        'Move Into Channels', 'Move Into Channels', 'Prenez les espaces', 'Zwischenräume besetzen',
+        'Muoversi negli spazi', 'Moverse entre líneas', 'Moverse entre líneas', 'Movimentar Pelos Espaços',
+        'Movimentar Pelos Espaços', 'Tussen de linies spelen', 'Løb i dybden', 'Løp inn i rom', 'Löp i djupled',
+        'Poszukiwanie wolnych stref', 'Move Into Channels', 'Смещаться в свободные зоны', 'Boş Alanlara Koşu Yap',
+        'Κίνηση στους Κενούς Χώρους', 'Bergerak ke Half-Space', 'ディフェンス\u200bの\u200b隙間に\u200b入り\u200b込め',
+        '수비수와 풀백 사이로 이동', '跑肋部空间\u200b接球', '跑肋部空间\u200b接球', 'Move Into Channels', 'التحرك على الرواقين',),
+    ('AVEC BALLON (JOUEUR)', 'PLAYER IN POSSESSION'): (
+        'PLAYER IN POSSESSION', 'PLAYER IN POSSESSION', 'AVEC BALLON (JOUEUR)', 'SPIELER IN BALLBESITZ',
+        'GIOCATORE IN POSSESSO', 'JUGADOR CON BALÓN', 'JUGADOR CON BALÓN', 'JOGADOR COM BOLA', 'JOGADOR COM BOLA',
+        'SPELER IN BALBEZIT', 'SPILLER MED BOLDEN', 'SPILLER MED BALL', 'SPELARE MED BOLL', 'ZAWODNIK PRZY PIŁCE',
+        'PLAYER IN POSSESSION', 'ИГРОК С МЯЧОМ', 'OYUNCU TOPA SAHİPKEN', 'ΠΑΙΚΤΗΣ ΜΕ ΤΗΝ ΜΠΑΛΑ',
+        'PEMAIN MENGUASAI BOLA', '選手：ボール保持時', '선수 공 소유 시', '球员持球', '球员持球', 'PLAYER IN POSSESSION',
+        'اللاعب مستحوذ على الكرة',),
+    ('DIRECTION', 'DIRECTION'): (
+        'DIRECTION', 'DIRECTION', 'DIRECTION', 'RICHTUNG', 'DIREZIONE', 'DIRECCIÓN', 'DIRECCIÓN', 'SENTIDO',
+        'SENTIDO', 'RICHTING', 'RETNING', 'RETNING', 'RIKTNING', 'KIERUNEK', 'DIRECTION', 'НАПРАВЛЕНИЕ', 'YÖN',
+        'ΚΑΤΕΥΘΥΝΣΗ', 'ARAH', '方向', '방향', '方向', '去\u200b向', 'DIRECTION', 'الاتجاه',),
+    ('Conserver le ballon', 'Hold up ball'): (
+        'Hold Up Ball', 'Hold Up Ball', 'Conserver le ballon', 'Ball halten', 'Tenere palla', 'Aguantar el balón',
+        'Aguantar el balón', 'Segurar Bola', 'Segurar Bola', 'Bal vasthouden', 'Hold på bolden', 'Hold på ballen',
+        'Håll i bollen', 'Utrzymanie piłki', 'Hold Up Ball', 'Придержать мяч', 'Topu Ayağında Tut', 'Κράτημα Μπάλας',
+        'Pertahankan Penguasaan Bola', 'ボール\u200bを\u200bキープ\u200bし\u200bろ', '볼 키핑', '拿\u200b住球', '拿\u200b住球',
+        'Hold Up Ball', 'الاحتفاظ بالكرة',),
+    ("Repiquer dans l'axe", 'Cut inside'): (
+        'Cutting Inside', 'Cutting Inside', "Repiquer dans l'axe", 'Nach innen ziehen', 'Tagliare verso il centro',
+        'Recortar hacia dentro', 'Recortar hacia dentro', 'Flectir para Dentro', 'Flectir para Dentro',
+        'Naar binnen komen', 'Skære ind i banen', 'Skjærer inn', 'Skära inåt', 'Ścinanie do środka',
+        'Cutting Inside', 'Смещение в центр', 'İçeri Katetme', 'Κόψιμο προς τα Μέσα', 'Memotong Ke Dalam', 'カットイン',
+        '안쪽 파고들기', '内切', '内切', 'Cutting Inside', 'الدخول في عمق الملعب',),
+    ('Prendre le couloir', 'Run wide'): (
+        'Run wide', 'Run wide', 'Prendre le couloir', 'Außen vorbei', 'Andare sul fondo', 'Ir por la banda',
+        'Ir por la banda', 'Ir pela ala', 'Ir pela ala', 'Over de flank', 'Gå ud på kanten', 'Gå ut på kanten',
+        'Gå ut på kanten', 'Bieg skrzydłem', 'Run wide', 'Уходить на фланг', 'Kanattan git', 'Πήγαινε στην πτέρυγα',
+        'Lari ke sayap', 'サイドへ持ち出す', '측면으로 돌파', '沿边路推进', '沿边路推进', 'Run wide', 'التقدم على الطرف',),
+    ('Décrochez plus souvent', 'Roam from position'): (
+        'Roam From Position', 'Roam From Position', 'Décrochez plus souvent', 'Position verlassen',
+        'Libertà di movimento', 'Variar la posición', 'Variar la posición', 'Deambular Da Posição',
+        'Deambular Da Posição', 'Zwerven', 'Frihed fra position', 'Streif fra posisjon', 'Ströva från position',
+        'Szukanie gry', 'Roam From Position', 'Смещаться с позиции', 'Mevkinden Bağımsız Oyna',
+        'Περιπλανήσου Από Τη Θέση', 'Berpindah dari Posisi', 'ポ\u200bジ\u200bションに\u200b縛ら\u200bれ\u200bる\u200bな',
+        '포지션 자유', '灵\u200b活跑\u200b位', '灵\u200b活跑\u200b位', 'Roam From Position', 'الخروج من المركز',),
+    ('MOUVEMENTS', 'MOVEMENT'): (
+        'MOVEMENT', 'MOVEMENT', 'MOUVEMENTS', 'SPIEL OHNE BALL', 'MOVIMENTO', 'MOVIMIENTO', 'MOVIMIENTO',
+        'MOVIMENTAÇÃO', 'MOVIMENTAÇÃO', 'BEWEGING', 'BEVÆGELSE', 'BEVEGELSE', 'RÖRELSE', 'RUCH', 'MOVEMENT',
+        'ПОДВИЖНОСТЬ', 'HAREKETLENME', 'ΚΙΝΗΣΗ', 'PERGERAKAN', 'ムーブ\u200bメント', '움직임', '无\u200b球跑', '无\u200b球跑',
+        'MOVEMENT', 'الحركة',),
+    ('PASSES', 'PASSING'): (
+        'PASSING', 'PASSING', 'PASSES', 'PASSEN', 'PASSAGGI', 'PASE', 'PASE', 'PASSE', 'PASSE', 'PASSEN',
+        'AFLEVERING', 'PASNINGER', 'PASSNINGSSPEL', 'PODANIA', 'PASSING', 'ПАС', 'PAS', 'ΠΑΣΕΣ', 'OPERAN',
+        'パ\u200bス', '패스', '传\u200b球', '传\u200b球', 'PASSING', 'التمرير',),
+    ('Courtes', 'Shorter'): (
+        'Shorter', 'Shorter', 'Courtes', 'Kürzer', 'Più corti', 'Más en corto', 'Más en corto', 'Mais curtos',
+        'Mais curtos', 'Korter', 'Kortere', 'Kortere', 'Kortare', 'Krótko', 'Shorter', 'Короче', 'Kısa Pas',
+        'Κοντινότερες', 'Lebih pendek', '短く', '짧게', '短\u200b传出\u200b球', '短\u200b传出\u200b球', 'Shorter', 'أقصر',),
+    ('Directes', 'More direct'): (
+        'More Direct', 'More Direct', 'Directes', 'Vertikaler', 'Più diretti', 'Más directo', 'Más directo',
+        'Mais directos', 'Mais directos', 'Directer', 'Mere direkte', 'Mer direkte', 'Rakare',
+        'Bardziej bezpośrednio', 'More Direct', 'Более прямолинейно', 'Dikine Uzun Paslı', 'Πιο Άμεσες',
+        'Lebih Langsung', '直線的に', '더 다이렉트하게', '更\u200b多直\u200b传', '更\u200b多直\u200b传', 'More Direct', 'مباشر أكثر',),
+    ('Normales', 'Normal'): (
+        'Standard', 'Standard', 'Normales', 'Standard', 'Standard', 'Normales', 'Normales', 'Padrão', 'Padrão',
+        'Standaard', 'Standard', 'Standard', 'Standard', 'Standardowe', 'Standard', 'Стандартная',
+        'Standart Seviyede', 'Κανονικός', 'Standar', '標準的', '기본', '标\u200b准', '标\u200b准', 'Standard', 'عادية',),
+    ('Ligne de but', 'Byline'): (
+        'Byline', 'Byline', 'Ligne de but', 'Torauslinie', 'Linea di fondo', 'Línea de fondo', 'Línea de fondo',
+        'Linha de fundo', 'Linha de fundo', 'Achterlijn', 'Baglinje', 'Dødlinja', 'Kortlinje', 'Linia końcowa',
+        'Byline', 'Лицевая линия', 'Aut Çizgisi', 'Γραμμή Τέρματος', 'Garis Gawang', 'ゴールライン', '골라인', '底线', '底线',
+        'Byline', 'خط المرمى',),
+    ('En profondeur', 'Early'): (
+        'Early', 'Early', 'En profondeur', 'Früh', 'In anticipo', 'Temprano', 'Temprano', 'Cedo', 'Cedo', 'Vroeg',
+        'Tidligt', 'Tidlig', 'Tidigt', 'Wcześnie', 'Early', 'Раньше', 'Erken', 'Νωρίς', 'Lebih awal', '早めに', '일찍',
+        '提前', '提前', 'Early', 'مبكرًا',),
+    ('CENTRER DE', 'CROSS FROM'): (
+        'CROSS FROM', 'CROSS FROM', 'CENTRER DE', 'FLANKE VON', 'CROSS DA', 'CENTRAR DESDE', 'CENTRAR DESDE',
+        'CRUZAR DE', 'CRUZAR DE', 'VOORZETTEN VANAF', 'SLÅ INDLÆG FRA', 'LEGG INN FRA', 'INLÄGG FRÅN',
+        'DOŚRODKOWANIA Z', 'CROSS FROM', 'НАВЕСЫ С', 'ORTA AÇMA ŞEKLİ', 'ΣΕΝΤΡΑ ΑΠΟ', 'UMPAN SILANG DARI', 'クロス供給',
+        '크로스 위치', '起\u200b球点', '起\u200b球点', 'CROSS FROM', 'إرسال العرضية من',),
+    ('Dribblez plus', 'Dribble more'): (
+        'Dribble More', 'Dribble More', 'Dribblez plus', 'Häufiger dribbeln', 'Dribbla di più', 'Regatear más',
+        'Regatear más', 'Fintar Mais', 'Fintar Mais', 'Meer dribbelen', 'Flere driblinger', 'Drible mer',
+        'Dribbla mer', 'Więcej drybluj', 'Dribble More', 'Больше дриблинга', 'Daha Fazla Dripling Yap',
+        'Ντρίμπλαρε Περισσότερο', 'Perbanyak Menggiring Bola', 'もっと\u200bド\u200bリ\u200bブ\u200bル\u200bし\u200bろ',
+        '자주 드리블하라', '增\u200b加盘\u200b带', '增\u200b加盘\u200b带', 'Dribble More', 'تنفيذ مراوغات أكثر',),
+    ('Dribblez moins', 'Dribble less'): (
+        'Dribble Less', 'Dribble Less', 'Dribblez moins', 'Seltener dribbeln', 'Dribbla di meno', 'Regatear menos',
+        'Regatear menos', 'Fintar Menos', 'Fintar Menos', 'Minder dribbelen', 'Færre driblinger', 'Drible mindre',
+        'Dribbla mindre', 'Mniej drybluj', 'Dribble Less', 'Меньше дриблинга', 'Driplingi Azalt',
+        'Ντρίμπλαρε Λιγότερο', 'Kurangi Menggiring Bola',
+        'あ\u200bま\u200bり\u200bド\u200bリ\u200bブ\u200bル\u200bす\u200bる\u200bな', '적게 드리블하라', '减\u200b少盘\u200b带',
+        '减\u200b少盘\u200b带', 'Dribble Less', 'تنفيذ مراوغات أقل',),
+    ('BALLE AU PIED', 'DRIBBLING'): (
+        'DRIBBLING', 'DRIBBLING', 'BALLE AU PIED', 'DRIBBLING', 'DRIBBLING', 'REGATE', 'REGATE', 'FINTA', 'FINTA',
+        'DRIBBELEN', 'DRIBLING', 'DRIBLING', 'DRIBBLINGAR', 'DRYBLING', 'DRIBBLING', 'ДРИБЛИНГ', 'DRİPLİNG',
+        'ΝΤΡΙΜΠΛΑ', 'DRIBEL', 'ド\u200bリ\u200bブ\u200bル', '드리블', '盘\u200b带', '盘\u200b带', 'DRIBBLING', 'المراوغة',),
+    ('Plus souvent', 'Shoot more'): (
+        'More Often', 'More Often', 'Plus souvent', 'Häufiger', 'Più spesso', 'Más a menudo', 'Más a menudo',
+        'Com mais frequência', 'Com mais frequência', 'Vaker', 'Oftere', 'Oftere', 'Oftare', 'Częściej',
+        'More Often', 'Чаще', 'Daha sık', 'Περισσότερο Συχνά', 'Lebih Sering', '頻度を\u200b上げ\u200bろ', '더 자주', '更频繁',
+        '更\u200b多紧\u200b逼', 'More Often', 'بوتيرة مرتفعة',),
+    ('Moins souvent', 'Shoot less'): (
+        'Less Often', 'Less Often', 'Moins souvent', 'Seltener', 'Meno spesso', 'Menos a menudo', 'Menos a menudo',
+        'Com menos frequência', 'Com menos frequência', 'Minder vaak', 'I mindre grad', 'Sjeldnere', 'Mer sällan',
+        'Rzadziej', 'Less Often', 'Реже', 'Daha seyrek', 'Λιγότερο Συχνά', 'Lebih Jarang', '頻度を\u200b下げ\u200bろ',
+        '덜 자주', '更少', '减\u200b少紧\u200b逼', 'Less Often', 'بوتيرة منخفضة',),
+    ('TIRS', 'SHOOTING'): (
+        'SHOOTING', 'SHOOTING', 'TIRS', 'TORSCHÜSSE', 'TIRO', 'DISPAROS', 'DISPAROS', 'FINALIZAÇÃO', 'FINALIZAÇÃO',
+        'AFWERKEN', 'SKUD', 'AVSLUTNINGER', 'SKOTT', 'STRZAŁY', 'SHOOTING', 'УДАРЫ', 'ŞUT', 'ΣΟΥΤ', 'MENEMBAK',
+        'シュート', '슈팅', '射\u200b门', '射\u200b门', 'SHOOTING', 'التسديد',),
+    ('Plus de risques', 'More risky'): (
+        'More risky', 'More risky', 'Plus de risques', 'Riskanter', 'Più rischiosi', 'Más arriesgados',
+        'Más arriesgados', 'Mais arriscados', 'Mais arriscados', 'Riskanter', 'Mere risikable', 'Mer risikable',
+        'Mer riskfyllda', 'Bardziej ryzykowne', 'More risky', 'Рискованнее', 'Daha riskli', 'Πιο ριψοκίνδυνες',
+        'Lebih berisiko', 'リスクを増やす', '더 위험하게', '更冒险', '更冒险', 'More risky', 'مخاطرة أكبر',),
+    ('Moins de risques', 'Less risky'): (
+        'Less risky', 'Less risky', 'Moins de risques', 'Sicherer', 'Meno rischiosi', 'Menos arriesgados',
+        'Menos arriesgados', 'Menos arriscados', 'Menos arriscados', 'Veiliger', 'Mindre risikable',
+        'Mindre risikable', 'Mindre riskfyllda', 'Mniej ryzykowne', 'Less risky', 'Безопаснее', 'Daha az riskli',
+        'Λιγότερο ριψοκίνδυνες', 'Kurang berisiko', 'リスクを減らす', '덜 위험하게', '更稳妥', '更稳妥', 'Less risky', 'مخاطرة أقل',),
+    ('RISQUE DES PASSES', 'PASSING RISK'): (
+        'PASSING RISK', 'PASSING RISK', 'RISQUE DES PASSES', 'PASSRISIKO', 'RISCHIO PASSAGGI', 'RIESGO EN LOS PASES',
+        'RIESGO EN LOS PASES', 'RISCO DO PASSE', 'RISCO DO PASSE', 'PASSINGRISICO', 'AFLEVERINGSRISIKO',
+        'PASNINGSRISIKO', 'PASSNINGSRISK', 'RYZYKOWNOŚĆ PODAŃ', 'PASSING RISK', 'РИСКОВАННОСТЬ ПАСА', 'PAS RİSKİ',
+        'ΡΙΣΚΟ ΠΑΣΩΝ', 'RISIKO OPERAN', 'パ\u200bス\u200bの\u200bリ\u200bス\u200bク\u200b度', '패스 위험도', '传\u200b球风\u200b险',
+        '传\u200b球风\u200b险', 'PASSING RISK', 'مجازفة التمريرات',),
+    ('CENTRER VERS', 'CROSS TARGET'): (
+        'AIM CROSSES AT', 'AIM CROSSES AT', 'CENTRER VERS', 'FLANKENZIEL', 'INDIRIZZA I CROSS VERSO',
+        'CENTRAR HACIA', 'CENTRAR HACIA', 'APONTAR CRUZAMENTOS PARA', 'APONTAR CRUZAMENTOS PARA',
+        'VOORZETTEN RICHTING', 'SLÅ INDLÆG MOD', 'SLÅ INNLEGG MOT', 'RIKTA INLÄGG MOT', 'CEL DOŚRODKOWANIA',
+        'AIM CROSSES AT', 'ЦЕЛЬ НАВЕСА', 'NEREYE ORTA YAPILACAK', 'ΣΤΟΧΕΥΣΗ ΣΕΝΤΡΑΣ ΣΕ', 'TARGET UMPAN SILANG',
+        'ク\u200bロ\u200bス\u200bの\u200b狙い', '크로스 목표', '传\u200b中目\u200b标', '传\u200b中目\u200b标', 'AIM CROSSES AT',
+        'هدف العرضيات',),
+    ('Attaquant pivot', 'Target man'): (
+        'Target Forward', 'Target Forward', 'Attaquant pivot', 'Zielspieler', 'Fulcro del gioco',
+        'Delantero objetivo', 'Delantero objetivo', 'Avançado de referência', 'Avançado de referência',
+        'Doelgerichte aanvaller', 'Targetman', 'Oppspillspunkt', 'Bollmottagare', 'Odgrywający', 'Target Forward',
+        'Таргетмен', 'Pivot Santrafor', 'Επιθετικός-Στόχος', 'Pemain Depan Target', 'ターゲット\u200bフォワード', '타깃 포워드',
+        '站\u200b桩中\u200b锋', '站\u200b桩中\u200b锋', 'Target Forward', 'مهاجم محطة',),
+    ('Normal', 'Normal'): (
+        'Normal', 'Normal', 'Normal', 'Normal', 'Normale', 'Normal', 'Normal', 'Normal', 'Normal', 'Normaal',
+        'Normal', 'Normal', 'Normal', 'Normalny', 'Normal', 'Норма', 'Normal', 'Κανονικό', 'Normal', '普通', '보통',
+        '正\u200b常', '正\u200b常', 'Normal', 'طبيعي',),
+    ('Sélectionné', 'Selected'): (
+        'Selected', 'Selected', 'Sélectionné', 'Auswahl', 'Selezionato', 'Seleccionado', 'Seleccionado',
+        'Seleccionado', 'Seleccionado', 'Geselecteerd', 'Valgt', 'Valgt', 'Vald', 'Wybrany', 'Selected', 'Выбрано',
+        'Seçili', 'Επιλεγμένο', 'Dipilih', '選択済み', '선택됨', '已\u200b选', '已\u200b选', 'Selected', 'محدد',),
+    ('Fait partie du rôle', 'Part Of Role'): (
+        'Part Of Role', 'Part Of Role', 'Fait partie du rôle', 'Teil der Rolle', 'Parte del ruolo', 'Parte del rol',
+        'Parte del rol', 'Parte Do Papel', 'Parte Do Papel', 'Hoort bij rol', 'Del af rolle', 'Del av rolle',
+        'Del av roll', 'Część roli', 'Part Of Role', 'Часть роли', 'Rolü İçeriyor', 'Μέρος Του Ρόλου',
+        'Bagian dari peran', '選択中の\u200b役割', '이미 맡음', '位\u200b置固\u200b有', '位\u200b置固\u200b有', 'Part Of Role',
+        'جزء من الدور',),
+    ('Incompatible', 'Incompatible'): (
+        'Conflicting', 'Conflicting', 'Incompatible', 'Kollidiert', 'Conflittuale', 'Conflictivo', 'Conflictivo',
+        'Conflito', 'Conflito', 'Conflicterend', 'Konflikt', 'Konflikt', 'Konflikt', 'Konflikt', 'Conflicting',
+        'Конфликт', 'Uyumsuz', 'Σε αντίθεση', 'Bertentangan', 'マッチ\u200bし\u200bな\u200bい', '충돌됨', '冲\u200b突',
+        '冲\u200b突', 'Conflicting', 'متعارض',),
+    ('Indisponible', 'Unavailable'): (
+        'Unavailable', 'Unavailable', 'Indisponible', 'Nicht verfügbar', 'Indisponibile', 'No disponible',
+        'No disponible', 'Indisponível', 'Indisponível', 'Niet beschikbaar', 'Ikke tilgængelig', 'Utilgjengelig',
+        'Otillgänglig', 'Niedostępne', 'Unavailable', 'Недоступно', 'Mevcut değil', 'Μη Διαθέσιμο', 'Tidak Tersedia',
+        '選択不可', '불가능', '不\u200b可用', '不\u200b可用', 'Unavailable', 'غير متاح',),
+    ('CONSTRUCTION DU JEU', 'BUILD-UP PLAY'): (
+        'BUILD-UP PLAY', 'BUILD-UP PLAY', 'CONSTRUCTION DU JEU', 'SPIELAUFBAU', 'COSTRUZIONE DAL BASSO',
+        'CRECIMIENTO DEL JUEGO', 'CRECIMIENTO DEL JUEGO', 'FASE DE CONSTRUÇÃO', 'FASE DE CONSTRUÇÃO',
+        'OPBOUW-SPEELSTIJL', 'OPBYGNINGSSPIL', 'OPPBYGGING', 'SPELUPPBYGGNAD', 'PRZYGOTOWANIE AKCJI',
+        'BUILD-UP PLAY', 'ПОСТРОЕНИЕ ИГРЫ', 'OYUN KURMA', 'ΑΝΑΠΤΥΞΗ', 'MEMBANGUN SERANGAN',
+        'ビ\u200bル\u200bド\u200bアップ', '빌드업 플레이', '组\u200b织战\u200b术', '组\u200b织战\u200b术', 'BUILD-UP PLAY', 'بناء اللعب',),
+    ('30 DERNIERS MÈTRES', 'FINAL THIRD'): (
+        'FINAL THIRD', 'FINAL THIRD', '30 DERNIERS MÈTRES', 'ANGRIFFSDRITTEL', 'TREQUARTI', 'ÚLTIMO TERCIO',
+        'ÚLTIMO TERCIO', 'ÚLTIMO TERÇO', 'ÚLTIMO TERÇO', 'VOORIN', 'SIDSTE TREDJEDEL', 'SISTE TREDJEDEL',
+        'SISTA TREDJEDELEN', 'NA PRZEDPOLU BRAMKI RYWALA', 'FINAL THIRD', 'ПОСЛЕДНЯЯ ТРЕТЬ', 'ÜÇÜNCÜ BÖLGE',
+        'ΠΕΡΙΟΧΗ ΤΟΥ ΑΝΤΙΠΑΛΟΥ', 'SEPERTIGA AKHIR', 'ファイ\u200bナ\u200bル\u200bサード', '상대팀 진영', '进\u200b攻区\u200b域',
+        '进\u200b攻区\u200b域', 'FINAL THIRD', 'الثلث الأخير',),
+    ('LORS DE LA PERTE DU BALLON', 'WHEN POSSESSION IS LOST'): (
+        'WHEN POSSESSION HAS BEEN LOST', 'WHEN POSSESSION HAS BEEN LOST', 'LORS DE LA PERTE DU BALLON',
+        'NACH BALLVERLUST', 'QUANDO SI PERDE IL POSSESSO', 'CUANDO SE PIERDE LA POSESIÓN',
+        'CUANDO SE PIERDE LA POSESIÓN', 'QUANDO SE PERDEU A POSSE DE BOLA', 'QUANDO SE PERDEU A POSSE DE BOLA',
+        'WANNEER HET BALBEZIT IS VERLOREN', 'NÅR BOLDEN ER BLEVET MISTET', 'ETTER BALLTAP', 'NÄR BOLLEN TAPPATS',
+        'PO STRACIE PIŁKI', 'WHEN POSSESSION HAS BEEN LOST', 'КОГДА ПОТЕРЯН МЯЧ', 'TOP KAYBEDİLDİĞİNDE',
+        'ΟΤΑΝ ΧΑΣΟΥΜΕ ΤΗΝ ΚΑΤΟΧΗ', 'SAAT KEHILANGAN BOLA', 'ボール\u200bロ\u200bス\u200bト\u200b時', '공을 빼앗겼을 때',
+        '失\u200b去球\u200b权时', '失\u200b去球\u200b权时', 'WHEN POSSESSION HAS BEEN LOST', 'عند فقدان الكرة',),
+    ('LORS DE LA RÉCUPÉRATION DU BALLON', 'WHEN POSSESSION IS WON'): (
+        'WHEN POSSESSION HAS BEEN WON', 'WHEN POSSESSION HAS BEEN WON', 'LORS DE LA RÉCUPÉRATION DU BALLON',
+        'NACH BALLGEWINN', 'QUANDO SI CONQUISTA IL POSSESSO', 'CUANDO SE RECUPERA LA POSESIÓN',
+        'CUANDO SE RECUPERA LA POSESIÓN', 'QUANDO SE GANHOU A POSSE DE BOLA', 'QUANDO SE GANHOU A POSSE DE BOLA',
+        'WANNEER HET BALBEZIT IS GEWONNEN', 'NÅR BOLDBESIDDELSE ER BLEVET VUNDET', 'ETTER BALLGJENVINNING',
+        'NÄR BOLLEN ERÖVRATS', 'PO ODBIORZE PIŁKI', 'WHEN POSSESSION HAS BEEN WON', 'КОГДА ПЕРЕХВАЧЕН МЯЧ',
+        'TOP KAZANILDIĞINDA', 'ΟΤΑΝ ΚΕΡΔΙΣΟΥΜΕ ΤΗΝ ΚΑΤΟΧΗ', 'SAAT MEREBUT BOLA', 'ボール\u200b奪取時', '공을 되찾았을 때',
+        '赢\u200b得球\u200b权时', '赢\u200b得球\u200b权时', 'WHEN POSSESSION HAS BEEN WON', 'عند استعادة الكرة',),
+    ('GARDIEN AVEC LE BALLON', 'GOALKEEPER IN POSSESSION'): (
+        'GOALKEEPER IN POSSESSION', 'GOALKEEPER IN POSSESSION', 'GARDIEN AVEC LE BALLON', 'TORHÜTER IN BALLBESITZ',
+        'PORTIERE IN POSSESSO', 'PORTERO CON LA POSESIÓN', 'PORTERO CON LA POSESIÓN', 'GUARDA-REDES COM BOLA',
+        'GUARDA-REDES COM BOLA', 'DOELMAN IN BALBEZIT', 'MÅLMAND I BOLDBESIDDELSE', 'NÅR MÅLVAKTEN HAR BALLEN',
+        'MÅLVAKT MED BOLLEN', 'BRAMKARZ PRZY PIŁCE', 'GOALKEEPER IN POSSESSION', 'ВРАТАРЬ С МЯЧОМ',
+        'TOP KALECİDEYKEN', 'ΤΕΡΜΑΤΟΦΥΛΑΚΑΣ ΜΕ ΚΑΤΟΧΗ', 'KIPER MENGUASAI BOLA', 'キーパーの\u200bポ\u200bゼッション時',
+        '골키퍼가 공을 소유', '门\u200b将控\u200b球', '门\u200b将控\u200b球', 'GOALKEEPER IN POSSESSION', 'الحارس مستحوذ على الكرة',),
+    ('FORMATION DÉFENSIVE', 'DEFENSIVE SHAPE'): (
+        'DEFENSIVE SHAPE', 'DEFENSIVE SHAPE', 'FORMATION DÉFENSIVE', 'DEFENSIVE FORMATION', 'CONFIGURAZIONE DIFESA',
+        'DIBUJO DEFENSIVO', 'DIBUJO DEFENSIVO', 'FORMA DEFENSIVA', 'FORMA DEFENSIVA', 'DEFENSIEVE VORM',
+        'DEFENSIV FORMATION', 'DEFENSIV FASONG', 'DEFENSIV FORMATION', 'FORMACJA DEFENSYWNA', 'DEFENSIVE SHAPE',
+        'ЗАЩИТНОЕ ПОСТРОЕНИЕ', 'SAVUNMA BÜTÜNLÜĞÜ', 'ΑΜΥΝΤΙΚΟ ΣΧΗΜΑ', 'FORMASI BERTAHAN', '守備陣形', '수비 형태',
+        '防\u200b守队\u200b形', '防\u200b守队\u200b形', 'DEFENSIVE SHAPE', 'التشكيل الدفاعي',),
+    ('»  CHANGER', '»  CHANGE'): (
+        '»  CHANGE', '»  CHANGE', '»  CHANGER', '»  ÄNDERN', '»  CAMBIA', '»  CAMBIAR', '»  CAMBIAR', '»  ALTERAR',
+        '»  ALTERAR', '»  WIJZIGEN', '»  ÆNDR', '»  ENDRE', '»  ÄNDRA', '»  ZMIEŃ', '»  CHANGE', '»  ИЗМЕНИТЬ',
+        '»  DEĞİŞTİR', '»  ΑΛΛΑΓΗ', '»  UBAH', '»  変更', '»  변경', '»  更改', '»  更改', '»  CHANGE', '»  تغيير',),
+}
 COURSES24 = [(31, 28, True, 2, 24, ("Dédoublements extérieurs gauches", "Overlap Left")),
              (28, 31, True, 26, 24, ("Dédoublements intérieurs gauches", "Underlap Left")),
              (28, 31, False, 50, 24, ("Dédoublements intérieurs droits", "Underlap Right")),
@@ -2525,20 +2990,18 @@ def _PaletteZones():
 
 
 def mots24(fab, parent, nom, mots, classe=CLASSE_TITRE24, css=None, conteneur=None, couleur=None):
-    """nos mots (FM n'a pas ces textes ici) : (français, anglais), selon la langue du jeu ; une autre langue : celle du
-    skin. Ne prend pas de clic"""
-    t = fab.t
+    """nos mots (FM n'a pas ces textes ici) : (français, anglais), dans la langue du skin ; v97 : un texte simple dans
+    une boîte (jusqu'en v96 : une bascule de FM, français / anglais / langue du skin), traduit dans la langue du jeu par
+    traduire24 (le conteneur de langue de sa vue). Ne prend pas de clic"""
     fr, en = mots
-
-    def faire(par, mot):
-        fab.n += 1
-        r = fab.texte_fixe(par, f"{nom}-{fab.n}", mot, classe=classe,
-                           css={"-unity-text-align": "middle-center", "white-space": "normal",
-                                **({"color": couleur} if couleur else {}), **(css or {})})
-        fab.traverse(r)
-    env = fab.selon_langue(parent, nom, faire, [("french", fr), ("english", en), ("english (us)", en)],
-                           langue.texte(fr, en), css={"flex-shrink": 0} if conteneur is None else conteneur)
-    return env
+    boite = fab.boite(parent, nom, css={"flex-shrink": 0} if conteneur is None else conteneur)
+    fab.traverse(boite)
+    fab.n += 1
+    r = fab.texte_fixe(boite, f"{nom}-{fab.n}", langue.texte(fr, en), classe=classe,
+                       css={"-unity-text-align": "middle-center", "white-space": "normal",
+                            **({"color": couleur} if couleur else {}), **(css or {})})
+    fab.traverse(r)
+    return boite
 
 
 def titre24(fab, env, nom, css=None):
@@ -3609,8 +4072,11 @@ def vue_fm24(fab, racine):
     racine24 = fab.boite(vue, "fm24", css={"flex-grow": 1, "flex-direction": "column", "background-color": C24["cadre"],
                                            "padding-top": 6, "padding-left": 6, "padding-right": 6})
     bouton_fm24(fab)
+    # v97 : le panneau et la légende sous le conteneur de la langue du jeu (une colonne qui remplit racine24)
+    env_lg = langue24(fab, racine24, "fm24-langue", {"flex-grow": 1, "flex-shrink": 1, "flex-basis": 0,
+                                                     "min-height": 0, "flex-direction": "column"})
     with _PaletteFM24():
-        consignes = fab.boite(racine24, "fm24-consignes", css={
+        consignes = fab.boite(env_lg, "fm24-consignes", css={
             "flex-grow": 1, "flex-shrink": 1, "flex-basis": 0, "min-height": 0, "flex-direction": "column",
             "background-color": C24["panneau"], "overflow": "hidden", **cadre_css(0, C24["panneau"], 3)})
         # v52 : le cadre des proportions autour de racine24 ; v53 : dans le panneau (son fond va d'un bord à l'autre)
@@ -3619,9 +4085,180 @@ def vue_fm24(fab, racine):
         for k, faire in enumerate((avec24, transition24, sans24)):
             faire(fab, fab.boite(panneaux, f"fm24-panneau-{k}", css={"flex-grow": 1, "flex-direction": "row",
                                                                      "padding-bottom": 6}))
-        legende24(fab, racine24)   # v53 : sous le panneau, comme la v51 (v52 : dans le cadre)
+        legende24(fab, env_lg)   # v53 : sous le panneau, comme la v51 (v52 : dans le cadre)
+    traduire24(fab, env_lg)   # v97
     derriere24(fab, racine24)
     return racine24
+
+
+# ---------- v97 : les vues FM24 dans la langue du jeu (comme la vue Terrain, kinito_consignes_ecran v95) ----------
+_LANGUE24 = set()   # les modèles où nos règles de langue sont déjà posées (une fois par modèle)
+
+
+def reglage_langue(t, src, parent, nom, code):
+    """v97 : le réglage de FM qui pose kinito-lg-<langue> sur son parent quand la langue du jeu est code : celui des
+    boutons segmentés des cartes de chaleur recopié d'un AUTRE modèle (reglage_parent, v80), sa fonction changée pour
+    la comparaison de texte BindStringToAorBUssClass (comme reglage_texte, v87)"""
+    s = reglage_parent(t, src, parent, nom, ecran37.CHEMIN_LANGUE, 0, "x", {"position": "absolute", "width": 0,
+                                                                           "height": 0})
+    f = t.sd(s)["BindFunction"]
+    args = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+    chem, txt, oui = args[0][0], args[3][0], args[5][0]
+    f["m_target"]["m_guid"] = GUID_CLASSE_TEXTE
+    f["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args([
+        [chem, _texte_arg(ecran37.CHEMIN_LANGUE)],
+        [txt, _texte_arg(ecran37.CLASSE_LANGUE + ecran37.slug(code))],   # True Style
+        [txt, _texte_arg("")],                                           # False Style
+        [oui, bytes([1])],                                               # ApplyToParent
+        [oui, bytes([0])],                                               # ApplyToChildren
+        [txt, _texte_arg(code)]])                                        # CompareString
+    return s
+
+
+def langue24(fab, parent, nom, css):
+    """v97 : le conteneur de FM qui lit la langue du jeu (celui de tdd-messages-banner, comme
+    kinito_consignes_ecran.conteneur_langue), un réglage par langue qui y pose sa classe, nos règles de langue
+    (ecran37.regles_langues) une fois par modèle"""
+    t, src = fab.t, fab.src
+    env = t.clone(src.langue_env, parent, src=src.tg)
+    recaler_parent(t, env)
+    for k in list(t.children(env)):
+        if not t.elem(k).get("m_FullTypeName", "").endswith("Component"):
+            t.remove(k)
+    t.styles.copy_from(src.tg.styles, t, env)
+    fab._nom(env, nom)
+    t.elem(env)["m_Classes"], t.elem(env)["m_RuleIndex"] = [], -1
+    donnees = json.dumps([(t.refs.get(c["rid"]) or {}).get("data") for c in t.sd(env).get("m_components") or []])
+    if "current_language" not in donnees or "app.NativeSettings" not in donnees:
+        raise ValueError("conteneur de langue de FM (tdd-messages-banner) : forme inattendue")
+    t.styles.style(t, env, css)
+    fab.traverse(env)
+    for code in ecran37.LANGUES_JEU:
+        reglage_langue(t, src, env, f"{base.PREFIXE}-{nom}-{ecran37.slug(code)}", code)
+    ecran37.attacher_feuille(t, env)
+    if id(t.tt) not in _LANGUE24:
+        ecran37.regles_langues(t)
+        _LANGUE24.add(id(t.tt))
+    return env
+
+
+def mots24_langues():
+    """{texte écrit par la vue (langue du skin) : {langue du jeu : texte}} (TEXTES24_LANGUES)"""
+    if len(ORDRE_TEXTES24) != len(ecran37.LANGUES_JEU) or set(ORDRE_TEXTES24) != set(ecran37.LANGUES_JEU):
+        raise ValueError("langues de TEXTES24_LANGUES : autres que celles du jeu")
+    table = {langue.texte(fr, en): dict(zip(ORDRE_TEXTES24, mots)) for (fr, en), mots in TEXTES24_LANGUES.items()}
+    # « RELANCER VERS » (titre du terrain des relances, sur une ligne) : sa table en 25 langues existe (nos traductions)
+    rv = {lg: mot.replace("\n", " ") for lg, mot in RELANCER_VERS_LANGUES}
+    table[langue.texte(rv["french"], rv["english"])] = {lg: rv.get(lg, rv["english"]) for lg in ecran37.LANGUES_JEU}
+    return table
+
+
+def traduire24(fab, racine):
+    """v97 : chaque texte fixe de nos mots sous racine (un conteneur langue24) remplacé par une copie par texte
+    différent, chacune avec la classe des langues qui l'écrivent ainsi (kinito-lt-<langue>) ; le texte d'origine devient
+    le mot de secours anglais (kinito-ltd). Sur une ligne (white-space nowrap), trop long : « … », et la phrase entière
+    au survol là où le texte le reçoit (le réglage de FM DisplayTooltipWhenElided ; le passage du survol n'est pas
+    changé : des textes posés par-dessus une case laissent passer ses clics)"""
+    t = fab.t
+    table = mots24_langues()
+    ws = base.sm.PROPRIETES["white-space"][0]
+    n = 0
+    for r in [r for r in t.walk(racine) if typ(t, r) == "SIText"]:
+        sd = t.sd(r)
+        if (sd.get("TextBinding") or {}).get("m_kind", 0) != 0:
+            continue
+        mots = table.get(sd.get("text") or "")
+        if not mots:
+            continue
+        e = t.elem(r)
+        une_ligne = e.get("m_RuleIndex", -1) >= 0 and any(
+            v[0] == ws and any(x[1] == "nowrap" for x in v[-1]) for v in t.styles.values(e["m_RuleIndex"]))
+        classes = list(e.get("m_Classes") or [])
+        parent = t.parent[r]
+        if typ(t, parent) == "BindableSwitchElement":   # v98 : voir envelopper24
+            parent = envelopper24(fab, r)
+        rang = t.children(parent).index(r)
+        groupes = {}
+        for code in ecran37.LANGUES_JEU:
+            groupes.setdefault(mots[code], []).append(code)
+        copies = []
+        for i, (mot, codes) in enumerate(groupes.items()):
+            c = t.clone_shallow(r, parent, rang + 1 + i)
+            t.sd(c).update(text=mot, DebugDisplay=mot)
+            t.elem(c)["m_Classes"] = classes + [ecran37.CLASSE_MOT] + [f"{ecran37.CLASSE_MOT}-{ecran37.slug(k)}"
+                                                                      for k in codes]
+            copies.append(c)
+        sd.update(text=mots["english"], DebugDisplay=mots["english"])
+        e["m_Classes"] = classes + [ecran37.CLASSE_MOT_DEFAUT]
+        survol = une_ligne and survol_libre24(t, r, racine)
+        for c in copies + [r]:
+            if une_ligne:
+                t.styles.style(t, c, {"overflow": "hidden", "text-overflow": "ellipsis"})
+                t.sd(c)["DisplayTooltipWhenElided"], t.sd(c)["DisplayTooltipWhenElided_UxmlAttributeFlags"] = 1, 1
+            if survol:   # v99 : il reçoit le survol (PickingMode.Position), sinon la phrase entière ne vient jamais
+                t.sd(c)["pickingMode"], t.sd(c)["pickingMode_UxmlAttributeFlags"] = 0, 1
+        fab.n_survols24 = getattr(fab, "n_survols24", 0) + (len(copies) + 1 if survol else 0)
+        n += 1
+    fab.n_traduits24 = getattr(fab, "n_traduits24", 0) + n
+    return n
+
+
+def absolu24(t, r):
+    """l'élément est posé en position absolue (par-dessus ses voisins)"""
+    e = t.elem(r)
+    pos = base.sm.PROPRIETES["position"][0]
+    return e.get("m_RuleIndex", -1) >= 0 and any(
+        v[0] == pos and any(x[1] == "absolute" for x in v[-1]) for v in t.styles.values(e["m_RuleIndex"]))
+
+
+def survol_libre24(t, r, racine):
+    """v99 (Kinito, 14/11, v98 vue en espagnol : « Más en… / Más dir… » au-dessus de la jauge des passes, sans moyen
+    de lire la suite) : jusqu'en v98 tous nos textes laissaient passer la souris (fab.traverse), si bien que le réglage
+    de FM DisplayTooltipWhenElided ne servait nulle part. Un texte reçoit maintenant le survol s'il ne peut rien
+    prendre à une case : ni dans un bouton de FM, ni posé en absolu (lui ou un parent jusqu'au conteneur de langue),
+    ni voisin d'une boîte posée en absolu qui contient un bouton (une bande de clic par-dessus)"""
+    p = r
+    while p is not None and p != racine:
+        if typ(t, p) == "SIButton" or absolu24(t, p):
+            return False
+        par = t.parent.get(p)
+        if par is None:
+            break
+        for s in t.children(par):
+            if s != p and absolu24(t, s) and any(typ(t, k) == "SIButton" for k in t.walk(s)):
+                return False
+        p = par
+    return True
+
+
+MISE_EN_PAGE24 = ("position", "left", "top", "right", "bottom", "width", "height", "min-width", "min-height",
+                  "max-width", "max-height", "margin-top", "margin-bottom", "margin-left", "margin-right",
+                  "padding-top", "padding-bottom", "padding-left", "padding-right", "flex-grow", "flex-shrink",
+                  "flex-basis", "align-self")
+
+
+def envelopper24(fab, r):
+    """v98 (Kinito, 13/11, v97 vue en italien : les mots des cases et les en-têtes des consignes individuelles restaient
+    en ANGLAIS, les titres et la légende étaient traduits) : un interrupteur de FM (BindableSwitchElement) montre UN
+    enfant choisi par son rang ; un texte posé directement dedans (texte_comp24 : une variante par taille du texte)
+    voyait ses copies par langue, posées à côté, jamais montrées, et le mot de secours anglais restait. Le texte passe
+    dans une boîte à sa place (son style de mise en page entier : place, taille, marges, souplesse), qu'il remplit ;
+    ses copies se posent à côté de lui, dans la boîte. Rend la boîte"""
+    t = fab.t
+    sw = t.parent[r]
+    rang = t.children(sw).index(r)
+    fab.n += 1
+    boite = fab.boite(sw, f"mot24-{fab.n}", index=rang)
+    e = t.elem(r)
+    valeurs = t.styles.values(e["m_RuleIndex"]) if e.get("m_RuleIndex", -1) >= 0 else []
+    if valeurs:
+        t.elem(boite)["m_RuleIndex"] = t.styles.add_rule(valeurs)
+    fab.traverse(boite)
+    base.deplacer(t, r, boite, 0)
+    mise_en_page = {base.sm.PROPRIETES[k][0] for k in MISE_EN_PAGE24 if k in base.sm.PROPRIETES}
+    e["m_RuleIndex"] = t.styles.add_rule([p for p in valeurs if p[0] not in mise_en_page]) if valeurs else -1
+    t.styles.style(t, r, {"flex-grow": 1, "flex-shrink": 1})
+    return boite
 
 
 # ---------- v20 : la vue et la phase déclarées par l'onglet, la colonne de droite ----------
@@ -3780,9 +4417,14 @@ def poser_droite(o, src, tb):
         **cadre_css(0, C24["cadre"], 4)})
     cs = t.sd(col)   # les boîtes recopient le calque, qui laisse passer les clics : celle-ci les prend (la colonne de
     cs["pickingMode"], cs["pickingMode_UxmlAttributeFlags"] = 0, 1   # FM dessous ne doit pas en recevoir)
+    # v97 : les cartes sous le conteneur de la langue du jeu
+    env_lg = langue24(fab, col, "droite-langue", {"flex-grow": 1, "flex-direction": "column"})
     with _PaletteFM24():
-        cartes_selon_taille24(fab, col)   # v44 : une variante par taille du texte de FM (v20-v43 : une seule)
-    return [f"{DROITE24} : en vue FM24, les cartes des phases par-dessus la colonne de droite ({fab.n} éléments nommés)"]
+        cartes_selon_taille24(fab, env_lg)   # v44 : une variante par taille du texte de FM (v20-v43 : une seule)
+    n24 = traduire24(fab, env_lg)
+    return [f"{DROITE24} : en vue FM24, les cartes des phases par-dessus la colonne de droite ({fab.n} éléments nommés) ; "
+            f"langue du jeu (v97) : {n24} textes ; phrase entière au survol (v99) : "
+            f"{getattr(fab, 'n_survols24', 0)} textes"]
 
 
 def fab_indiv(t, src, tb, racine, nom):
@@ -4407,8 +5049,10 @@ def vue_indiv24(fab, parent, nom, css, modele, ordres, fn):
         "flex-direction": "row", "background-color": CI24["fond"], "padding-left": 10, "padding-right": 10,
         "padding-top": 8, "padding-bottom": 8, "overflow": "hidden", **css})
     t.sd(racine)["pickingMode"], t.sd(racine)["pickingMode_UxmlAttributeFlags"] = 0, 1
+    # v97 : les colonnes sous le conteneur de la langue du jeu (une rangée qui remplit la vue)
+    rangee_langue = langue24(fab, racine, f"{nom}-langue", {"flex-grow": 1, "flex-direction": "row"})
     for j, (mots, avec, sous) in enumerate(DISPOSITION24):
-        col = fab.boite(racine, f"{nom}-c{j}", css={
+        col = fab.boite(rangee_langue, f"{nom}-c{j}", css={
             "flex-grow": POIDS_COLONNES24[j], "flex-basis": 0, "flex-direction": "column",
             **({"margin-left": 10, "padding-left": 10, "border-left-width": 1, "border-left-color": CI24["filet"]}
                if j else {})})
@@ -4434,6 +5078,7 @@ def vue_indiv24(fab, parent, nom, css, modele, ordres, fn):
                     grille24(fab, sc, n, el, avec, modele, ordres, fn, marge)
             if j == 0:
                 legende_indiv24(fab, sc, nom)
+    traduire24(fab, rangee_langue)   # v97
     return racine
 
 
@@ -4891,6 +5536,7 @@ def reglage_texte(t, parent, nom, chemin, texte, classe, css):
 ecran37.REGLAGE_MATCH = reglage_match   # v80
 ecran37.REGLAGE_PARENT = reglage_parent
 ecran37.REGLAGE_TEXTE = reglage_texte   # v87
+ecran37.MOTS_KINITO = {"Partir de zéro": dict(ZERO_LANGUES), "Tuiles": dict(TUILES_LANGUES)}   # v95 : la langue du jeu
 
 
 def bouton_choix(t, src, parent, nom, variable, valeur, css, icone=None, taille_icone=20):

@@ -250,7 +250,10 @@ SITES = ("FigmaBaseSiteTemplate", "FigmaBaseSiteMultiGridTemplate",
          "GameWorldBackground")
 # toujours le fond de FM, quelle que soit la couleur choisie (demande du joueur 2026-11-10 : conférences de presse =
 # image du stade / du club de FM). Restent dans SITES pour être remis d'origine sur un jeu déjà modifié.
-HORS_THEME = ("PressConferenceDynamicCard", "PressConferenceSingleQuestionDynamicCard")
+# 2026-11-14 (le joueur : « interview bord du terrain / presse ou autre : un fond uni, faut pas ») : GameWorldBackground
+# = fond général ; FM y montre game.BackgroundImage (sièges des interviews…) ou la 3D (Use3DBackground) ; notre image
+# fixe cachait les sièges -> cadre de FM. PAS VU : vérifier aussi que les pages gardent le fond du thème.
+HORS_THEME = ("PressConferenceDynamicCard", "PressConferenceSingleQuestionDynamicCard", "GameWorldBackground")
 # écrans de match : ils incluent un modèle de base partagé (FigmaBaseTool*) ; leur surcharge du cadre de ce modèle
 # (m_SerializedDataOverride, créée si absente) reçoit le cadre d'origine de FM, le reste du jeu garde notre fond
 CARTES_MATCH = {"MatchPreviewCard": "FigmaBaseToolTemplate",

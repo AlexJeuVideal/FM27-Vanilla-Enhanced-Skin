@@ -1,4 +1,8 @@
 {
+"ombrage : {} pas compris (0 à 100, en %, ou fm)": "shading: {} not understood (0 to 100, in %, or fm)",
+"ombrage derrière les fenêtres (Traitement) : {}": "shading behind windows (Processing): {}",
+"ombrage derrière les fenêtres (Traitement), en %": "shading behind windows (Processing), in %",
+"polygone de la fiche joueur": "player profile polygon",
 "carte du monde ({})": "world map ({})",
 "carte du monde : dossier graphics absent ({}), carte sans pays": "world map: no graphics folder ({}), map without nations",
 "carte du monde : non activée, rien à faire": "world map: not enabled, nothing to do",

@@ -507,6 +507,26 @@ def touche_arg(d):
     return out
 
 
+def ombrage_arg(d):
+    """argument « ombrage=… » (2026-11-14) : opacité en % du fond sombre derrière les fenêtres par-dessus le jeu
+    (Traitement entre les jours) ; vide / 65 = celle de FM ; absent de la demande = rien envoyé, valeur gardée"""
+    if "ombrage" not in d:
+        return []
+    n = d.get("ombrage")
+    if isinstance(n, (int, float)) and not isinstance(n, bool):
+        return [f"ombrage={max(0, min(100, int(n)))}"]
+    return ["ombrage=fm"]
+
+
+def polygone_arg(d):
+    """argument « polygone=… » (2026-11-14) : couleur du polygone de la fiche joueur (#RRGGBB / #RRGGBBAA) ; vide =
+    celui de FM ; absent de la demande = rien envoyé, valeur gardée. Clé des thèmes (CLES_THEME)"""
+    if "polygone" not in d:
+        return []
+    v = (d.get("polygone") or "").strip() if isinstance(d.get("polygone"), str) else ""
+    return [f"polygone={v}" if re.fullmatch(HEXA, v) else "polygone=fm"]
+
+
 def couleur_ok(cle, v):
     """#RRGGBB ou #RRGGBBAA (avec opacité) ; tuiles : aussi « panneau » (comme le grand panneau des fiches,
     couleurs_interface.TUILES_PANNEAU)"""
@@ -518,7 +538,7 @@ MES_THEMES = os.path.join(backup.BACKUP_DIR, "mes_themes.json")
 # + Match, menus, boutons dans les thèmes (2026-11-09) ; un thème sauvegardé avant n'a pas ces clés : laissées absentes
 # (l'app garde alors celles en cours)
 CLES_THEME = ("fond", "info", "barre", "texte", "barre2", "accent", *COULEURS_TACTIQUES, *COULEURS_AUTRES,
-              *COULEURS_CONTINUER)
+              *COULEURS_CONTINUER, "polygone")   # + polygone (2026-11-14)
 
 
 def themes_propres(liste):
@@ -529,7 +549,7 @@ def themes_propres(liste):
             continue
         p = {"nom": th["nom"].strip()[:40]}
         for k in CLES_THEME:
-            if k in (*COULEURS_AUTRES[1:], *COULEURS_CONTINUER) and k not in th:
+            if k in (*COULEURS_AUTRES[1:], *COULEURS_CONTINUER, "polygone") and k not in th:
                 continue
             v = th.get(k)
             p[k] = (v if v == "panneau" else ("#" + v.lstrip("#")).upper()) if isinstance(v, str) and couleur_ok(k, v) else None
@@ -555,7 +575,7 @@ def couleurs():
             m = json.load(f)
         return {k: m.get(k) for k in ("barre", "texte", "barre2", "accent", "liseret", *COULEURS_TACTIQUES,
                                       *COULEURS_AUTRES, *COULEURS_POSTES, "continuer", *COULEURS_CONTINUER,
-                                      "touche", "touche_long", "touche_force")}
+                                      "touche", "touche_long", "touche_force", "ombrage", "polygone")}
     except (OSError, ValueError):
         return None
 
@@ -1735,9 +1755,10 @@ def action(d):
             return 400, {"message": T("Couleur pas comprise.", "Colour not understood.")}
         liseret = d.get("liseret") if d.get("liseret") in ("cache", "fm") else "auto"   # trait entre les deux barres
         script = lancer.chemin_script("couleurs_interface")   # auto = caché dès qu'une couleur est choisie
-        if any(vals.values()) or liseret == "cache" or d.get("continuer") in CONTINUER:
+        if (any(vals.values()) or liseret == "cache" or d.get("continuer") in CONTINUER
+                or ombrage_arg(d) not in ([], ["ombrage=fm"]) or polygone_arg(d) not in ([], ["polygone=fm"])):
             cmds = [_python(script, "appliquer", *(f"{k}={v or 'fm'}" for k, v in vals.items()), f"liseret={liseret}",
-                            *continuer_arg(d), *touche_arg(d))]
+                            *continuer_arg(d), *touche_arg(d), *ombrage_arg(d), *polygone_arg(d))]
         else:
             cmds = [_python(script, "retirer")]
         titre = T("Couleurs de l'interface", "Interface colours")
@@ -1747,7 +1768,7 @@ def action(d):
             cmds = [_python(script, "appliquer", *(f"{k}=fm" for k in ("barre", "texte", "barre2", "accent",
                                                                         *COULEURS_TACTIQUES, *COULEURS_AUTRES,
                                                                         *COULEURS_CONTINUER)),
-                            "liseret=fm", "continuer=auto")]
+                            "liseret=fm", "continuer=auto", "ombrage=fm", "polygone=fm")]
         else:
             cmds = [_python(script, "retirer")]
         titre = T("Couleurs de FM remises", "FM colours back")
@@ -1771,7 +1792,7 @@ def action(d):
                 # toujours « appliquer » (verts des Tactiques compris) ; rien de choisi du tout -> le script retire
                 # de lui-même
                 _python(script, "appliquer", *(f"{k}={v or 'fm'}" for k, v in vals.items()), f"liseret={liseret}",
-                        *continuer_arg(d), *touche_arg(d))]
+                        *continuer_arg(d), *touche_arg(d), *ombrage_arg(d), *polygone_arg(d))]
         titre = T("Thème : ", "Theme: ") + (d.get("titre") or "").strip()[:40]
     elif typ == "statut":
         cmds = [_python(os.path.join(COMMUN, "statut.py"))]

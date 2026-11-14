@@ -228,7 +228,7 @@ import chemins  # noqa: E402,F401  (dossiers des catégories de l'app d'Alex)
 import notes_au_lieu_des_libelles as nb  # noqa: E402
 import sauvegarde_originaux as backup  # noqa: E402
 import arbre as sm  # noqa: E402
-from langue import texte as L  # noqa: E402
+from langue import texte as _texte_skin  # noqa: E402
 from hierarchie_pyramide import typ, ouvrir  # noqa: E402
 import hierarchie_pyramide as hp  # noqa: E402  (v9 : hp.original, l'original d'une fonction visuelle)
 import notes_installations as ni  # noqa: E402  (v9 : make_binding)
@@ -239,7 +239,30 @@ except ImportError:   # commun plus ancien (bancs) : les types du graphe sont d�
         return []
 from notes_installations import first, decode_args, encode_args  # noqa: E402
 
-VERSION = 31  # v31 (10/11, Kinito : « les groupes de la révélation en jeu ») : la zone déclare kinitorevelationgroupes
+
+class Mot(str):
+    """v33 : un texte fixe qui garde son français (fr) et son anglais (en) : le français est la clé de ses traductions
+    dans les langues du jeu (TRADUCTIONS) ; le texte lui-même reste celui de la langue choisie dans l'app (L)"""
+
+
+def L(fr, en):
+    """comme langue.texte (la langue choisie dans l'app : le texte de secours), en gardant le français et l'anglais"""
+    m = Mot(_texte_skin(fr, en))
+    m.fr, m.en = fr, en
+    return m
+
+
+VERSION = 33  # v33 (13/11, Kinito : « est-ce que cette feature est traduite dans toutes les langues du jeu ? », puis
+#               « oui, comme les consignes ») : nos textes suivent la LANGUE DU JEU, en direct, dans les 20 langues de
+#               FM 27 (voir « v33 : la langue du jeu » plus bas) ; rien d'autre ne change
+# v32 (13/11, Kinito : maquette C, « le bouton paramètres à droite du Tout retourner ») : les choix
+#               (style, révélation, fiche) quittent la barre de chaque rangée pour une BANDE « Réglages des cartes »,
+#               repliée, sous la barre de la 1re rangée affichée seulement (la zone le calcule : le repère d'Alex dit
+#               quelle rangée, les nombres de candidats des groupes au-dessus, lus comme le titre de FM, disent si elle
+#               est la 1re) ; « Réglages » (engrenage de FM) à droite de « Tout retourner », qui devient un bouton
+#               blanc avec l'icône de FM ; des mots au lieu des lettres dans le menu des styles, une phrase sous chaque
+#               choix de la liste ouverte
+# v31 (10/11, Kinito : « les groupes de la révélation en jeu ») : la zone déclare kinitorevelationgroupes
 #               (Float rangée : 11 non, 12 élite, 13 élite et excellents, 14 tous ; départ 12), que la carte redemande,
 #               à la place de l'interrupteur oui / non (kinitorevelationactive, plus déclaré) ; et kinitocartesvrai
 #               (Bool vrai, local) pour les boîtes de style qui n'ont rien d'autre à lire ; poser_menu et
@@ -370,6 +393,43 @@ CLE_REV = "(Persistent,Explicit,{kinito-revelation},{groupes})"
 REV_NON, REV_ELITE, REV_DEUX, REV_TOUS = 11, 12, 13, 14
 REV_DEPART = REV_ELITE
 V_VRAI = "kinitocartesvrai"   # v31 : Bool vrai (local), pour une boîte de style qui ne doit lire que son entier
+# v32 : la bande des réglages, sur la 1re rangée affichée seulement (maquette C, choisie par Kinito le 13/11)
+V_PREMIER = "kinitocartespremier"     # Bool local : cette catégorie est la 1re rangée affichée (écrit par un délai)
+V_REGLAGES = "kinitocartesreglages"   # Bool local : la bande des réglages ouverte (fermée à chaque ouverture)
+# les nombres de candidats des 5 groupes, comme les lit le titre de chaque catégorie (bloc de FM, relevé le 13/11 :
+# des noms du bloc, que le BindingRemapper de la catégorie laisse passer, comme « team » pour la carte)
+COMPTES = ("Candidates.EliteYouthCandidatesCount", "Candidates.TopYouthCandidatesCount",
+           "Candidates.GoodYouthCandidatesCount", "Candidates.DecentYouthCandidatesCount",
+           "Candidates.PoorYouthCandidatesCount")
+OP_EGAL = 2
+DELAI_PREMIER = 0.02   # s : la 1re rangée écrit « premier » juste après son arrivée
+TEXTE_REGLAGES = L("Réglages", "Settings")
+TEXTE_BANDE = L("RÉGLAGES DES CARTES", "CARD SETTINGS")
+TEXTE_BANDE_2 = L("valent pour toutes les cartes du message", "apply to every card in this message")
+TEXTE_CHAMP_STYLE = L("STYLE DES CARTES", "CARD STYLE")
+ICONE_REGLAGES = "ui-concepts-cog_small"           # engrenage de FM (FMImages, 16 x 16), teinté
+ICONE_OUVRIR, ICONE_FERMER = "ui-concepts-chevron-down_small", "ui-concepts-chevron-top_small"
+ICONE_TOUT = "ui-concepts-refresh_small"           # flèche en cercle de FM, devant « Tout retourner »
+CL_MENU_DESC = "kinito-menu-desc"   # v32 : la phrase sous un choix (liste ouverte), cachée dans le menu fermé
+# le menu des styles : un nom en mots (plus de lettre) et une phrase, dans l'ordre de STYLES (maquette C)
+NOMS_MENU_STYLE = {
+    "d": (L("Sobre, style FM 27", "Plain, FM 27 style"), L("carte sombre, aux couleurs du groupe",
+                                                          "dark card in the group's colours")),
+    "a": (L("Dos doré, face bleu nuit", "Gold back, navy face"), L("lueur violette, double contour doré",
+                                                                   "violet glow, double gold edge")),
+    "i": (L("Holographique", "Holographic"), L("reflets de couleur, une barre de lecture",
+                                               "colour sheen, a scan bar")),
+    "j": (L("Dossier du recruteur", "Scout's file"), L("le dossier cartonné, tamponné", "the stamped cardboard file")),
+    "l": (L("Sachet à ouvrir", "Pack to open"), L("un sachet dont on arrache le haut", "a pack you tear open")),
+    "n": (L("Tableau tactique", "Tactics board"), L("l'ardoise verte, écrite à la craie", "green board, in chalk")),
+    "o": (L("Art déco", "Art deco"), L("bleu nuit et double cadre doré", "navy with a double gold frame")),
+    "q": (L("Casier du vestiaire", "Dressing-room locker"), L("un casier dont les portes s'ouvrent",
+                                                             "a locker whose doors open"))}
+# la bande et ses champs (couleurs de la maquette C)
+FOND_BANDE, BORD_BANDE = "#161A2B", "#262C45"
+FOND_CHAMP, BORD_CHAMP = "#232842", "#3A4166"
+TEXTE_ETIQUETTE, TEXTE_SOUS_TITRE, TEXTE_TITRE_BANDE = "#8B92B2", "#7D84A3", "#D9DCEA"
+COULEUR_DESC = "#8F96B4"
 TYPE_EQUIPE = 1145176088           # v24 : type de « team » (BindingRoot de PlayerReport, lu le 09/11)
 CONTRAT_POSSIBLE = "CanBeOfferedContract"   # v3 : faux quand le bouton « Offrir un contrat » est grisé (vu en jeu)
 V_SIGNE = "kinitocartesigne"       # v5 : Bool, une par carte : le jeune a un contrat signé (NewContractString non nul)
@@ -599,7 +659,519 @@ def entier(t, s, rid, parent, index=None):
     return r
 
 
+# ---------- v33 : la langue du jeu (Kinito, 13/11 : « oui, comme les consignes ») ----------
+# Ses choix (ceux des consignes, 26.13 v95) : la langue réglée dans FM, en direct ; un texte plus long que le
+# français coupé avec « … » ; nos mots traduits par nous. Comment :
+# - un CONTENEUR DE LANGUE de FM (celui de tdd-messages-banner : variable « name » = current_language, et
+#   languagesetting -> app.NativeSettings), et dedans un réglage de FM par langue (BindStringToAorBUssClass,
+#   « languagesetting.PropertyValue » == « german »…) qui pose sur lui la classe CL_LG + langue. Posé dans la zone de
+#   chaque catégorie (les cartes de la liste sont dessous), dans chaque ligne de menu (la liste ouverte est ailleurs
+#   dans l'écran), dans la grande carte et sur la fiche (26.22) ;
+# - chaque texte qui a ses traductions (un Mot dont le français est dans TRADUCTIONS) : une copie par texte différent,
+#   chacune avec la classe CL_LT + les langues qui l'écrivent ainsi, cachée sauf sous la classe de sa langue ; le
+#   texte d'origine (celui de la langue choisie dans l'app) devient le texte de SECOURS (CL_LTD), montré seulement si
+#   aucune langue connue n'est posée ;
+# - les mots que FM a déjà (Personnalité, Rapports avec les médias, Pour, Contre, Niveau, Potentiel, Jeunes, Nouveau,
+#   Rapport du recruteur, projets à court / long terme) : recopiés du fichier des langues de FM 27 par leur
+#   identifiant (chantier-cartes-jeunes\outils\mots_fm_ids.mjs : 0x1009b5e0, 0x1004ae85, 0x1005832c, 0x10058286,
+#   0x1004cc3a, 0x1004cc3b, 0x1007931e, 0x100ab5ce, 0x1004d5ad, 0x1009b58f, 0x1009b591), mis en capitales dans leur
+#   langue ; deux corrections : l'arabe de « Cons » (FM écrit « stabilité », « الثبات ») et le néerlandais / suédois /
+#   indonésien de « Cons » (FM écrit « contre » à côté de « points positifs ») ; les textes des cartes qu'Alex a
+#   traduits dans son app (dix langues) : repris de ses tables ; les autres : nos traductions.
+SOURCE_LANGUE = "tdd-messages-banner"             # global : son ComponentElement lit la langue du jeu (26.13 v24)
+SOURCE_REGLAGE_LANGUE = "CalendarDropdownTitle"   # gameworld : un SIStyleSetter à BindStringToAorBUssClass
+GUID_CLASSE_TEXTE = "c5ecb69a298e864428d1e90d9c8c7f80"   # BindStringToAorBUssClass (path, vrai, faux, au parent,
+#                                                          aux enfants, texte comparé ; 26.13 v87)
+CHEMIN_LANGUE = "languagesetting.PropertyValue"
+CL_LG = "kinito-cj-lg-"     # sur le conteneur : la langue du jeu (kinito-cj-lg-german…)
+CL_LT = "kinito-cj-lt"      # une copie d'un texte dans une langue (caché sauf sous sa langue) ; + « -german »…
+CL_LTD = "kinito-cj-ltd"    # le texte de secours (la langue de l'app) : caché sous toute langue connue
+REPERE_LANGUE = "--kinito-cartes-langues"   # nos trois règles de langue (une fois par feuille)
+LANGUES_JEU = ("english", "english (us)", "french", "german", "italian", "spanish", "spanish (latam)", "portuguese",
+               "portuguese (bra)", "dutch", "danish", "norwegian", "swedish", "polish", "czech", "russian", "turkish",
+               "greek", "indonesian", "japanese", "korean", "chinese", "chinese (traditional)", "thai", "arabic")
+#               (les valeurs du réglage natif current_language, lues dans game_plugin.dll : 26.13 v24)
+MEMES = {"english (us)": "english", "spanish (latam)": "spanish", "portuguese (bra)": "portuguese",
+         "czech": "english", "thai": "english", "chinese (traditional)": "chinese"}   # absentes du fichier de FM 27
+#        (czech, thai, chinois traditionnel) ou partielles (espagnol d'Amérique latine) : comme v95
+COLONNES = ("english", "french", "german", "italian", "spanish", "portuguese", "dutch", "danish", "norwegian",
+            "swedish", "polish", "russian", "turkish", "greek", "indonesian", "japanese", "korean", "chinese", "arabic")
+sm.PROPRIETES.setdefault("text-overflow", (196609, 7))   # StylePropertyId.TextOverflow (Unity 6 : clip, ellipsis)
+TRADUCTIONS = {}         # texte français -> {langue de COLONNES : texte}
+SANS_TRADUCTION = set()  # les Mot posés sans traduction (dits par appliquer, contrôlés au banc)
+_SRC_LANGUE = None
+
+
+def _t(fr, ligne):
+    """une ligne de TRADUCTIONS : les textes dans l'ordre de COLONNES, séparés par « | »"""
+    v = [x.strip() for x in ligne.split("|")]
+    if len(v) != len(COLONNES) or v[1] != fr:
+        raise ValueError(f"traductions de « {fr} » : {len(v)} colonnes, français « {v[1] if len(v) > 1 else ''} »")
+    TRADUCTIONS[fr] = dict(zip(COLONNES, v))
+
+
+# les groupes : au dos (capitales) et dans le style D (minuscules) ; Alex pour ses dix langues (le grec de « Decent »
+# corrigé : il écrivait « ΚΑΛΟΣ », comme « Good »)
+_t("ÉLITE", "ELITE | ÉLITE | ELITE | ÉLITE | ÉLITE | ELITE | ELITE | ELITE | ELITE | ELIT | ELITA | ЭЛИТА | ELİT | "
+            "ΕΛΙΤ | ELITE | エリート | 엘리트 | 精英 | النخبة")
+_t("EXCELLENT", "TOP | EXCELLENT | TOP | TOP | TOP | TOP | TOP | TOP | TOPP | TOPP | TOP | ТОП | ZİRVE | ΚΟΡΥΦΑΙΟΣ | "
+                "UNGGUL | トップ | 최상 | 顶级 | ممتاز")
+_t("BON", "GOOD | BON | GUT | BUONO | BUENO | BOM | GOED | GOD | GOD | BRA | DOBRY | ХОРОШИЙ | İYİ | ΚΑΛΟΣ | BAIK | "
+          "良い | 좋음 | 良好 | جيد")
+_t("CORRECT", "DECENT | CORRECT | ORDENTLICH | DISCRETO | DECENTE | RAZOÁVEL | REDELIJK | RIMELIG | BRUKBAR | HYFSAD | "
+              "PRZECIĘTNY | НЕПЛОХОЙ | VASAT | ΕΠΑΡΚΗΣ | LUMAYAN | まずまず | 괜찮음 | 尚可 | مقبول")
+_t("MAUVAIS", "POOR | MAUVAIS | SCHWACH | SCARSO | FLOJO | FRACO | ZWAK | SVAG | SVAK | SVAG | SŁABY | СЛАБЫЙ | ZAYIF | "
+              "ΑΔΥΝΑΜΟΣ | LEMAH | 低い | 부족함 | 较差 | ضعيف")
+_t("Élite", "Elite | Élite | Elite | Élite | Élite | Elite | Elite | Elite | Elite | Elit | Elita | Элита | Elit | Ελίτ | "
+            "Elite | エリート | 엘리트 | 精英 | النخبة")
+_t("Excellent", "Excellent | Excellent | Exzellent | Eccellente | Excelente | Excelente | Uitstekend | Fremragende | "
+                "Utmerket | Utmärkt | Doskonały | Отличный | Mükemmel | Εξαιρετικός | Unggul | 優秀 | 훌륭함 | 优秀 | ممتاز")
+_t("Bon", "Good | Bon | Gut | Buono | Bueno | Bom | Goed | God | God | Bra | Dobry | Хороший | İyi | Καλός | Baik | 良い | "
+          "좋음 | 良好 | جيد")
+_t("Correct", "Decent | Correct | Ordentlich | Discreto | Decente | Razoável | Redelijk | Rimelig | Brukbar | Hyfsad | "
+              "Przeciętny | Неплохой | Vasat | Επαρκής | Lumayan | まずまず | 괜찮음 | 尚可 | مقبول")
+_t("Mauvais", "Poor | Mauvais | Schwach | Scarso | Flojo | Fraco | Zwak | Svag | Svak | Svag | Słaby | Слабый | Zayıf | "
+              "Αδύναμος | Lemah | 低い | 부족함 | 较差 | ضعيف")
+# la barre et la bande
+_t("Tout retourner", "Flip all | Tout retourner | Alle umdrehen | Gira tutte | Voltear todas | Virar todas | "
+                     "Alles omdraaien | Vend alle | Snu alle | Vänd alla | Odwróć wszystkie | Перевернуть все | "
+                     "Hepsini çevir | Γύρισμα όλων | Balik semua | すべてめくる | 모두 뒤집기 | 全部翻开 | اقلب الكل")
+_t("Réglages", "Settings | Réglages | Einstellungen | Impostazioni | Ajustes | Configurações | Instellingen | "
+               "Indstillinger | Innstillinger | Inställningar | Ustawienia | Настройки | Ayarlar | Ρυθμίσεις | "
+               "Pengaturan | 設定 | 설정 | 设置 | الإعدادات")
+_t("RÉGLAGES DES CARTES", "CARD SETTINGS | RÉGLAGES DES CARTES | KARTENEINSTELLUNGEN | IMPOSTAZIONI DELLE CARTE | "
+                          "AJUSTES DE LAS CARTAS | CONFIGURAÇÕES DAS CARTAS | KAARTINSTELLINGEN | KORTINDSTILLINGER | "
+                          "KORTINNSTILLINGER | KORTINSTÄLLNINGAR | USTAWIENIA KART | НАСТРОЙКИ КАРТОЧЕК | "
+                          "KART AYARLARI | ΡΥΘΜΙΣΕΙΣ ΚΑΡΤΩΝ | PENGATURAN KARTU | カード設定 | 카드 설정 | 卡片设置 | "
+                          "إعدادات البطاقات")
+_t("valent pour toutes les cartes du message",
+   "apply to every card in this message | valent pour toutes les cartes du message | "
+   "gelten für alle Karten dieser Nachricht | valgono per tutte le carte del messaggio | "
+   "se aplican a todas las cartas del mensaje | valem para todas as cartas da mensagem | "
+   "gelden voor alle kaarten in dit bericht | gælder for alle kort i denne besked | "
+   "gjelder for alle kortene i denne meldingen | gäller alla kort i det här meddelandet | "
+   "dotyczą wszystkich kart w tej wiadomości | действуют для всех карточек в этом сообщении | "
+   "bu mesajdaki tüm kartlar için geçerli | ισχύουν για όλες τις κάρτες του μηνύματος | "
+   "berlaku untuk semua kartu di pesan ini | このメッセージのすべてのカードに適用 | 이 메시지의 모든 카드에 적용 | "
+   "适用于本消息中的所有卡片 | تنطبق على كل البطاقات في هذه الرسالة")
+_t("STYLE DES CARTES", "CARD STYLE | STYLE DES CARTES | KARTENSTIL | STILE DELLE CARTE | ESTILO DE LAS CARTAS | "
+                       "ESTILO DAS CARTAS | KAARTSTIJL | KORTSTIL | KORTSTIL | KORTSTIL | STYL KART | СТИЛЬ КАРТОЧЕК | "
+                       "KART STİLİ | ΣΤΥΛ ΚΑΡΤΩΝ | GAYA KARTU | カードのスタイル | 카드 스타일 | 卡片样式 | نمط البطاقات")
+# le menu des styles : le nom (Alex, sans la lettre, pour ses dix langues) et la phrase de la liste ouverte
+_t("Sobre, style FM 27", "Plain, FM 27 style | Sobre, style FM 27 | Schlicht, FM-27-Stil | Sobrio, stile FM 27 | "
+                         "Sobrio, estilo FM 27 | Sóbrio, estilo FM 27 | Eenvoudig, FM 27-stijl | Enkel, FM 27-stil | "
+                         "Enkel, FM 27-stil | Enkel, FM 27-stil | Prosty, styl FM 27 | Простой, в стиле FM 27 | "
+                         "Sade, FM 27 tarzı | Λιτό, στυλ FM 27 | Polos, gaya FM 27 | シンプル、FM 27 風 | "
+                         "단순, FM 27 스타일 | 简洁，FM 27 风格 | بسيط، بأسلوب FM 27")
+_t("carte sombre, aux couleurs du groupe",
+   "dark card in the group's colours | carte sombre, aux couleurs du groupe | dunkle Karte in den Farben der Gruppe | "
+   "carta scura, nei colori del gruppo | carta oscura, con los colores del grupo | carta escura, nas cores do grupo | "
+   "donkere kaart in de kleuren van de groep | mørkt kort i gruppens farver | mørkt kort i gruppens farger | "
+   "mörkt kort i gruppens färger | ciemna karta w kolorach grupy | тёмная карточка в цветах группы | "
+   "grubun renklerinde koyu kart | σκούρα κάρτα στα χρώματα της ομάδας | kartu gelap dengan warna grup | "
+   "グループの色の暗いカード | 그룹 색상의 어두운 카드 | 深色卡片，采用组别颜色 | بطاقة داكنة بألوان المجموعة")
+_t("Dos doré, face bleu nuit",
+   "Gold back, navy face | Dos doré, face bleu nuit | Goldene Rückseite, nachtblaue Vorderseite | "
+   "Retro dorato, fronte blu notte | Dorso dorado, cara azul marino | Verso dourado, frente azul-marinho | "
+   "Gouden achterkant, nachtblauwe voorkant | Guldbagside, natblå forside | Gullbakside, nattblå forside | "
+   "Guldbaksida, nattblå framsida | Złoty rewers, granatowy awers | Золотая рубашка, тёмно-синее лицо | "
+   "Altın arka, lacivert ön yüz | Χρυσή πλάτη, σκούρα μπλε όψη | Belakang emas, depan biru tua | "
+   "金色の裏面、紺色の表面 | 금색 뒷면, 남색 앞면 | 金色背面，藏青正面 | ظهر ذهبي ووجه كحلي")
+_t("lueur violette, double contour doré",
+   "violet glow, double gold edge | lueur violette, double contour doré | violetter Schimmer, doppelter Goldrand | "
+   "bagliore viola, doppio bordo dorato | brillo violeta, doble borde dorado | brilho violeta, contorno dourado duplo | "
+   "paarse gloed, dubbele gouden rand | violet skær, dobbelt guldkant | fiolett glød, dobbel gullkant | "
+   "violett sken, dubbel guldkant | fioletowa poświata, podwójna złota ramka | "
+   "фиолетовое свечение, двойная золотая кайма | mor parıltı, çift altın kenar | "
+   "μωβ λάμψη, διπλό χρυσό περίγραμμα | cahaya ungu, tepi emas ganda | 紫の輝き、二重の金の縁 | "
+   "보라색 광채, 이중 금색 테두리 | 紫色光晕，双层金边 | توهج بنفسجي وإطار ذهبي مزدوج")
+_t("Holographique", "Holographic | Holographique | Holografisch | Olografico | Holográfico | Holográfico | "
+                    "Holografisch | Holografisk | Holografisk | Holografisk | Holograficzny | Голографический | "
+                    "Holografik | Ολογραφικό | Holografik | ホログラム | 홀로그램 | 全息 | هولوغرافي")
+_t("reflets de couleur, une barre de lecture",
+   "colour sheen, a scan bar | reflets de couleur, une barre de lecture | Farbschimmer, ein Scanbalken | "
+   "riflessi di colore, una barra di scansione | reflejos de color, una barra de escaneo | "
+   "reflexos de cor, uma barra de leitura | kleurglans, een scanbalk | farveskær, en scanningsbjælke | "
+   "fargeskimmer, en skannelinje | färgskimmer, en skanningslinje | kolorowe refleksy, pasek skanowania | "
+   "цветные отблески, полоса сканирования | renk yansımaları, bir tarama çubuğu | "
+   "χρωματικές ανταύγειες, μια μπάρα σάρωσης | kilau warna, bilah pemindai | 色の反射、スキャンバー | "
+   "색 반사, 스캔 바 | 彩色光泽，扫描条 | انعكاسات لونية وشريط مسح")
+_t("Dossier du recruteur", "Scout's file | Dossier du recruteur | Akte des Scouts | Fascicolo dell'osservatore | "
+                           "Expediente del ojeador | Dossiê do olheiro | Dossier van de scout | Talentspejderens mappe | "
+                           "Speiderens mappe | Scoutens mapp | Teczka scouta | Досье скаута | Gözlemci dosyası | "
+                           "Φάκελος σκάουτ | Berkas pemandu bakat | スカウトのファイル | 스카우트 파일 | 球探档案 | "
+                           "ملف الكشاف")
+_t("le dossier cartonné, tamponné",
+   "the stamped cardboard file | le dossier cartonné, tamponné | die gestempelte Kartonakte | "
+   "il fascicolo di cartone, timbrato | el expediente de cartón, sellado | o dossiê de cartão, carimbado | "
+   "het afgestempelde kartonnen dossier | den stemplede papmappe | den stemplede pappmappen | "
+   "den stämplade kartongmappen | tekturowa teczka z pieczątką | картонная папка со штампом | "
+   "damgalı karton dosya | ο σφραγισμένος χάρτινος φάκελος | berkas karton yang dicap | "
+   "スタンプが押された紙のファイル | 도장이 찍힌 종이 파일 | 盖章的纸板档案 | الملف الكرتوني المختوم")
+_t("Sachet à ouvrir", "Pack to open | Sachet à ouvrir | Päckchen zum Öffnen | Bustina da aprire | Sobre para abrir | "
+                      "Pacote para abrir | Pakje om te openen | Pakke at åbne | Pakke å åpne | Paket att öppna | "
+                      "Saszetka do otwarcia | Пакетик для открытия | Açılacak paket | Φακελάκι για άνοιγμα | "
+                      "Bungkus untuk dibuka | 開けるパック | 뜯는 팩 | 待拆卡包 | علبة للفتح")
+_t("un sachet dont on arrache le haut",
+   "a pack you tear open | un sachet dont on arrache le haut | ein Päckchen, das man aufreißt | "
+   "una bustina da strappare in alto | un sobre que se rasga por arriba | um pacote que se rasga por cima | "
+   "een pakje dat je openscheurt | en pakke, man river op | en pakke du river opp | ett paket man river upp | "
+   "saszetka rozdzierana od góry | пакетик, который надрывают сверху | üstü yırtılarak açılan paket | "
+   "φακελάκι που σκίζεται από πάνω | bungkus yang dirobek bagian atasnya | 上を破って開けるパック | "
+   "윗부분을 뜯어 여는 팩 | 撕开顶部的卡包 | علبة يُمزَّق أعلاها")
+_t("Tableau tactique", "Tactics board | Tableau tactique | Taktiktafel | Lavagna tattica | Pizarra táctica | "
+                       "Quadro tático | Tactiekbord | Taktiktavle | Taktikktavle | Taktiktavla | Tablica taktyczna | "
+                       "Тактическая доска | Taktik tahtası | Τακτικός πίνακας | Papan taktik | 作戦ボード | 전술판 | "
+                       "战术板 | السبورة التكتيكية")
+_t("l'ardoise verte, écrite à la craie",
+   "green board, in chalk | l'ardoise verte, écrite à la craie | grüne Tafel, mit Kreide beschrieben | "
+   "la lavagna verde, scritta col gesso | la pizarra verde, escrita con tiza | o quadro verde, escrito a giz | "
+   "het groene bord, met krijt beschreven | den grønne tavle, skrevet med kridt | den grønne tavla, skrevet med kritt | "
+   "den gröna tavlan, skriven med krita | zielona tablica pisana kredą | зелёная доска, исписанная мелом | "
+   "tebeşirle yazılmış yeşil tahta | ο πράσινος πίνακας, γραμμένος με κιμωλία | papan hijau, ditulis dengan kapur | "
+   "チョークで書いた緑の黒板 | 분필로 쓴 초록 칠판 | 粉笔书写的绿色黑板 | سبورة خضراء مكتوبة بالطباشير")
+_t("Art déco", "Art deco | Art déco | Art déco | Art déco | Art déco | Art déco | Art deco | Art deco | Art deco | "
+               "Art déco | Art déco | Ар-деко | Art deco | Αρ ντεκό | Art deco | アールデコ | 아르데코 | 装饰艺术 | آرت ديكو")
+_t("bleu nuit et double cadre doré",
+   "navy with a double gold frame | bleu nuit et double cadre doré | Nachtblau mit doppeltem Goldrahmen | "
+   "blu notte e doppia cornice dorata | azul marino y doble marco dorado | azul-marinho e moldura dourada dupla | "
+   "nachtblauw met een dubbele gouden lijst | natblå med dobbelt guldramme | nattblå med dobbel gullramme | "
+   "nattblå med dubbel guldram | granat i podwójna złota rama | тёмно-синий с двойной золотой рамкой | "
+   "lacivert ve çift altın çerçeve | σκούρο μπλε με διπλό χρυσό πλαίσιο | biru tua dengan bingkai emas ganda | "
+   "紺色と二重の金の枠 | 남색과 이중 금색 테두리 | 藏青色配双层金框 | كحلي بإطار ذهبي مزدوج")
+_t("Casier du vestiaire", "Dressing-room locker | Casier du vestiaire | Spind in der Kabine | "
+                          "Armadietto dello spogliatoio | Taquilla del vestuario | Cacifo do balneário | "
+                          "Kluisje in de kleedkamer | Skab i omklædningsrummet | Skap i garderoben | "
+                          "Skåp i omklädningsrummet | Szafka w szatni | Шкафчик в раздевалке | Soyunma odası dolabı | "
+                          "Ντουλάπι αποδυτηρίων | Loker ruang ganti | ロッカールームのロッカー | 라커룸 사물함 | "
+                          "更衣室储物柜 | خزانة غرفة الملابس")
+_t("un casier dont les portes s'ouvrent",
+   "a locker whose doors open | un casier dont les portes s'ouvrent | ein Spind, dessen Türen aufgehen | "
+   "un armadietto che apre le ante | una taquilla cuyas puertas se abren | um cacifo cujas portas se abrem | "
+   "een kluisje waarvan de deurtjes opengaan | et skab, hvor lågerne åbner sig | et skap der dørene åpnes | "
+   "ett skåp vars dörrar öppnas | szafka, której drzwiczki się otwierają | шкафчик с открывающимися дверцами | "
+   "kapakları açılan bir dolap | ντουλάπι με πόρτες που ανοίγουν | loker yang pintunya terbuka | 扉が開くロッカー | "
+   "문이 열리는 사물함 | 柜门会打开的储物柜 | خزانة تنفتح أبوابها")
+# la carte (style J : onglet et titre ; le badge des nouveaux) et la fenêtre de 26.22 : mots de FM (voir plus haut)
+_t("JEUNES", "YOUTH | JEUNES | JUGEND | GIOVANILI | CANTERA | FORMAÇÃO | JEUGD | UNGDOM | UNGDOM | UNGDOM | MŁODZIEŻ | "
+             "МОЛОДЕЖЬ | ALTYAPI | ΝΕΟΙ | MUDA | ユース | 유스 | 青训 | الشباب")
+_SCOUT = ("SCOUT REPORT | {} | SCOUTBERICHT | RAPPORTO DELL'OSSERVATORE | INFORME DE OJEADOR | RELATÓRIO DO OLHEIRO | "
+          "SCOUTINGSRAPPORT | TALENTSPEJDERRAPPORT | SPEIDERRAPPORT | SCOUTRAPPORT | RAPORT SCOUTA | ОТЧЕТ СКАУТА | "
+          "GÖZLEMCİ RAPORU | ΕΚΘΕΣΗ ΣΚΑΟΥΤ | LAPORAN PEMANDU BAKAT | スカウトレポート | 스카우트 보고서 | 球探报告 | "
+          "تقرير الكشافين")
+_t("FICHE DU RECRUTEUR", _SCOUT.format("FICHE DU RECRUTEUR"))
+_t("RAPPORT DU RECRUTEUR", _SCOUT.format("RAPPORT DU RECRUTEUR"))
+_t("NOUVEAU", "NEW | NOUVEAU | NEU | NUOVO | NUEVO | NOVO | NIEUW | NY | NY | NY | NOWY | НОВЫЙ | YENİ | ΝΕΟ | BARU | "
+              "新着 | 신규 | 新 | جديد")
+# la révélation (26.22) : la grande carte et l'écran de la fiche (mots de FM pour les titres, voir plus haut)
+_t("NIVEAU", "ABILITY | NIVEAU | FÄHIGKEIT | ABILITÀ | CALIDAD | CAPACIDADE | NIVEAU | EVNE | FERDIGHETER | FÖRMÅGA | "
+             "UMIEJĘTNOŚCI | СПОСОБНОСТИ | YETENEK | ΙΚΑΝΟΤΗΤΑ | KEMAMPUAN | 能力 | 능력 | 能力 | القدرة")
+_t("POTENTIEL", "POTENTIAL | POTENTIEL | POTENZIAL | POTENZIALE | POTENCIAL | POTENCIAL | POTENTIEEL | POTENTIALE | "
+                "POTENSIAL | POTENTIAL | POTENCJAŁ | ПОТЕНЦИАЛ | POTANSİYEL | ΔΥΝΑΤΟΤΗΤΕΣ | POTENSI | 潜在能力 | 잠재력 | "
+                "潜力 | الإمكانية")
+_t("PERSONNALITÉ", "PERSONALITY | PERSONNALITÉ | PERSÖNLICHKEIT | PERSONALITÀ | PERSONALIDAD | PERSONALIDADE | "
+                   "PERSOONLIJKHEID | PERSONLIGHED | PERSONLIGHET | PERSONLIGHET | OSOBOWOŚĆ | ЧЕРТЫ ХАРАКТЕРА | "
+                   "KARAKTER | ΠΡΟΣΩΠΙΚΟΤΗΤΑ | KEPRIBADIAN | 性格 | 성격 | 个性 | الشخصية")
+_t("RAPPORTS AVEC LES MÉDIAS", "MEDIA HANDLING | RAPPORTS AVEC LES MÉDIAS | MEDIENUMGANG | GESTIONE DEI MEDIA | "
+                               "RELACIÓN CON LA PRENSA | RELAÇÃO COM A IMPRENSA | OMGANG MET MEDIA | MEDIEHÅNDTERING | "
+                               "MEDIEHÅNDTERING | MEDIAHANTERING | KONTAKTY Z MEDIAMI | ОБЩЕНИЕ С ПРЕССОЙ | "
+                               "BASINLA İLİŞKİLER | ΔΙΑΧΕΙΡΙΣΗ ΜΜΕ | PENANGANAN MEDIA | メディアへの対応 | "
+                               "언론 처리 능력 | 媒体处理 | التعامل مع وسائل الإعلام")
+_t("PROJET À COURT TERME", "SHORT-TERM PLAN | PROJET À COURT TERME | KURZFRISTIGER PLAN | PIANO A BREVE TERMINE | "
+                           "PLAN A CORTO PLAZO | PLANO A CURTO PRAZO | KORTETERMIJNPLAN | KORTSIGTET PLAN | "
+                           "KORTSIKTIG PLAN | KORTSIKTIG PLAN | PLAN KRÓTKOTERMINOWY | КРАТКОСРОЧНЫЙ ПЛАН | "
+                           "KISA VADELİ PLAN | ΒΡΑΧΥΠΡΟΘΕΣΜΟ ΣΧΕΔΙΟ | RENCANA JANGKA PENDEK | 短期プラン | 단기 계획 | "
+                           "短期计划 | الخطة قصيرة الأمد")
+_t("PROJET À LONG TERME", "LONG-TERM PLAN | PROJET À LONG TERME | LANGZEITPLAN | PIANO A LUNGO TERMINE | "
+                          "PLAN A LARGO PLAZO | PLANO A LONGO PRAZO | LANGETERMIJNPLAN | LANGSIGTET PLAN | "
+                          "LANGSIKTIG PLAN | LÅNGSIKTIG PLAN | PLAN DŁUGOTERMINOWY | ДОЛГОСРОЧНЫЙ ПЛАН | "
+                          "UZUN VADELİ PLAN | ΜΑΚΡΟΠΡΟΘΕΣΜΟ ΣΧΕΔΙΟ | RENCANA JANGKA PANJANG | 長期プラン | 장기 계획 | "
+                          "长期计划 | الخطة طويلة الأمد")
+_t("POUR", "PROS | POUR | PRO | PRO | PROS | PRÓS | PLUSPUNTEN | FOR | FOR | FÖRDELAR | PLUSY | ПЛЮСЫ | ARTILAR | ΥΠΕΡ | "
+           "KELEBIHAN | 長所 | 장점 | 优点 | الإيجابيات")
+_t("CONTRE", "CONS | CONTRE | KONTRA | CONTRO | CONTRAS | CONTRAS | MINPUNTEN | IMOD | IMOT | NACKDELAR | MINUSY | "
+             "МИНУСЫ | EKSİLER | ΚΑΤΑ | KEKURANGAN | 短所 | 단점 | 缺点 | السلبيات")
+_t("Rien de relevé", "Nothing noted | Rien de relevé | Nichts vermerkt | Niente da segnalare | Nada destacado | "
+                     "Nada a assinalar | Niets opgemerkt | Intet noteret | Ingenting notert | Inget noterat | "
+                     "Nic nie odnotowano | Ничего не отмечено | Not edilen bir şey yok | Τίποτα αξιοσημείωτο | "
+                     "Tidak ada catatan | 特記事項なし | 특이 사항 없음 | 暂无记录 | لا شيء مُدوَّن")
+_t("Passer au rapport", "Go to the report | Passer au rapport | Zum Bericht | Vai al rapporto | Ir al informe | "
+                        "Ir para o relatório | Naar het rapport | Gå til rapporten | Gå til rapporten | "
+                        "Gå till rapporten | Przejdź do raportu | К отчёту | Rapora geç | Μετάβαση στην αναφορά | "
+                        "Ke laporan | レポートへ | 보고서로 이동 | 查看报告 | الانتقال إلى التقرير")
+_t("Dévoiler la carte entière", "Reveal the full card | Dévoiler la carte entière | Ganze Karte aufdecken | "
+                                "Scopri tutta la carta | Revelar la carta entera | Revelar a carta inteira | "
+                                "Hele kaart onthullen | Afslør hele kortet | Avslør hele kortet | Visa hela kortet | "
+                                "Odkryj całą kartę | Открыть карточку целиком | Kartın tamamını aç | "
+                                "Αποκάλυψη ολόκληρης της κάρτας | Buka seluruh kartu | カード全体を表示 | "
+                                "카드 전체 공개 | 揭开整张卡片 | اكشف البطاقة كاملة")
+_t("Ouvrir le dossier", "Open the file | Ouvrir le dossier | Akte öffnen | Apri il fascicolo | Abrir el expediente | "
+                        "Abrir o dossiê | Dossier openen | Åbn mappen | Åpne mappen | Öppna mappen | Otwórz teczkę | "
+                        "Открыть досье | Dosyayı aç | Άνοιγμα φακέλου | Buka berkas | ファイルを開く | 파일 열기 | "
+                        "打开档案 | افتح الملف")
+_t("Tire la barre dorée vers la droite pour dévoiler sa fiche",
+   "Drag the gold bar to the right to reveal the profile | Tire la barre dorée vers la droite pour dévoiler sa fiche | "
+   "Zieh den goldenen Balken nach rechts, um sein Profil aufzudecken | "
+   "Trascina la barra dorata verso destra per svelare il suo profilo | "
+   "Arrastra la barra dorada hacia la derecha para revelar su perfil | "
+   "Arraste a barra dourada para a direita para revelar o perfil | "
+   "Sleep de gouden balk naar rechts om zijn profiel te onthullen | "
+   "Træk den gyldne bjælke mod højre for at afsløre profilen | "
+   "Dra den gylne linjen mot høyre for å avsløre profilen | Dra den gyllene listen åt höger för att visa profilen | "
+   "Przeciągnij złoty pasek w prawo, aby odkryć profil | Потяните золотую полосу вправо, чтобы открыть профиль | "
+   "Profili açmak için altın çubuğu sağa sürükle | "
+   "Σύρε τη χρυσή μπάρα προς τα δεξιά για να αποκαλύψεις το προφίλ | "
+   "Geser bilah emas ke kanan untuk membuka profil | 金色のバーを右へドラッグしてプロフィールを表示 | "
+   "금색 바를 오른쪽으로 끌어 프로필을 공개하세요 | 向右拖动金色滑条以揭开资料 | اسحب الشريط الذهبي إلى اليمين لكشف الملف")
+# les bandes des packs de la grande carte (un mot par style)
+_t("FICHE DU JOUEUR", "PLAYER FILE | FICHE DU JOUEUR | SPIELERAKTE | SCHEDA DEL GIOCATORE | FICHA DEL JUGADOR | "
+                      "FICHA DO JOGADOR | SPELERSDOSSIER | SPILLERPROFIL | SPILLERPROFIL | SPELARPROFIL | "
+                      "KARTA ZAWODNIKA | ДОСЬЕ ИГРОКА | OYUNCU DOSYASI | ΦΑΚΕΛΟΣ ΠΑΙΚΤΗ | BERKAS PEMAIN | 選手ファイル | "
+                      "선수 파일 | 球员档案 | ملف اللاعب")
+_t("SCAN DU JOUEUR", "PLAYER SCAN | SCAN DU JOUEUR | SPIELERSCAN | SCANSIONE DEL GIOCATORE | ESCANEO DEL JUGADOR | "
+                     "SCAN DO JOGADOR | SPELERSSCAN | SPILLERSCANNING | SPILLERSKANNING | SPELARSKANNING | "
+                     "SKAN ZAWODNIKA | СКАН ИГРОКА | OYUNCU TARAMASI | ΣΑΡΩΣΗ ΠΑΙΚΤΗ | PINDAI PEMAIN | 選手スキャン | "
+                     "선수 스캔 | 球员扫描 | مسح اللاعب")
+_t("LE RECRUTEUR", "THE SCOUT | LE RECRUTEUR | DER SCOUT | L'OSSERVATORE | EL OJEADOR | O OLHEIRO | DE SCOUT | "
+                   "TALENTSPEJDEREN | SPEIDEREN | SCOUTEN | SCOUT | СКАУТ | GÖZLEMCİ | Ο ΣΚΑΟΥΤ | PEMANDU BAKAT | "
+                   "スカウト | 스카우트 | 球探 | الكشاف")
+_t("DOSSIER", "FILE | DOSSIER | AKTE | FASCICOLO | EXPEDIENTE | DOSSIÊ | DOSSIER | MAPPE | MAPPE | MAPP | TECZKA | "
+              "ДОСЬЕ | DOSYA | ΦΑΚΕΛΟΣ | BERKAS | ファイル | 파일 | 档案 | ملف")
+_t("CASIER", "LOCKER | CASIER | SPIND | ARMADIETTO | TAQUILLA | CACIFO | KLUISJE | SKAB | SKAP | SKÅP | SZAFKA | "
+             "ШКАФЧИК | DOLAP | ΝΤΟΥΛΑΠΙ | LOKER | ロッカー | 사물함 | 储物柜 | الخزانة")
+# la bande des réglages (26.22) : les deux champs, le menu des groupes et celui de la fiche, le mode
+_t("RÉVÉLATION", "REVEAL | RÉVÉLATION | ENTHÜLLUNG | RIVELAZIONE | REVELACIÓN | REVELAÇÃO | ONTHULLING | AFSLØRING | "
+                 "AVSLØRING | AVSLÖJANDE | ODSŁONA | РАСКРЫТИЕ | AÇILIŞ | ΑΠΟΚΑΛΥΨΗ | PENGUNGKAPAN | 公開演出 | "
+                 "공개 연출 | 揭晓 | الكشف")
+_t("DÉVOILER LA FICHE", "REVEAL THE PROFILE | DÉVOILER LA FICHE | PROFIL AUFDECKEN | SVELARE IL PROFILO | "
+                        "REVELAR EL PERFIL | REVELAR O PERFIL | PROFIEL ONTHULLEN | AFSLØR PROFILEN | AVSLØR PROFILEN | "
+                        "VISA PROFILEN | ODKRYCIE PROFILU | ОТКРЫТИЕ ПРОФИЛЯ | PROFİLİ AÇ | ΑΠΟΚΑΛΥΨΗ ΠΡΟΦΙΛ | "
+                        "BUKA PROFIL | プロフィールの公開 | 프로필 공개 | 揭开资料 | كشف الملف الشخصي")
+_t("Aucune", "None | Aucune | Keine | Nessuna | Ninguna | Nenhuma | Geen | Ingen | Ingen | Ingen | Brak | Нет | Yok | "
+             "Καμία | Tidak ada | なし | 없음 | 无 | لا شيء")
+_t("Élite seulement", "Elite only | Élite seulement | Nur Elite | Solo élite | Solo élite | Só elite | Alleen elite | "
+                      "Kun elite | Bare elite | Endast elit | Tylko elita | Только элита | Yalnızca elit | Μόνο ελίτ | "
+                      "Hanya elite | エリートのみ | 엘리트만 | 仅精英 | النخبة فقط")
+_t("Élite et excellents", "Elite and top | Élite et excellents | Elite und Top | Élite e top | Élite y top | "
+                          "Elite e top | Elite en top | Elite og top | Elite og topp | Elit och topp | Elita i top | "
+                          "Элита и топ | Elit ve zirve | Ελίτ και κορυφαίοι | Elite dan unggul | エリートとトップ | "
+                          "엘리트와 최상 | 精英和顶级 | النخبة والممتازون")
+_t("Tous les groupes", "All groups | Tous les groupes | Alle Gruppen | Tutti i gruppi | Todos los grupos | "
+                       "Todos os grupos | Alle groepen | Alle grupper | Alle grupper | Alla grupper | Wszystkie grupy | "
+                       "Все группы | Tüm gruplar | Όλες οι ομάδες | Semua grup | すべてのグループ | 모든 그룹 | 所有组别 | "
+                       "كل المجموعات")
+_t("un clic retourne la carte, rien de plus",
+   "a click flips the card, nothing more | un clic retourne la carte, rien de plus | "
+   "ein Klick dreht die Karte um, mehr nicht | un clic gira la carta, niente di più | "
+   "un clic voltea la carta, nada más | um clique vira a carta, nada mais | een klik draait de kaart om, meer niet | "
+   "et klik vender kortet, intet andet | et klikk snur kortet, ikke noe mer | ett klick vänder kortet, inget mer | "
+   "kliknięcie odwraca kartę, nic więcej | щелчок переворачивает карточку, и всё | bir tık kartı çevirir, o kadar | "
+   "ένα κλικ γυρίζει την κάρτα, τίποτα παραπάνω | satu klik membalik kartu, itu saja | "
+   "クリックでカードをめくるだけ | 클릭하면 카드가 뒤집힐 뿐 | 单击翻开卡片，仅此而已 | نقرة تقلب البطاقة، لا أكثر")
+_t("une carte d'élite s'ouvre en grand, puis son dossier",
+   "an elite card opens big, then its file | une carte d'élite s'ouvre en grand, puis son dossier | "
+   "eine Elite-Karte öffnet sich groß, dann ihre Akte | una carta élite si apre in grande, poi il suo fascicolo | "
+   "una carta de élite se abre en grande y luego su expediente | "
+   "uma carta de elite abre-se em grande e depois o seu dossiê | een elitekaart opent groot, daarna het dossier | "
+   "et elitekort åbnes stort, derefter mappen | et elitekort åpnes stort, deretter mappen | "
+   "ett elitkort öppnas stort, sedan mappen | karta elity otwiera się w powiększeniu, potem jej teczka | "
+   "карточка элиты открывается крупно, затем досье | elit kart büyük açılır, sonra dosyası | "
+   "μια κάρτα ελίτ ανοίγει σε μεγάλο μέγεθος, μετά ο φάκελός της | kartu elite terbuka besar, lalu berkasnya | "
+   "エリートのカードが大きく開き、続いてファイル | 엘리트 카드가 크게 열리고 이어서 파일 | "
+   "精英卡片放大展开，随后显示档案 | تُفتح بطاقة النخبة بحجم كبير ثم ملفها")
+_t("pareil pour les excellents candidats",
+   "the same for top candidates | pareil pour les excellents candidats | ebenso für Top-Kandidaten | "
+   "lo stesso per i candidati top | lo mismo para los candidatos top | o mesmo para os candidatos top | "
+   "hetzelfde voor topkandidaten | det samme for topkandidater | det samme for toppkandidater | "
+   "samma sak för toppkandidater | to samo dla kandydatów z topu | то же для топ-кандидатов | "
+   "zirve adaylar için de aynısı | το ίδιο για τους κορυφαίους υποψηφίους | sama untuk kandidat unggul | "
+   "トップの候補も同様 | 최상 후보도 마찬가지 | 顶级候选人同样如此 | والأمر نفسه للمرشحين الممتازين")
+_t("chaque carte s'ouvre en grand",
+   "every card opens big | chaque carte s'ouvre en grand | jede Karte öffnet sich groß | ogni carta si apre in grande | "
+   "cada carta se abre en grande | cada carta abre-se em grande | elke kaart opent groot | hvert kort åbnes stort | "
+   "hvert kort åpnes stort | varje kort öppnas stort | każda karta otwiera się w powiększeniu | "
+   "каждая карточка открывается крупно | her kart büyük açılır | κάθε κάρτα ανοίγει σε μεγάλο μέγεθος | "
+   "setiap kartu terbuka besar | すべてのカードが大きく開く | 모든 카드가 크게 열림 | 每张卡片都放大展开 | "
+   "تُفتح كل بطاقة بحجم كبير")
+_t("Fondu", "Fade | Fondu | Einblenden | Dissolvenza | Fundido | Dissolver | Infaden | Indtoning | Inntoning | "
+            "Intoning | Przenikanie | Проявление | Belirme | Σταδιακή εμφάνιση | Muncul perlahan | フェード | 페이드 | 淡入 | "
+            "ظهور تدريجي")
+_t("Rideau", "Curtain | Rideau | Vorhang | Sipario | Telón | Cortina | Gordijn | Tæppe | Teppe | Ridå | Kurtyna | "
+             "Занавес | Perde | Αυλαία | Tirai | カーテン | 커튼 | 幕布 | الستارة")
+_t("Portes", "Doors | Portes | Türen | Porte | Puertas | Portas | Deuren | Døre | Dører | Dörrar | Drzwi | Двери | "
+             "Kapılar | Πόρτες | Pintu | 扉 | 문 | 双门 | الأبواب")
+_t("la fiche apparaît peu à peu",
+   "the profile fades in | la fiche apparaît peu à peu | das Profil wird nach und nach sichtbar | "
+   "il profilo appare poco a poco | el perfil aparece poco a poco | o perfil aparece aos poucos | "
+   "het profiel verschijnt geleidelijk | profilen dukker gradvist op | profilen kommer gradvis til syne | "
+   "profilen tonar fram | profil pojawia się stopniowo | профиль проявляется постепенно | "
+   "profil yavaş yavaş belirir | το προφίλ εμφανίζεται σταδιακά | profil muncul perlahan | "
+   "プロフィールが徐々に現れる | 프로필이 서서히 나타남 | 资料逐渐显现 | يظهر الملف تدريجيًا")
+_t("un rideau doré s'ouvre de gauche à droite",
+   "a gold curtain opens left to right | un rideau doré s'ouvre de gauche à droite | "
+   "ein goldener Vorhang öffnet sich von links nach rechts | un sipario dorato si apre da sinistra a destra | "
+   "un telón dorado se abre de izquierda a derecha | uma cortina dourada abre-se da esquerda para a direita | "
+   "een gouden gordijn opent van links naar rechts | et gyldent tæppe åbner fra venstre mod højre | "
+   "et gyllent teppe åpnes fra venstre mot høyre | en gyllene ridå öppnas från vänster till höger | "
+   "złota kurtyna odsłania się od lewej do prawej | золотой занавес открывается слева направо | "
+   "altın bir perde soldan sağa açılır | μια χρυσή αυλαία ανοίγει από αριστερά προς τα δεξιά | "
+   "tirai emas terbuka dari kiri ke kanan | 金のカーテンが左から右へ開く | 금색 커튼이 왼쪽에서 오른쪽으로 열림 | "
+   "金色幕布从左向右拉开 | ستارة ذهبية تُفتح من اليسار إلى اليمين")
+_t("deux portes s'écartent",
+   "two doors slide apart | deux portes s'écartent | zwei Türen gleiten auseinander | "
+   "due porte si aprono scorrendo | dos puertas se separan | duas portas afastam-se | twee deuren schuiven open | "
+   "to døre glider fra hinanden | to dører glir fra hverandre | två dörrar glider isär | dwoje drzwi się rozsuwa | "
+   "две двери раздвигаются | iki kapı iki yana açılır | δύο πόρτες ανοίγουν συρόμενες | dua pintu bergeser terbuka | "
+   "2枚の扉が左右に開く | 두 문이 양옆으로 열림 | 两扇门向两侧滑开 | بابان ينزلقان متباعدين")
+_t("Tout seul", "Auto | Tout seul | Automatisch | Automatico | Automático | Automático | Automatisch | Automatisk | "
+                "Automatisk | Automatiskt | Automatycznie | Автоматически | Otomatik | Αυτόματα | Otomatis | 自動 | 자동 | "
+                "自动 | تلقائي")
+_t("À la main", "By hand | À la main | Von Hand | A mano | A mano | À mão | Handmatig | Manuelt | Manuelt | Manuellt | "
+                "Ręcznie | Вручную | Elle | Χειροκίνητα | Manual | 手動 | 수동 | 手动 | يدويًا")
+
+
+def slug(code):
+    """« english (us) » -> « english-us » (un nom de classe)"""
+    return code.replace(" (", "-").replace(")", "").replace(" ", "-")
+
+
+def sources_langue():
+    """v33 : {"env": (arbre, ComponentElement de la langue), "reglage": (arbre, SIStyleSetter à texte)} ; une valeur
+    None si introuvable (alors rien n'est traduit : nos textes restent dans la langue de l'app, comme avant)"""
+    global _SRC_LANGUE
+    if _SRC_LANGUE is None:
+        out = {"env": None, "reglage": None}
+        o = ouvrir(SOURCE_LANGUE, depart_original=True)
+        tg = o[3] if o else None
+        if tg is not None:
+            r = first(tg, lambda x: typ(tg, x) == "ComponentElement" and "languagesetting" in json.dumps(
+                [(tg.refs.get(c["rid"]) or {}).get("data") for c in tg.sd(x).get("m_components") or []]))
+            donnees = json.dumps([(tg.refs.get(c["rid"]) or {}).get("data")
+                                  for c in (tg.sd(r).get("m_components") or [])]) if r is not None else ""
+            if "current_language" in donnees and "app.NativeSettings" in donnees:
+                out["env"] = (tg, r)
+        o = ouvrir(SOURCE_REGLAGE_LANGUE, depart_original=True)
+        ts = o[3] if o else None
+        if ts is not None:
+            r = first(ts, lambda x: typ(ts, x) == "SIStyleSetter" and (
+                (ts.sd(x).get("BindFunction") or {}).get("m_target") or {}).get("m_guid") == GUID_CLASSE_TEXTE)
+            if r is not None:
+                a = decode_args(ts.sd(r)["BindFunction"]["m_inputs"]["m_variable"]["m_argumentBytes"])
+                fins = (b"BindingPath]", b"StringVisualArg", b"StringVisualArg", b"BooleanVisualArg",
+                        b"BooleanVisualArg", b"StringVisualArg")
+                if len(a) == len(fins) and all(bytes(x[0]).endswith(f) for x, f in zip(a, fins)):
+                    out["reglage"] = (ts, r)
+        _SRC_LANGUE = out
+    return _SRC_LANGUE
+
+
+def langue_ok():
+    s = sources_langue()
+    return s["env"] is not None and s["reglage"] is not None
+
+
+def conteneur_langue(t, parent, nom, css):
+    """v33 : le conteneur de FM qui lit la langue du jeu, sous parent (sans clic : il ne prend rien à ce qu'il
+    couvre), avec un réglage de FM par langue qui pose CL_LG + langue sur lui ; renvoie le conteneur (ou parent, si les
+    morceaux de FM manquent : rien n'est traduit)"""
+    if not langue_ok():
+        return parent
+    s = sources_langue()
+    tg, re_ = s["env"]
+    env = t.clone(re_, parent, src=tg)
+    recaler_parent(t, env)
+    for k in list(t.children(env)):
+        if not t.elem(k).get("m_FullTypeName", "").endswith("Component"):
+            t.remove(k)
+    t.styles.copy_from(tg.styles, t, env)
+    nommer(t, env, nom)
+    t.elem(env)["m_Classes"], t.elem(env)["m_RuleIndex"] = [], -1
+    t.styles.style(t, env, css)
+    sans_clic(t, env)
+    ts, rs = s["reglage"]
+    for code in LANGUES_JEU:
+        r = seul(t, ts, rs, env, f"{nom}-{slug(code)}")
+        f = t.sd(r)["BindFunction"]
+        a = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+        a[0][1], a[1][1], a[2][1] = texte_arg(CHEMIN_LANGUE), texte_arg(CL_LG + slug(code)), texte_arg("")
+        a[3][1], a[4][1] = bytes([1]), bytes([0])   # sur le parent (le conteneur), pas sur les enfants
+        a[5][1] = texte_arg(code)
+        f["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(a)
+        t.styles.style(t, r, {"position": "absolute", "width": 0, "height": 0})
+        sans_clic(t, r)
+    return env
+
+
+def regles_langue(t):
+    """v33 : une copie de langue est cachée (CL_LT), sauf sous la classe de sa langue ; le texte de secours (CL_LTD)
+    est caché sous toute langue connue ; une fois par feuille"""
+    if any(p.get("m_CustomName") == REPERE_LANGUE for rg in t.styles.sh["m_Rules"] for p in rg["m_Properties"]):
+        return
+    m = (-1, REPERE_LANGUE, [(2, 1.0)])
+    regle_selecteurs(t, [[(".", CL_LT)]], [(ID_DISPLAY, "", [(1, MOT_AUCUN)]), m])
+    regle_selecteurs(t, [[(".", CL_LG + slug(c)), (".", f"{CL_LT}-{slug(c)}")] for c in LANGUES_JEU],
+                     [(ID_DISPLAY, "", [(7, "flex")]), m])
+    regle_selecteurs(t, [[(".", CL_LG + slug(c)), (".", CL_LTD)] for c in LANGUES_JEU],
+                     [(ID_DISPLAY, "", [(1, MOT_AUCUN)]), m])
+
+
+def feuille_au_dessus(t, r):
+    ref = {"m_FileID": 0, "m_PathID": t.tt["inlineSheet"]["m_PathID"]}
+    p = r
+    while p in t.parent:
+        p = t.parent[p]
+        if ref in (t.elem(p).get("m_Stylesheets") or []):
+            return True
+    return False
+
+
+def poser_langues(t):
+    """v33 : pour chaque texte marqué par texte_fixe (un Mot traduit) : ses copies par langue, juste après lui, une
+    par texte différent (classes CL_LT et CL_LT-<langue> de chaque langue qui l'écrit ainsi ; coupées par « … » hors
+    du français quand le texte tient sur une ligne) ; lui devient le texte de secours (CL_LTD) ; puis nos trois
+    règles. Rend le nombre de textes traduits"""
+    marques_ = t.__dict__.pop("_kinito_langues", None)
+    if not marques_ or not langue_ok():
+        return 0
+    n = 0
+    for r, cle, couper in marques_:
+        if r not in t.refs or r not in t.parent:
+            continue
+        tr = TRADUCTIONS[cle]
+        parent = t.parent[r]
+        base_cl = [c for c in (t.elem(r).get("m_Classes") or []) if not c.startswith(CL_LT)]
+        groupes = {}
+        for code in LANGUES_JEU:
+            groupes.setdefault(tr[MEMES.get(code, code)], []).append(code)
+        pos = t.children(parent).index(r)
+        for i, (txt, codes) in enumerate(groupes.items()):
+            c = t.clone(r, parent, pos + 1 + i)
+            recaler_parent(t, c)
+            sd = t.sd(c)
+            sd["text"], sd["DebugDisplay"] = txt, txt
+            sd["name"], sd["name_UxmlAttributeFlags"] = "", 0
+            t.elem(c)["m_Classes"] = base_cl + [CL_LT] + [f"{CL_LT}-{slug(x)}" for x in codes]
+            if couper and "french" not in codes:
+                t.styles.style(t, c, {"overflow": "hidden", "text-overflow": "ellipsis"})
+        t.elem(r)["m_Classes"] = base_cl + [CL_LTD]
+        if not feuille_au_dessus(t, r):
+            attacher_feuille(t, parent)
+        n += 1
+    regles_langue(t)
+    print(f"langue du jeu : {n} texte(s) traduit(s) dans {t.tt.get('m_Name') or 'le modèle'}")
+    return n
+
+
+def dire_langues():
+    """v33 : les textes posés sans traduction (ils restent dans la langue de l'app)"""
+    if not langue_ok():
+        print("langue du jeu : morceaux de FM introuvables, nos textes restent dans la langue de l'app")
+    elif SANS_TRADUCTION:
+        print(f"langue du jeu : sans traduction (langue de l'app) : {', '.join(sorted(SANS_TRADUCTION))}")
+
+
 def enregistrer(bundle, obj, tt, t):
+    poser_langues(t)   # v33 : les copies par langue des textes traduits (rien si le modèle n'en a pas)
     t.finish()
     t.styles.save()
     obj.save_typetree(tt)
@@ -661,13 +1233,22 @@ def texte_fixe(t, s, rid, parent, texte, classes=(), css=None, nom=None):
     """un SIText de FM recopié, avec un texte à nous (comme Alex : TextBinding m_kind 0)"""
     r = seul(t, s, rid, parent, nom, classes)
     sd = t.sd(r)
-    sd["text"], sd["text_UxmlAttributeFlags"], sd["DebugDisplay"] = texte, 1, texte
+    sd["text"], sd["text_UxmlAttributeFlags"], sd["DebugDisplay"] = str(texte), 1, str(texte)
     sd["TextBinding"] = copy.deepcopy(sd["TextBinding"])
     sd["TextBinding"]["m_kind"] = 0
     sd["TextBinding"]["m_direct"]["Path"]["m_path"] = ""
     sd["TextBinding_UxmlAttributeFlags"] = 1
     if css:
         t.styles.style(t, r, css)
+    # v33 : un texte qui a ses traductions (un Mot) : ses copies par langue sont faites à l'enregistrement du modèle
+    # (poser_langues), une fois l'élément fini (sans clic, styles ajoutés ensuite par l'appelant)
+    cle = getattr(texte, "fr", None)
+    if cle is not None:
+        if cle in TRADUCTIONS:
+            t.__dict__.setdefault("_kinito_langues", []).append(
+                (r, cle, bool(css) and css.get("white-space") == "nowrap"))
+        else:
+            SANS_TRADUCTION.add(cle)
     return r
 
 
@@ -2282,8 +2863,9 @@ def poser_menu(t, src, y, parent, index, var, n, classe, texte, guid_ligne, marq
                            "justify-content": "center", "flex-shrink": 0, **(css or {})})   # (un seul appel : un
     #                                    2e laisserait la 1re règle orpheline dans la feuille de la catégorie)
     ttx, rtx = src["cat_texte"]
-    sans_clic(t, texte_fixe(t, ttx, rtx, pm, texte, ["body-sm-strong"],
-                            {"color": rgba("#FFFFFF"), "font-size": 12, "white-space": "nowrap"}))
+    if texte:   # v32 : dans la bande des réglages, l'étiquette est au-dessus du menu (texte=None)
+        sans_clic(t, texte_fixe(t, ttx, rtx, pm, texte, ["body-sm-strong"],
+                                {"color": rgba("#FFFFFF"), "font-size": 12, "white-space": "nowrap"}))
     tr_, rs = y["reglage"]
     reg = seul(t, tr_, rs, pm)
     sd = t.sd(reg)
@@ -2344,10 +2926,85 @@ def poser_menu(t, src, y, parent, index, var, n, classe, texte, guid_ligne, marq
                                                          _p("min-width", 0), _p("height", ("mot", 2))])   # v27
     marquer(t, [[(".", classe), (".", CL_MENU_COURT)]], [(ID_DISPLAY, "", [(7, "flex")])])
     marquer(t, [[(".", classe), (".", CL_MENU_LONG)]], [(ID_DISPLAY, "", [(1, MOT_AUCUN)])])
+    # v32 : la phrase sous chaque choix ne se lit que dans la liste ouverte (le menu fermé : le nom seul)
+    # v33 : aussi la copie de la langue du jeu, que sa règle montre (« .langue .copie », 21) : sous la langue de la
+    # ligne (« .menu .langue .phrase », 31), elle reste cachée
+    marquer(t, [[(".", classe), (".", CL_MENU_DESC)]] +
+            [[(".", classe), (".", CL_LG + slug(c)), (".", CL_MENU_DESC)] for c in LANGUES_JEU],
+            [(ID_DISPLAY, "", [(1, MOT_AUCUN)])])
     return pm
 
 
-def construire_ligne_menu(t, y, noms, nom_cadre, courts=None, largeur=None, valeurs=None):
+# ---------- v32 : la bande « Réglages des cartes » (maquette C) ; ses morceaux servent aussi à 26.22 ----------
+def _cadre(couleur, ep, rayon):
+    c = rgba(couleur)
+    return {"border-top-width": ep, "border-bottom-width": ep, "border-left-width": ep, "border-right-width": ep,
+            "border-top-color": c, "border-bottom-color": c, "border-left-color": c, "border-right-color": c,
+            "border-top-left-radius": rayon, "border-top-right-radius": rayon, "border-bottom-left-radius": rayon,
+            "border-bottom-right-radius": rayon}
+
+
+# un menu de la bande : un champ sombre encadré (au lieu de la pastille translucide de la barre de couleur)
+CSS_MENU_BANDE = {"align-self": "center", "padding-left": 10, "padding-right": 4, "padding-top": 4, "padding-bottom": 4,
+                  "background-color": rgba(FOND_CHAMP), **_cadre(BORD_CHAMP, 1, 5)}
+
+
+def champ_reglage(t, src, parent, libelle):
+    """un champ de la bande : l'étiquette en petites capitales grises AU-DESSUS, puis une rangée (renvoyée) où poser
+    le menu"""
+    c = boite(t, src, parent, {"flex-direction": "column", "margin-right": 22, "margin-top": 6, "flex-shrink": 0})
+    ttx, rtx = src["cat_texte"]
+    sans_clic(t, texte_fixe(t, ttx, rtx, c, libelle, ["body-sm-strong"],
+                            {"color": rgba(TEXTE_ETIQUETTE), "font-size": 10, "white-space": "nowrap",
+                             "margin-bottom": 3}))
+    return boite(t, src, c, {"flex-direction": "row", "align-items": "center"})
+
+
+def icone(t, src, parent, classe, taille, couleur, css=None):
+    """une icône de FM (FMImages, comme l'étoile des cartes), teintée, sans clics"""
+    return boite(t, src, parent, {"width": taille, "height": taille, "flex-shrink": 0, "tint": coul(couleur),
+                                  **(css or {})}, [classe])
+
+
+def delai_evt(t, src, parent, duree, evenements):
+    """un SIDelayEvent de FM (comme le contrat signé de la carte) : <evenements> <duree> s après son arrivée"""
+    td, rd = src["delai"]
+    d = seul(t, td, rd, parent)
+    sans_clic(t, d)
+    t.styles.style(t, d, {"position": "absolute", "width": 0, "height": 0})
+    sd = t.sd(d)
+    sd["m_duration"], sd["m_duration_UxmlAttributeFlags"] = float(duree), 1
+    sd["TransitionEvents"], sd["TransitionEvents_UxmlAttributeFlags"] = {"m_bytes": liste(evenements)}, 1
+    return d
+
+
+def premiere_rangee(t, src, y, parent):
+    """V_PREMIER vrai dans la seule 1re rangée affichée : la catégorie i (repère d'Alex, SIVisible jamais inversé :
+    nul ailleurs) l'écrit vraie si tous les groupes au-dessus ont 0 candidat (comparaisons de FM, lecture tolérante),
+    fausse dès que l'un en a (relu si un nombre change pendant que le message est ouvert). Élite : toujours la 1re"""
+    tvi, rvi = src["cat_visible"]
+    sv, rv = y["comparer"]
+    b = sv.sd(rv)["Binding"]
+    zero = {"position": "absolute", "width": 0, "height": 0}
+
+    def si(par, chemin, op, valeur):
+        r = ni.new_visible(t, sv, rv, par, None, "", ni.make_binding(b, op, [chemin], valeur), [])
+        sans_clic(t, r)
+        t.styles.style(t, r, zero)
+        return r
+    for i in range(len(COMPTES)):
+        vi = visible(t, tvi, rvi, parent, f"{MARQUE_ALEX}{i}", f"{NOM_ZONE}-rang{i}")
+        sans_clic(t, vi)
+        t.styles.style(t, vi, zero)
+        p = vi
+        for j in range(i):
+            p = si(p, COMPTES[j], OP_EGAL, 0)
+        delai_evt(t, src, p, DELAI_PREMIER, [copier("const.True", V_PREMIER)])
+        for j in range(i):
+            delai_evt(t, src, si(vi, COMPTES[j], OP_SUP_EGAL, 1), DELAI_PREMIER, [copier("const.False", V_PREMIER)])
+
+
+def construire_ligne_menu(t, y, noms, nom_cadre, courts=None, largeur=None, valeurs=None, descs=None):
     """réécrit un modèle de ligne de menu libre (BindingExpect « row ») : la ligne de FM du menu des tirages recopiée,
     son nombre remplacé par un SIVisible de FM par choix (« row == k ») avec son nom ; courts : un nom court par choix,
     montré à la place du long dans le menu fermé (règles de la barre), caché dans la liste ouverte ; largeur : la
@@ -2389,9 +3046,15 @@ def construire_ligne_menu(t, y, noms, nom_cadre, courts=None, largeur=None, vale
         vis = ni.new_visible(t, sv, rv, devant, rang + i, "",
                              ni.make_binding(b, 2, ["row"], valeurs[i] if valeurs else i + 1))   # v31 : valeurs
         t.styles.style(t, vis, {"flex-direction": "row", "align-items": "center"})
+        # v33 : la langue du jeu dans la ligne (la liste ouverte est posée ailleurs dans l'écran : elle n'a pas la
+        # langue de la zone) ; un seul choix est construit par ligne (SIVisible)
+        vis = conteneur_langue(t, vis, f"{nom_cadre}-langue-{i}", {"flex-direction": "row", "align-items": "center"})
         if courts:
             texte_fixe(t, tl, rv_src, vis, courts[i], classes + [CL_MENU_TEXTE, CL_MENU_COURT])
         texte_fixe(t, tl, rv_src, vis, n, classes + [CL_MENU_TEXTE] + ([CL_MENU_LONG] if courts else []))
+        if descs and descs[i]:   # v32 : la phrase du choix, à droite du nom, sur la même ligne (hauteur gardée)
+            texte_fixe(t, tl, rv_src, vis, descs[i], classes + [CL_MENU_DESC],
+                       {"color": rgba(COULEUR_DESC), "font-size": 11, "margin-left": 10, "white-space": "nowrap"})
     t.remove(val)
     if courts:
         regle_selecteurs(t, [[(".", CL_MENU_COURT)]], [(ID_DISPLAY, "", [(1, MOT_AUCUN)])])
@@ -2658,10 +3321,14 @@ def cat_poser(t, src, y, style):
                                     (V_REV, f"Float|{REV_DEPART}|{CLE_REV}"),   # v31 : les groupes de 26.22
                                     (V_VRAI, "Bool|1|"),   # v31 : un vrai, pour la boîte de style de 26.22
                                     # (v24 à v30 : l'interrupteur de 26.22)
-                                    (V_STYLE, f"Float|{numero_style(style)}|{CLE_STYLE}")]):   # v25 : le style
+                                    (V_STYLE, f"Float|{numero_style(style)}|{CLE_STYLE}"),   # v25 : le style
+                                    (V_PREMIER, "Bool|0|"), (V_REGLAGES, "Bool|0|")]):   # v32 : la bande
         return [f"variable de FM ({SOURCE_VARIABLES}) : forme inattendue (introuvable)"]
+    premiere_rangee(t, src, y, zone)   # v32 : cette catégorie est-elle la 1re rangée affichée ?
+    # v33 : la langue du jeu, sur tout ce qui suit (la barre, la bande, et les cartes de la liste)
+    lg = conteneur_langue(t, zone, f"{NOM_ZONE}-langue", {"flex-direction": "column", "align-self": "stretch"})
     tr, rr = src["cat_remap"]   # human <- game.GameCurrentManager (le remapper du tableau de FM : « Offrir un contrat »)
-    r = seul(t, tr, rr, zone, f"{NOM_ZONE}-human")
+    r = seul(t, tr, rr, lg, f"{NOM_ZONE}-human")
     t.styles.style(t, r, {"flex-direction": "column", "align-self": "stretch"})
     tg, rg = src["cat_element"]
     # v5 (Kinito) : « Tout retourner » DANS la barre de couleur d'Alex, à droite : une pastille sombre translucide,
@@ -2690,20 +3357,56 @@ def cat_poser(t, src, y, style):
     # la rangée dépassait la barre par le haut, la pastille touchait son bord haut et laissait 4 px en bas. Elle prend
     # maintenant la hauteur de la rangée (align-self: stretch), que seul le « Ag » décide : 4 px au-dessus, 4 en dessous
     # à toutes les tailles de texte (son texte, 12 px, est moins haut que la ligne du titre)
-    t.styles.style(t, bouton, {"align-self": "stretch", "min-height": 0, "padding-left": 12, "padding-right": 12,
-                               "padding-top": 0, "padding-bottom": 0, "margin-top": 0, "margin-bottom": 0,
-                               "margin-left": 0, "margin-right": 0, "background-color": (0.04, 0.06, 0.09, 0.32),
-                               "border-top-width": 0, "border-bottom-width": 0, "border-left-width": 0,
-                               "border-right-width": 0, "border-top-left-radius": 9, "border-top-right-radius": 9,
-                               "border-bottom-left-radius": 9, "border-bottom-right-radius": 9,
-                               "flex-direction": "row", "align-items": "center", "justify-content": "center"})
+    pastille = {"align-self": "stretch", "min-height": 0, "padding-left": 11, "padding-right": 12,
+                "padding-top": 0, "padding-bottom": 0, "margin-top": 0, "margin-bottom": 0,
+                "margin-left": 0, "margin-right": 0, "border-top-width": 0, "border-bottom-width": 0,
+                "border-left-width": 0, "border-right-width": 0, "border-top-left-radius": 9,
+                "border-top-right-radius": 9, "border-bottom-left-radius": 9, "border-bottom-right-radius": 9,
+                "flex-direction": "row", "align-items": "center", "justify-content": "center"}
+    # v32 (maquette C) : « Tout retourner » en bouton blanc (une action, pas un réglage), l'icône de FM devant
+    t.styles.style(t, bouton, {**pastille, "background-color": (0.97, 0.97, 0.98, 1.0)})
     ttx, rtx = src["cat_texte"]
+    icone(t, src, bouton, ICONE_TOUT, 12, "#14161F", {"margin-right": 5})
     sans_clic(t, texte_fixe(t, ttx, rtx, bouton, TEXTE_TOUT, ["body-sm-strong"],
-                            {"color": rgba("#FFFFFF"), "font-size": 12, "white-space": "nowrap"}))
-    # v25 : « Style : J ▾ », un menu de FM devant « Tout retourner » (26.22 pose ses pastilles juste avant « Tout
-    # retourner », donc après celle-ci) ; fermé, il montre la lettre du style ; ouvert, les 8 noms
-    poser_menu(t, src, y, barre, t.children(barre).index(bouton), V_STYLE, len(ORDRE_STYLES), CL_MENU_STYLE,
-               TEXTE_STYLE, GUID_LIGNE_STYLE, regle_selecteurs, {"margin-right": 6})
+                            {"color": rgba("#14161F"), "font-size": 12, "white-space": "nowrap"}))
+    # v32 : « Réglages » (engrenage de FM) à DROITE de « Tout retourner » (Kinito), sur la 1re rangée seulement :
+    # ouvre et ferme la bande ; deux boutons, un par état (comme Auto | Manuel), la flèche dit le sens
+    vp = visible(t, src["cat_visible"][0], src["cat_visible"][1], barre, V_PREMIER, f"{NOM_ZONE}-reglages-bouton")
+    t.styles.style(t, vp, {"flex-direction": "row", "align-self": "stretch", "margin-left": 6})
+    for ouvert in (False, True):
+        vo = visible(t, src["cat_visible"][0], src["cat_visible"][1], vp, V_REGLAGES, inverse=not ouvert)
+        t.styles.style(t, vo, {"flex-direction": "row", "align-self": "stretch"})
+        b = seul(t, tb, rb, vo)
+        sd = t.sd(b)
+        sd["Events"], sd["Events_UxmlAttributeFlags"] = {
+            "m_bytes": liste([copier("const.False" if ouvert else "const.True", V_REGLAGES)])}, 1
+        t.styles.style(t, b, {**pastille, "padding-left": 9, "padding-right": 9,
+                              "background-color": (0.04, 0.06, 0.09, 0.85 if ouvert else 0.55)})
+        icone(t, src, b, ICONE_REGLAGES, 13, "#FFFFFF", {"margin-right": 5})
+        sans_clic(t, texte_fixe(t, ttx, rtx, b, TEXTE_REGLAGES, ["body-sm-strong"],
+                                {"color": rgba("#FFFFFF"), "font-size": 12, "white-space": "nowrap"}))
+        icone(t, src, b, ICONE_FERMER if ouvert else ICONE_OUVRIR, 10, "#FFFFFF", {"margin-left": 5})
+    # v32 : la bande « Réglages des cartes », en flux sous la barre de couleur d'Alex, sur la 1re rangée seulement et
+    # quand on l'ouvre ; le style y est (26.22 y ajoute la révélation et la fiche, dans « …-reglages »)
+    tvi, rvi = src["cat_visible"]
+    sp = visible(t, tvi, rvi, r, V_PREMIER, f"{NOM_ZONE}-bande-premier")
+    t.styles.style(t, sp, {"flex-direction": "column", "align-self": "stretch"})
+    so = visible(t, tvi, rvi, sp, V_REGLAGES, f"{NOM_ZONE}-bande-ouverte")
+    t.styles.style(t, so, {"flex-direction": "column", "align-self": "stretch"})
+    bande = boite(t, src, so, {"flex-direction": "column", "align-self": "stretch", "background-color": rgba(FOND_BANDE),
+                               **_cadre(BORD_BANDE, 1, 6), "padding-left": 12, "padding-right": 12,
+                               "padding-top": 7, "padding-bottom": 9, "margin-bottom": 6})
+    tete = boite(t, src, bande, {"flex-direction": "row", "align-items": "center"})
+    sans_clic(t, texte_fixe(t, ttx, rtx, tete, TEXTE_BANDE, ["body-sm-strong"],
+                            {"color": rgba(TEXTE_TITRE_BANDE), "font-size": 11, "white-space": "nowrap"}))
+    sans_clic(t, texte_fixe(t, ttx, rtx, tete, TEXTE_BANDE_2, [],
+                            {"color": rgba(TEXTE_SOUS_TITRE), "font-size": 11, "white-space": "nowrap",
+                             "margin-left": 10}))
+    champs = boite(t, src, bande, {"flex-direction": "row", "flex-wrap": "wrap", "align-items": "flex-end"})
+    nommer(t, champs, f"{NOM_ZONE}-reglages")
+    # v25 : le style, un menu de FM ; v32 : dans la bande, son nom en mots (plus de lettre) au menu fermé
+    poser_menu(t, src, y, champ_reglage(t, src, champs, TEXTE_CHAMP_STYLE), None, V_STYLE, len(ORDRE_STYLES),
+               CL_MENU_STYLE, None, GUID_LIGNE_STYLE, regle_selecteurs, CSS_MENU_BANDE)
     tl, rl = src["liste"]
     li = seul(t, tl, rl, r, f"{NOM_ZONE}-liste")
     sd = t.sd(li)
@@ -2725,8 +3428,9 @@ def cat_poser(t, src, y, style):
     regle_selecteurs(t, [[(".", CL_ZONE)]], [(ID_DISPLAY, "", [(1, MOT_AUCUN)])])
     regle_selecteurs(t, [[("#", n), (".", CL_ZONE)] for n in NOMS_MESSAGES], [(ID_DISPLAY, "", [(7, "flex")])])
     regle_selecteurs(t, [[("#", n), (".", CL_TABLEAU)] for n in NOMS_MESSAGES], [(ID_DISPLAY, "", [(1, MOT_AUCUN)])])
-    return [f"grille de cartes (une par jeune) et « {TEXTE_TOUT} » dans chaque catégorie ; dans les messages "
-            f"seulement (le tableau d'Alex y est caché) ; écran Candidats juniors inchangé"]
+    return [f"grille de cartes (une par jeune) et « {TEXTE_TOUT} » dans chaque catégorie ; « {TEXTE_REGLAGES} » et "
+            f"la bande des réglages (repliée) sur la 1re rangée affichée seulement ; dans les messages seulement (le "
+            f"tableau d'Alex y est caché) ; écran Candidats juniors inchangé"]
 
 
 def cat_retirer(t, t_orig):
@@ -2813,8 +3517,9 @@ def cmd_appliquer():
         if nos_elements(w[3]):
             print(f"{MODELE_LIGNE_STYLE} : pas de sauvegarde d'origine propre, rien n'est changé")
             return
-        msgs = construire_ligne_menu(w[3], y, [STYLES[s]["nom"] for s in ORDRE_STYLES], NOM_LIGNE_STYLE,
-                                     [s.upper() for s in ORDRE_STYLES], LARGEUR_LIGNE_STYLE)
+        # v32 : le nom en mots, au menu fermé comme dans la liste (plus de lettre), et une phrase dans la liste
+        msgs = construire_ligne_menu(w[3], y, [NOMS_MENU_STYLE[s][0] for s in ORDRE_STYLES], NOM_LIGNE_STYLE,
+                                     None, LARGEUR_LIGNE_STYLE, descs=[NOMS_MENU_STYLE[s][1] for s in ORDRE_STYLES])
         for x in msgs:
             print(f"{MODELE_LIGNE_STYLE} : {x}")
         if any("introuvable" in x for x in msgs):
@@ -2869,6 +3574,7 @@ def cmd_appliquer():
     if not nb.DRY_RUN:
         with open(MARKER, "w", encoding="utf-8") as f:
             json.dump({"actif": True, "version": VERSION, "style_depart": style}, f)
+    dire_langues()   # v33
     revelation("appliquer")   # v30
 
 

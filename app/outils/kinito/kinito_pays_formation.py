@@ -86,6 +86,12 @@ Comment (tout mesuré le 07/11/2026, dans le code du jeu et EN JEU par la sonde 
   la plage relevée en jeu (PLAGES_TROUVEES), écrite en dur ; tout ce qui est décrit plus haut sur la liste des clubs,
   le 1er et les derniers clubs, la garde des règles, est retiré.
 
+- v11, LA LANGUE DU JEU (Kinito, 13/11 : « Oui, traduis ») : la langue réglée dans FM, lue en direct (recette 19 :
+  le conteneur de FM de tdd-messages-banner, un interrupteur par langue) ; titres : ceux de FM (« Youth Rating »,
+  « Youth Intake » et leurs traductions), en français ceux de Kinito ; dates : les mois abrégés, l'ordre du jour et du
+  mois et les ordinaux de FM dans chaque langue (« 9th Mar », « 9. Mär », « 3月9日 »), tirés de son fichier de langues ;
+  les notes (chiffres) et « Hommes » / « Femmes » (textes de FM) suivaient déjà la langue.
+
 Touché : NationSiteHeaderTemplate (bundle global) : UNE enveloppe à nous dans #RHS, après la case Population et son
 trait (nom UIPickerKinito-pays-formation-v<n>), ses règles de style intégrées ; v5, NationalTeamSiteHeader (bundle
 gameworld) : UNE enveloppe à nous après Classement mondial et son trait (UIPickerKinito-pays-formation-selection-v<n>).
@@ -130,6 +136,8 @@ NOTE_H, NOTE_F = "Nation.MainMenTeamContainer.YouthRating", "Nation.MainWomanTea
 # jeunes", c'est tout, rien de plus » ; « pour la note on met "Note de formation jeune" », corrigé en « des jeunes »,
 # comme l'autre titre). Texte fixe, comme les valeurs : plus le titre de FM « Niveau général de la formation » (n° 37377)
 # ni ses « Arrivées des jeunes : 2032 » / « Arrivées des jeunes en » (n° 14242 et 14243, avec l'année du 1er club).
+# v11 : ces deux titres sont ceux du FRANÇAIS ; dans les autres langues du jeu, ceux de FM (« Youth Rating »,
+# « Youth Intake » et leurs traductions : LANGUES_PAGE)
 TITRE_NOTE = "Note de formation des jeunes"
 TITRE_ARRIVEE = "Arrivée des jeunes"
 T_HOMMES, T_FEMMES = (20775, "Mens"), (20776, "Womens")    # onglets de FM de la liste des clubs (ClubsListPanel)
@@ -141,6 +149,11 @@ ESPACE_GENRE = 10        # entre la note des hommes et « Femmes »
 
 # v4 : la note sur 200 au départ (table NOTES_DEPART ci-dessous), choisie par l'identifiant du pays de la page
 UID_PAYS = "Nation.UniqueId"
+# v11 : la langue du jeu (recette 19, celle de 26.13 v24 et 26.18) : le conteneur de FM de tdd-messages-banner (bundle
+# global) qui lit le réglage de langue, et son interrupteur (texte == languagesetting.PropertyValue)
+SOURCE_LANGUE = "tdd-messages-banner"
+FONCTION_LANGUE = "7980ef35a33c35e43940a2b7add470dd"
+LANGUE_DEFAUT = "english"   # aussi « english (us) » (mêmes textes) et une langue que FM 27 n'a pas (czech, thai…)
 SOURCE_COMMUTATEUR = "ActiveNationCheckbox"               # un BindableSwitchElement du MÊME bundle (global) que l'en-tête
 SOURCE_COMPARAISON = ("ClubBoardTile_4x8", "f6f314e9")    # BindIntComparisonToSwitch, liaison d'un commutateur de FM
 EGAL = 2                                                  # ComparisonOperator.Equal (SI.VisualScripting : 0 <, 1 <=, 2 ==)
@@ -414,244 +427,365 @@ NOTES_DEPART = {   # identifiant du pays : (hommes, femmes), sur 200
     82082540: (1, 0),   # Antilles néerlandaises
 }
 
-# v6-v10 : la PLAGE D'ARRIVÉE DES JEUNES de chaque pays, relevée par FMSonde 0.27.3 et 0.27.4 (Ctrl+Maj+F7, 09/11/2026) :
+# v6-v11 : la PLAGE D'ARRIVÉE DES JEUNES de chaque pays, relevée par FMSonde 0.27.3 et 0.27.4 (Ctrl+Maj+F7, 09/11/2026) :
 # la liste « Arrivées jeunes » de chaque pays, mois par mois, sur 5 saisons d'une partie simulée (base complète, jeu
 # 27.0.0.2493426) ; jour de début et de fin les plus fréquents. v10 : écrite EN DUR pour TOUS les pays (plus aucune
-# lecture de club) ; un pays à règles propres a ses dates à lui (France 9 mar - 6 avr) : la partie Rodez et la partie
-# simulée ont les mêmes 70 règles (pays et sexe). Une 2e période qui revient (3 saisons ou plus) suit une virgule ;
-# « — » : aucune arrivée en 5 saisons. Mois : les abréviations de FM (fichier de langues, 0x1003d02c à 0x1003d037).
-# Écrite par FM27-mod/outils/plages-pour-skin.mjs (chantier-pays/plages-skin-FM27.json) : ne pas la retoucher à la main.
-PLAGES_TROUVEES = {   # identifiant du pays : (hommes, femmes)
-    5: ("8 avr - 6 mai", "8 avr - 13 avr"),   # Algérie
-    6: ("8 avr - 6 mai", "8 avr - 10 avr"),   # Angola
-    7: ("9 avr - 26 avr", "8 avr"),   # Bénin
-    8: ("8 avr - 6 mai", "8 avr - 18 avr"),   # Botswana
-    9: ("8 avr - 6 mai", "9 avr - 12 avr"),   # Burkina Faso
-    10: ("8 avr - 1 mai", "8 avr - 11 avr"),   # Burundi
-    11: ("8 avr - 6 mai", "8 avr - 17 avr"),   # Cameroun
-    12: ("8 avr - 6 mai", "8 avr - 15 avr"),   # Cap-Vert
-    13: ("8 avr - 19 avr", "9 avr - 14 avr"),   # République centrafricaine
-    14: ("8 avr - 15 avr", "8 avr - 9 avr"),   # Tchad
-    15: ("8 avr - 14 avr", "8 avr - 12 avr"),   # Djibouti
-    16: ("29 mar - 26 avr", "8 avr - 17 avr"),   # Égypte
-    17: ("8 avr - 26 avr", "8 avr - 13 avr"),   # Guinée Équatoriale
-    18: ("8 avr - 6 mai", "8 avr - 12 avr"),   # Éthiopie
-    19: ("8 avr - 30 avr", "8 avr - 11 avr"),   # Gabon
-    20: ("8 avr - 6 mai", "8 avr - 10 avr"),   # Gambie
-    21: ("8 avr - 6 mai", "8 avr - 28 avr"),   # Ghana
-    22: ("8 avr - 2 mai", "9 avr - 10 avr"),   # Guinée
-    23: ("22 sep - 20 oct", "22 sep - 24 sep"),   # Guinée-Bissau
-    24: ("8 avr - 6 mai", "8 avr - 11 avr"),   # Côte d'Ivoire
-    25: ("8 avr - 6 mai", "8 avr - 26 avr"),   # Kenya
-    26: ("8 avr - 25 avr", "8 avr - 13 avr"),   # Lesotho
-    27: ("8 avr - 30 avr", "8 avr - 13 avr"),   # Liberia
-    28: ("8 avr - 7 mai", "—"),   # Libye
-    29: ("21 sep - 3 oct", "21 sep - 26 sep"),   # Madagascar
-    30: ("21 sep - 12 oct", "21 sep - 23 sep"),   # Malawi
-    31: ("21 sep - 19 oct", "21 sep - 25 sep"),   # Mali
-    32: ("8 avr - 2 mai", "8 avr - 11 avr"),   # Mauritanie
-    33: ("8 avr - 30 avr", "9 avr - 15 avr"),   # Île Maurice
-    34: ("8 avr - 6 mai", "8 avr - 30 avr"),   # Maroc
-    35: ("21 sep - 19 oct", "21 sep - 24 sep"),   # Mozambique
-    36: ("8 avr - 30 avr", "8 avr - 17 avr"),   # Namibie
-    37: ("8 avr - 23 avr", "8 avr - 15 avr"),   # Niger
-    38: ("8 avr - 6 mai", "8 avr - 17 avr"),   # Nigeria
-    39: ("8 avr - 1 mai", "8 avr - 10 avr"),   # Rwanda
-    40: ("21 sep - 13 oct", "21 sep - 26 sep"),   # São Tomé-et-Príncipe
-    41: ("8 avr - 6 mai", "9 avr - 11 avr"),   # Sénégal
-    42: ("8 avr - 27 avr", "8 avr - 13 avr"),   # Seychelles
-    43: ("8 avr - 18 avr", "8 avr - 13 avr"),   # Sierra Leone
-    44: ("21 sep - 7 oct", "—"),   # Somalie
-    45: ("3 avr - 1 mai", "8 avr - 24 avr"),   # Afrique du Sud
-    46: ("8 avr - 2 mai", "—"),   # Soudan
-    47: ("8 avr - 3 mai", "9 avr"),   # Eswatini
-    48: ("8 avr - 6 mai", "8 avr - 15 avr"),   # Tanzanie
-    49: ("21 sep - 6 oct", "21 sep"),   # Congo
-    50: ("8 avr - 5 mai", "9 avr - 13 avr"),   # Togo
-    51: ("8 avr - 6 mai", "8 avr - 17 avr"),   # Tunisie
-    52: ("8 avr - 6 mai", "8 avr - 18 avr"),   # Ouganda
-    53: ("8 avr - 6 mai", "9 avr - 10 avr"),   # République démocratique du Congo
-    54: ("8 avr - 6 mai", "8 avr - 29 avr"),   # Zambie
-    55: ("21 sep - 19 oct", "21 sep - 23 sep"),   # Zimbabwe
-    106: ("22 sep - 2 oct", "—"),   # Afghanistan
-    107: ("8 avr - 1 mai", "8 avr - 14 avr"),   # Bahreïn
-    108: ("21 sep - 20 oct", "21 sep - 25 sep"),   # Bangladesh
-    109: ("8 avr - 29 avr", "—"),   # Sultanat de Brunei
-    110: ("5 oct - 2 nov", "21 sep - 3 nov"),   # Chine
-    111: ("20 avr - 18 mai", "8 avr - 6 mai"),   # Hong Kong (RP de Chine)
-    112: ("3 avr - 1 mai", "9 avr - 16 avr"),   # Inde
-    113: ("23 jui", "8 avr - 23 avr"),   # Indonésie
-    114: ("8 avr - 6 mai", "8 avr - 18 avr"),   # Iran
-    115: ("8 avr - 6 mai", "8 avr - 10 avr"),   # Irak
-    116: ("13 mar - 10 avr", "20 mar - 17 avr"),   # Japon
-    117: ("8 avr - 6 mai", "8 avr - 16 avr"),   # Jordanie
-    118: ("21 sep - 10 oct", "21 sep - 26 sep"),   # Cambodge
-    119: ("21 sep - 19 oct", "21 sep - 11 oct"),   # Kazakhstan
-    120: ("8 avr - 26 avr", "—"),   # Koweït
-    121: ("21 sep - 19 oct", "21 sep - 30 sep"),   # Kirghizistan
-    122: ("8 avr - 6 mai", "9 avr - 13 avr"),   # Laos
-    123: ("8 avr - 6 mai", "8 avr - 20 avr"),   # Liban
-    124: ("21 sep - 19 oct", "21 sep - 26 sep"),   # Macao (RP de Chine)
-    125: ("20 mar - 17 avr", "8 avr - 29 avr"),   # Malaisie
-    126: ("21 sep - 24 sep", "22 sep - 29 sep"),   # Maldives
-    127: ("21 sep - 19 oct", "21 sep - 23 sep"),   # Birmanie
-    128: ("22 sep - 17 oct", "21 sep - 26 sep"),   # Népal
-    129: ("21 sep - 6 oct", "21 sep - 27 sep"),   # Corée du Nord
-    130: ("8 avr - 6 mai", "—"),   # Oman
-    131: ("8 avr - 23 avr", "9 avr - 15 avr"),   # Pakistan
-    132: ("8 avr - 1 mai", "—"),   # Qatar
-    133: ("9 mar - 6 avr", "8 avr - 2 mai"),   # Arabie saoudite
-    134: ("13 avr - 11 mai", "8 avr - 29 avr"),   # Singapour
-    135: ("19 sep - 17 oct", "21 sep - 28 sep"),   # Corée du Sud
-    136: ("22 sep - 29 sep", "21 sep - 24 sep"),   # Sri Lanka
-    137: ("8 avr - 6 mai", "8 avr - 15 avr"),   # Syrie
-    138: ("21 sep - 19 oct", "21 sep - 22 sep"),   # Taipei chinois (RP de Chine)
-    139: ("21 sep - 17 oct", "21 sep - 29 sep"),   # Tadjikistan
-    140: ("8 avr - 6 mai", "8 avr - 16 avr"),   # Thaïlande
-    141: ("22 sep - 5 oct", "21 sep - 23 sep"),   # Philippines
-    142: ("21 sep - 30 sep", "21 sep - 1 oct"),   # Turkménistan
-    143: ("4 mar - 1 avr", "8 avr - 20 avr"),   # Émirats arabes unis
-    144: ("21 sep - 19 oct", "21 sep - 7 oct"),   # Ouzbékistan
-    145: ("21 sep - 19 oct", "21 sep - 24 sep"),   # Vietnam
-    146: ("8 avr - 27 avr", "8 avr - 11 avr"),   # Yémen
-    359: ("8 avr - 14 avr", "8 avr - 10 avr"),   # Antigua-et-Barbuda
-    360: ("8 avr - 18 avr", "8 avr - 15 avr"),   # Aruba
-    361: ("22 sep - 29 sep", "22 sep - 23 sep"),   # Barbade
-    362: ("8 avr - 14 avr", "8 avr - 14 avr"),   # Bélize
-    363: ("8 avr - 20 avr", "9 avr - 13 avr"),   # Bermudes
-    364: ("21 sep - 19 oct", "21 sep - 19 oct"),   # Canada
-    365: ("9 avr - 15 avr", "8 avr - 15 avr"),   # Îles Caïmans
-    366: ("8 avr - 6 mai", "8 avr - 18 avr"),   # Costa Rica
-    367: ("21 sep - 26 sep", "22 sep - 25 sep"),   # Cuba
-    368: ("8 avr - 16 avr", "8 avr - 14 avr"),   # Dominique
-    370: ("8 avr - 6 mai", "8 avr - 23 avr"),   # Salvador
-    371: ("21 sep - 28 sep", "21 sep - 24 sep"),   # Grenade
-    373: ("8 avr - 6 mai", "9 avr - 20 avr"),   # Guatemala
-    374: ("21 sep - 1 oct", "21 sep - 23 sep"),   # Guyana
-    375: ("21 sep - 9 oct", "22 sep - 25 sep"),   # Haïti
-    376: ("8 avr - 6 mai", "9 avr - 17 avr"),   # Honduras
-    377: ("8 avr - 6 mai", "8 avr - 22 avr"),   # Jamaïque
-    379: ("3 mar - 31 mar", "8 avr - 25 avr"),   # Mexique
-    380: ("8 avr - 17 avr", "9 avr - 14 avr"),   # Curaçao
-    381: ("8 avr - 6 mai", "9 avr - 15 avr"),   # Nicaragua
-    382: ("8 avr - 4 mai", "8 avr - 23 avr"),   # Panama
-    383: ("8 avr - 22 avr", "8 avr - 13 avr"),   # Porto Rico
-    384: ("21 sep - 5 oct", "22 sep"),   # Sainte-Lucie
-    385: ("8 avr - 22 avr", "8 avr - 12 avr"),   # Saint-Kitts et Névis
-    386: ("21 sep - 2 oct", "22 sep"),   # Saint-Vincent
-    387: ("—", "9 avr - 13 avr"),   # Suriname
-    388: ("8 avr - 13 avr", "8 avr - 14 avr"),   # Bahamas
-    389: ("8 avr - 6 mai", "9 avr - 12 avr"),   # Trinité-et-Tobago
-    390: ("21 sep - 22 sep", "21 sep - 24 sep"),   # États-Unis
-    752: ("8 avr - 6 mai", "8 avr - 20 avr"),   # Albanie
-    753: ("8 avr - 25 avr", "—"),   # Andorre
-    754: ("8 avr - 6 mai", "8 avr - 18 avr"),   # Arménie
-    755: ("8 mar - 5 avr", "8 avr - 6 mai"),   # Autriche
-    756: ("8 avr - 6 mai", "8 avr - 21 avr"),   # Azerbaïdjan
-    757: ("19 mar - 16 avr", "8 avr - 6 mai"),   # Belgique
-    758: ("5 oct - 2 nov", "21 sep - 6 oct"),   # Biélorussie
-    759: ("8 avr - 6 mai", "8 avr - 16 avr"),   # Bosnie-Herzégovine
-    760: ("7 mar - 4 avr", "8 avr - 11 avr"),   # Bulgarie
-    761: ("9 mar - 6 avr", "8 avr - 26 avr"),   # Croatie
-    762: ("8 avr - 6 mai", "8 avr - 17 avr"),   # Chypre
-    763: ("19 mar - 16 avr", "8 avr - 27 avr"),   # République tchèque
-    764: ("19 mar - 16 avr", "19 mar - 8 avr"),   # Danemark
-    765: ("14 mar - 11 avr", "14 mar - 11 avr"),   # Angleterre
-    766: ("21 sep - 19 oct", "21 sep - 4 oct"),   # Estonie
-    767: ("21 sep - 8 oct", "21 sep - 28 sep"),   # Îles Féroé
-    768: ("13 sep - 11 oct", "21 sep - 19 oct"),   # Finlande
-    769: ("9 mar - 6 avr, 20 juin", "9 mar - 6 avr"),   # France
-    770: ("21 sep - 19 oct", "21 sep - 16 oct"),   # Géorgie
-    771: ("9 mar - 6 avr", "9 mar - 6 avr"),   # Allemagne
-    772: ("9 mar - 7 avr", "8 avr - 6 mai"),   # Grèce
-    773: ("9 mar - 6 avr", "8 avr - 22 avr"),   # Hongrie
-    774: ("13 sep - 11 oct", "21 sep - 15 oct"),   # Islande
-    775: ("9 mar - 7 avr", "8 avr - 6 mai"),   # Israël
-    776: ("18 mar - 15 avr", "19 mar - 16 avr"),   # Italie
-    777: ("21 sep - 19 oct", "21 sep - 2 oct"),   # Lettonie
-    778: ("—", "—"),   # Liechtenstein
-    779: ("21 sep - 20 oct", "21 sep - 3 oct"),   # Lituanie
-    780: ("8 avr - 6 mai", "8 avr - 4 mai"),   # Luxembourg
-    781: ("8 avr - 6 mai", "8 avr - 28 avr"),   # Macédoine du Nord
-    782: ("8 avr - 6 mai", "8 avr - 16 avr"),   # Malte
-    783: ("21 sep - 19 oct", "21 sep - 22 sep"),   # Moldavie
-    784: ("26 mar - 23 avr", "8 avr - 24 avr"),   # Pays-Bas
-    785: ("14 mar - 11 avr", "8 avr - 27 avr"),   # Irlande du Nord
-    786: ("6 fév - 5 mar", "21 sep - 19 oct, 7 fév - 8 fév"),   # Norvège
-    787: ("17 mar - 14 avr", "8 avr - 7 mai"),   # Pologne
-    788: ("19 mar - 16 avr", "8 avr - 6 mai"),   # Portugal
-    789: ("22 sep - 20 oct", "21 sep - 4 oct"),   # Irlande
-    790: ("19 mar - 16 avr", "8 avr - 13 avr"),   # Roumanie
-    791: ("3 mar - 31 mar", "8 avr - 20 avr"),   # Russie
-    792: ("30 mar - 23 avr", "—"),   # Saint-Marin
-    793: ("14 mar - 11 avr", "8 avr - 6 mai"),   # Écosse
-    794: ("18 mar - 15 avr", "8 avr - 24 avr"),   # Slovaquie
-    795: ("20 mar - 17 avr", "8 avr - 23 avr"),   # Slovénie
-    796: ("29 mar - 26 avr", "29 mar - 26 avr"),   # Espagne
-    797: ("14 sep - 12 oct", "21 sep - 19 oct"),   # Suède
-    798: ("19 mar - 17 avr", "8 avr - 6 mai"),   # Suisse
-    799: ("9 mar - 6 avr", "8 avr - 7 mai"),   # Turquie
-    800: ("16 mar - 13 avr", "8 avr - 22 avr"),   # Ukraine
-    801: ("14 mar - 11 avr", "14 mar - 11 avr"),   # Pays de Galles
-    802: ("5 mar - 2 avr", "8 avr - 24 avr"),   # Serbie
-    1435: ("21 sep - 4 oct", "14 jan - 20 jan, 21 sep"),   # Australie
-    1436: ("21 sep - 27 sep", "21 sep - 23 sep"),   # Îles Cook
-    1437: ("21 sep - 11 oct", "21 sep - 25 sep"),   # Îles Fidji
-    1438: ("22 sep - 5 oct", "22 sep - 1 oct"),   # Nouvelle-Zélande
-    1439: ("21 sep - 4 oct", "22 sep - 25 sep"),   # Papouasie-Nouvelle-Guinée
-    1440: ("21 sep - 7 oct", "21 sep - 22 sep"),   # Îles Salomon
-    1441: ("8 avr - 6 mai", "9 avr"),   # Tahiti
-    1442: ("21 sep - 1 oct", "21 sep - 28 sep"),   # Îles Tonga
-    1443: ("8 avr - 2 mai", "8 avr - 13 avr"),   # Vanuatu
-    1444: ("8 avr - 19 avr", "8 avr - 11 avr"),   # Samoa
-    1649: ("27 avr - 25 mai", "21 sep - 19 oct, 1 mai - 4 mai"),   # Argentine
-    1650: ("21 sep - 20 oct", "21 sep - 9 oct"),   # Bolivie
-    1651: ("14 jan - 20 jan", "21 sep - 19 oct, 14 jan - 20 jan"),   # Brésil
-    1652: ("21 sep - 19 oct", "21 sep - 19 oct"),   # Chili
-    1653: ("17 jan - 14 fév", "21 sep - 19 oct"),   # Colombie
-    1654: ("21 sep - 19 oct", "21 sep - 18 oct"),   # Équateur
-    1655: ("21 sep - 19 oct", "21 sep - 4 oct"),   # Paraguay
-    1656: ("21 sep - 19 oct", "21 sep - 8 oct"),   # Pérou
-    1657: ("18 jan - 15 fév", "21 sep - 12 oct"),   # Uruguay
-    1658: ("21 sep - 19 oct", "21 sep - 18 oct"),   # Venezuela
-    1662: ("8 avr - 6 mai", "8 avr - 10 avr"),   # Palestine
-    129504: ("21 sep - 27 sep", "21 sep"),   # Samoa américaines
-    129505: ("21 sep - 8 oct", "22 sep"),   # Mongolie
-    129508: ("8 avr - 10 avr", "9 avr - 12 avr"),   # Guam
-    129511: ("22 sep - 28 sep", "21 sep - 22 sep"),   # Érythrée
-    129514: ("8 avr - 17 avr", "9 avr - 13 avr"),   # Anguilla
-    129517: ("21 sep - 29 sep", "22 sep - 25 sep"),   # Îles Vierges
-    129520: ("8 avr - 14 avr", "—"),   # Montserrat
-    129523: ("8 avr - 13 avr", "8 avr - 14 avr"),   # Îles Vierges US
-    129526: ("22 sep - 25 sep", "21 sep - 25 sep"),   # Îles Turks-et-Caïcos
-    129532: ("21 sep - 19 oct", "21 sep - 25 sep"),   # Nouvelle-Calédonie
-    131012: ("21 sep - 1 oct", "21 sep - 22 sep"),   # Bhoutan
-    142527: ("21 sep - 11 oct", "22 sep - 27 sep"),   # République dominicaine
-    209002: ("—", "—"),   # Kiribati
-    214394: ("9 mar - 20 mar", "8 avr - 12 avr"),   # Gibraltar
-    214395: ("22 sep - 30 sep", "21 sep - 25 sep"),   # Bonaire
-    217945: ("8 avr - 6 mai", "8 avr - 19 avr"),   # Kosovo
-    917496: ("21 sep - 20 oct", "22 sep - 25 sep"),   # Guyane
-    917498: ("8 avr - 9 avr", "8 avr - 18 avr"),   # Guadeloupe
-    917502: ("8 avr - 6 mai", "9 avr - 17 avr"),   # Martinique
-    917506: ("8 avr - 15 avr", "—"),   # Saint-Martin (PB)
-    917508: ("8 avr - 16 avr", "—"),   # Saint-Martin
-    917510: ("21 sep - 29 sep", "—"),   # La Réunion
-    918740: ("—", "—"),   # Mayotte
-    918745: ("—", "—"),   # Îles Wallis-et-Futuna
-    918748: ("—", "—"),   # Saint-Pierre-et-Miquelon
-    919586: ("22 sep - 9 oct", "21 sep - 22 sep"),   # Comores
-    5626837: ("21 sep - 9 oct", "21 sep - 26 sep"),   # Timor Oriental
-    13100103: ("—", "—"),   # Zanzibar
-    13113220: ("9 avr - 30 avr", "9 avr - 11 avr"),   # Soudan du Sud
-    15064643: ("9 avr", "—"),   # Micronésie
-    23008660: ("21 sep - 29 sep", "21 sep - 24 sep"),   # Îles Mariannes du Nord
-    23088616: ("21 sep - 22 sep", "—"),   # Tuvalu
-    62002127: ("8 avr - 6 mai", "8 avr - 20 avr"),   # Monténégro
-    82082526: ("9 avr - 10 avr", "—"),   # Saint-Barthélemy
+# lecture de club : FM se fermait sur la Géorgie et Gibraltar) ; un pays à règles propres a ses dates à lui (la partie
+# Rodez et la partie simulée ont les mêmes 70 règles). v11 : en chiffres (jour, mois de début, jour, mois de fin ; une
+# 2e période qui revient 3 saisons ou plus après la 1re ; [] : aucune arrivée en 5 saisons), écrite dans chaque langue
+# par ecrire_plages() avec LANGUES_PAGE. Écrite par FM27-mod/outils/plages-pour-skin.mjs (chantier-pays/
+# plages-skin-FM27.json) : ne pas la retoucher à la main.
+PLAGES_RELEVEES = {   # identifiant du pays : (hommes, femmes)
+    5: ([(8, 4, 6, 5)], [(8, 4, 13, 4)]),   # Algérie
+    6: ([(8, 4, 6, 5)], [(8, 4, 10, 4)]),   # Angola
+    7: ([(9, 4, 26, 4)], [(8, 4, 8, 4)]),   # Bénin
+    8: ([(8, 4, 6, 5)], [(8, 4, 18, 4)]),   # Botswana
+    9: ([(8, 4, 6, 5)], [(9, 4, 12, 4)]),   # Burkina Faso
+    10: ([(8, 4, 1, 5)], [(8, 4, 11, 4)]),   # Burundi
+    11: ([(8, 4, 6, 5)], [(8, 4, 17, 4)]),   # Cameroun
+    12: ([(8, 4, 6, 5)], [(8, 4, 15, 4)]),   # Cap-Vert
+    13: ([(8, 4, 19, 4)], [(9, 4, 14, 4)]),   # République centrafricaine
+    14: ([(8, 4, 15, 4)], [(8, 4, 9, 4)]),   # Tchad
+    15: ([(8, 4, 14, 4)], [(8, 4, 12, 4)]),   # Djibouti
+    16: ([(29, 3, 26, 4)], [(8, 4, 17, 4)]),   # Égypte
+    17: ([(8, 4, 26, 4)], [(8, 4, 13, 4)]),   # Guinée Équatoriale
+    18: ([(8, 4, 6, 5)], [(8, 4, 12, 4)]),   # Éthiopie
+    19: ([(8, 4, 30, 4)], [(8, 4, 11, 4)]),   # Gabon
+    20: ([(8, 4, 6, 5)], [(8, 4, 10, 4)]),   # Gambie
+    21: ([(8, 4, 6, 5)], [(8, 4, 28, 4)]),   # Ghana
+    22: ([(8, 4, 2, 5)], [(9, 4, 10, 4)]),   # Guinée
+    23: ([(22, 9, 20, 10)], [(22, 9, 24, 9)]),   # Guinée-Bissau
+    24: ([(8, 4, 6, 5)], [(8, 4, 11, 4)]),   # Côte d'Ivoire
+    25: ([(8, 4, 6, 5)], [(8, 4, 26, 4)]),   # Kenya
+    26: ([(8, 4, 25, 4)], [(8, 4, 13, 4)]),   # Lesotho
+    27: ([(8, 4, 30, 4)], [(8, 4, 13, 4)]),   # Liberia
+    28: ([(8, 4, 7, 5)], []),   # Libye
+    29: ([(21, 9, 3, 10)], [(21, 9, 26, 9)]),   # Madagascar
+    30: ([(21, 9, 12, 10)], [(21, 9, 23, 9)]),   # Malawi
+    31: ([(21, 9, 19, 10)], [(21, 9, 25, 9)]),   # Mali
+    32: ([(8, 4, 2, 5)], [(8, 4, 11, 4)]),   # Mauritanie
+    33: ([(8, 4, 30, 4)], [(9, 4, 15, 4)]),   # Île Maurice
+    34: ([(8, 4, 6, 5)], [(8, 4, 30, 4)]),   # Maroc
+    35: ([(21, 9, 19, 10)], [(21, 9, 24, 9)]),   # Mozambique
+    36: ([(8, 4, 30, 4)], [(8, 4, 17, 4)]),   # Namibie
+    37: ([(8, 4, 23, 4)], [(8, 4, 15, 4)]),   # Niger
+    38: ([(8, 4, 6, 5)], [(8, 4, 17, 4)]),   # Nigeria
+    39: ([(8, 4, 1, 5)], [(8, 4, 10, 4)]),   # Rwanda
+    40: ([(21, 9, 13, 10)], [(21, 9, 26, 9)]),   # São Tomé-et-Príncipe
+    41: ([(8, 4, 6, 5)], [(9, 4, 11, 4)]),   # Sénégal
+    42: ([(8, 4, 27, 4)], [(8, 4, 13, 4)]),   # Seychelles
+    43: ([(8, 4, 18, 4)], [(8, 4, 13, 4)]),   # Sierra Leone
+    44: ([(21, 9, 7, 10)], []),   # Somalie
+    45: ([(3, 4, 1, 5)], [(8, 4, 24, 4)]),   # Afrique du Sud
+    46: ([(8, 4, 2, 5)], []),   # Soudan
+    47: ([(8, 4, 3, 5)], [(9, 4, 9, 4)]),   # Eswatini
+    48: ([(8, 4, 6, 5)], [(8, 4, 15, 4)]),   # Tanzanie
+    49: ([(21, 9, 6, 10)], [(21, 9, 21, 9)]),   # Congo
+    50: ([(8, 4, 5, 5)], [(9, 4, 13, 4)]),   # Togo
+    51: ([(8, 4, 6, 5)], [(8, 4, 17, 4)]),   # Tunisie
+    52: ([(8, 4, 6, 5)], [(8, 4, 18, 4)]),   # Ouganda
+    53: ([(8, 4, 6, 5)], [(9, 4, 10, 4)]),   # République démocratique du Congo
+    54: ([(8, 4, 6, 5)], [(8, 4, 29, 4)]),   # Zambie
+    55: ([(21, 9, 19, 10)], [(21, 9, 23, 9)]),   # Zimbabwe
+    106: ([(22, 9, 2, 10)], []),   # Afghanistan
+    107: ([(8, 4, 1, 5)], [(8, 4, 14, 4)]),   # Bahreïn
+    108: ([(21, 9, 20, 10)], [(21, 9, 25, 9)]),   # Bangladesh
+    109: ([(8, 4, 29, 4)], []),   # Sultanat de Brunei
+    110: ([(5, 10, 2, 11)], [(21, 9, 3, 11)]),   # Chine
+    111: ([(20, 4, 18, 5)], [(8, 4, 6, 5)]),   # Hong Kong (RP de Chine)
+    112: ([(3, 4, 1, 5)], [(9, 4, 16, 4)]),   # Inde
+    113: ([(23, 7, 23, 7)], [(8, 4, 23, 4)]),   # Indonésie
+    114: ([(8, 4, 6, 5)], [(8, 4, 18, 4)]),   # Iran
+    115: ([(8, 4, 6, 5)], [(8, 4, 10, 4)]),   # Irak
+    116: ([(13, 3, 10, 4)], [(20, 3, 17, 4)]),   # Japon
+    117: ([(8, 4, 6, 5)], [(8, 4, 16, 4)]),   # Jordanie
+    118: ([(21, 9, 10, 10)], [(21, 9, 26, 9)]),   # Cambodge
+    119: ([(21, 9, 19, 10)], [(21, 9, 11, 10)]),   # Kazakhstan
+    120: ([(8, 4, 26, 4)], []),   # Koweït
+    121: ([(21, 9, 19, 10)], [(21, 9, 30, 9)]),   # Kirghizistan
+    122: ([(8, 4, 6, 5)], [(9, 4, 13, 4)]),   # Laos
+    123: ([(8, 4, 6, 5)], [(8, 4, 20, 4)]),   # Liban
+    124: ([(21, 9, 19, 10)], [(21, 9, 26, 9)]),   # Macao (RP de Chine)
+    125: ([(20, 3, 17, 4)], [(8, 4, 29, 4)]),   # Malaisie
+    126: ([(21, 9, 24, 9)], [(22, 9, 29, 9)]),   # Maldives
+    127: ([(21, 9, 19, 10)], [(21, 9, 23, 9)]),   # Birmanie
+    128: ([(22, 9, 17, 10)], [(21, 9, 26, 9)]),   # Népal
+    129: ([(21, 9, 6, 10)], [(21, 9, 27, 9)]),   # Corée du Nord
+    130: ([(8, 4, 6, 5)], []),   # Oman
+    131: ([(8, 4, 23, 4)], [(9, 4, 15, 4)]),   # Pakistan
+    132: ([(8, 4, 1, 5)], []),   # Qatar
+    133: ([(9, 3, 6, 4)], [(8, 4, 2, 5)]),   # Arabie saoudite
+    134: ([(13, 4, 11, 5)], [(8, 4, 29, 4)]),   # Singapour
+    135: ([(19, 9, 17, 10)], [(21, 9, 28, 9)]),   # Corée du Sud
+    136: ([(22, 9, 29, 9)], [(21, 9, 24, 9)]),   # Sri Lanka
+    137: ([(8, 4, 6, 5)], [(8, 4, 15, 4)]),   # Syrie
+    138: ([(21, 9, 19, 10)], [(21, 9, 22, 9)]),   # Taipei chinois (RP de Chine)
+    139: ([(21, 9, 17, 10)], [(21, 9, 29, 9)]),   # Tadjikistan
+    140: ([(8, 4, 6, 5)], [(8, 4, 16, 4)]),   # Thaïlande
+    141: ([(22, 9, 5, 10)], [(21, 9, 23, 9)]),   # Philippines
+    142: ([(21, 9, 30, 9)], [(21, 9, 1, 10)]),   # Turkménistan
+    143: ([(4, 3, 1, 4)], [(8, 4, 20, 4)]),   # Émirats arabes unis
+    144: ([(21, 9, 19, 10)], [(21, 9, 7, 10)]),   # Ouzbékistan
+    145: ([(21, 9, 19, 10)], [(21, 9, 24, 9)]),   # Vietnam
+    146: ([(8, 4, 27, 4)], [(8, 4, 11, 4)]),   # Yémen
+    359: ([(8, 4, 14, 4)], [(8, 4, 10, 4)]),   # Antigua-et-Barbuda
+    360: ([(8, 4, 18, 4)], [(8, 4, 15, 4)]),   # Aruba
+    361: ([(22, 9, 29, 9)], [(22, 9, 23, 9)]),   # Barbade
+    362: ([(8, 4, 14, 4)], [(8, 4, 14, 4)]),   # Bélize
+    363: ([(8, 4, 20, 4)], [(9, 4, 13, 4)]),   # Bermudes
+    364: ([(21, 9, 19, 10)], [(21, 9, 19, 10)]),   # Canada
+    365: ([(9, 4, 15, 4)], [(8, 4, 15, 4)]),   # Îles Caïmans
+    366: ([(8, 4, 6, 5)], [(8, 4, 18, 4)]),   # Costa Rica
+    367: ([(21, 9, 26, 9)], [(22, 9, 25, 9)]),   # Cuba
+    368: ([(8, 4, 16, 4)], [(8, 4, 14, 4)]),   # Dominique
+    370: ([(8, 4, 6, 5)], [(8, 4, 23, 4)]),   # Salvador
+    371: ([(21, 9, 28, 9)], [(21, 9, 24, 9)]),   # Grenade
+    373: ([(8, 4, 6, 5)], [(9, 4, 20, 4)]),   # Guatemala
+    374: ([(21, 9, 1, 10)], [(21, 9, 23, 9)]),   # Guyana
+    375: ([(21, 9, 9, 10)], [(22, 9, 25, 9)]),   # Haïti
+    376: ([(8, 4, 6, 5)], [(9, 4, 17, 4)]),   # Honduras
+    377: ([(8, 4, 6, 5)], [(8, 4, 22, 4)]),   # Jamaïque
+    379: ([(3, 3, 31, 3)], [(8, 4, 25, 4)]),   # Mexique
+    380: ([(8, 4, 17, 4)], [(9, 4, 14, 4)]),   # Curaçao
+    381: ([(8, 4, 6, 5)], [(9, 4, 15, 4)]),   # Nicaragua
+    382: ([(8, 4, 4, 5)], [(8, 4, 23, 4)]),   # Panama
+    383: ([(8, 4, 22, 4)], [(8, 4, 13, 4)]),   # Porto Rico
+    384: ([(21, 9, 5, 10)], [(22, 9, 22, 9)]),   # Sainte-Lucie
+    385: ([(8, 4, 22, 4)], [(8, 4, 12, 4)]),   # Saint-Kitts et Névis
+    386: ([(21, 9, 2, 10)], [(22, 9, 22, 9)]),   # Saint-Vincent
+    387: ([], [(9, 4, 13, 4)]),   # Suriname
+    388: ([(8, 4, 13, 4)], [(8, 4, 14, 4)]),   # Bahamas
+    389: ([(8, 4, 6, 5)], [(9, 4, 12, 4)]),   # Trinité-et-Tobago
+    390: ([(21, 9, 22, 9)], [(21, 9, 24, 9)]),   # États-Unis
+    752: ([(8, 4, 6, 5)], [(8, 4, 20, 4)]),   # Albanie
+    753: ([(8, 4, 25, 4)], []),   # Andorre
+    754: ([(8, 4, 6, 5)], [(8, 4, 18, 4)]),   # Arménie
+    755: ([(8, 3, 5, 4)], [(8, 4, 6, 5)]),   # Autriche
+    756: ([(8, 4, 6, 5)], [(8, 4, 21, 4)]),   # Azerbaïdjan
+    757: ([(19, 3, 16, 4)], [(8, 4, 6, 5)]),   # Belgique
+    758: ([(5, 10, 2, 11)], [(21, 9, 6, 10)]),   # Biélorussie
+    759: ([(8, 4, 6, 5)], [(8, 4, 16, 4)]),   # Bosnie-Herzégovine
+    760: ([(7, 3, 4, 4)], [(8, 4, 11, 4)]),   # Bulgarie
+    761: ([(9, 3, 6, 4)], [(8, 4, 26, 4)]),   # Croatie
+    762: ([(8, 4, 6, 5)], [(8, 4, 17, 4)]),   # Chypre
+    763: ([(19, 3, 16, 4)], [(8, 4, 27, 4)]),   # République tchèque
+    764: ([(19, 3, 16, 4)], [(19, 3, 8, 4)]),   # Danemark
+    765: ([(14, 3, 11, 4)], [(14, 3, 11, 4)]),   # Angleterre
+    766: ([(21, 9, 19, 10)], [(21, 9, 4, 10)]),   # Estonie
+    767: ([(21, 9, 8, 10)], [(21, 9, 28, 9)]),   # Îles Féroé
+    768: ([(13, 9, 11, 10)], [(21, 9, 19, 10)]),   # Finlande
+    769: ([(9, 3, 6, 4), (20, 6, 20, 6)], [(9, 3, 6, 4)]),   # France
+    770: ([(21, 9, 19, 10)], [(21, 9, 16, 10)]),   # Géorgie
+    771: ([(9, 3, 6, 4)], [(9, 3, 6, 4)]),   # Allemagne
+    772: ([(9, 3, 7, 4)], [(8, 4, 6, 5)]),   # Grèce
+    773: ([(9, 3, 6, 4)], [(8, 4, 22, 4)]),   # Hongrie
+    774: ([(13, 9, 11, 10)], [(21, 9, 15, 10)]),   # Islande
+    775: ([(9, 3, 7, 4)], [(8, 4, 6, 5)]),   # Israël
+    776: ([(18, 3, 15, 4)], [(19, 3, 16, 4)]),   # Italie
+    777: ([(21, 9, 19, 10)], [(21, 9, 2, 10)]),   # Lettonie
+    778: ([], []),   # Liechtenstein
+    779: ([(21, 9, 20, 10)], [(21, 9, 3, 10)]),   # Lituanie
+    780: ([(8, 4, 6, 5)], [(8, 4, 4, 5)]),   # Luxembourg
+    781: ([(8, 4, 6, 5)], [(8, 4, 28, 4)]),   # Macédoine du Nord
+    782: ([(8, 4, 6, 5)], [(8, 4, 16, 4)]),   # Malte
+    783: ([(21, 9, 19, 10)], [(21, 9, 22, 9)]),   # Moldavie
+    784: ([(26, 3, 23, 4)], [(8, 4, 24, 4)]),   # Pays-Bas
+    785: ([(14, 3, 11, 4)], [(8, 4, 27, 4)]),   # Irlande du Nord
+    786: ([(6, 2, 5, 3)], [(21, 9, 19, 10), (7, 2, 8, 2)]),   # Norvège
+    787: ([(17, 3, 14, 4)], [(8, 4, 7, 5)]),   # Pologne
+    788: ([(19, 3, 16, 4)], [(8, 4, 6, 5)]),   # Portugal
+    789: ([(22, 9, 20, 10)], [(21, 9, 4, 10)]),   # Irlande
+    790: ([(19, 3, 16, 4)], [(8, 4, 13, 4)]),   # Roumanie
+    791: ([(3, 3, 31, 3)], [(8, 4, 20, 4)]),   # Russie
+    792: ([(30, 3, 23, 4)], []),   # Saint-Marin
+    793: ([(14, 3, 11, 4)], [(8, 4, 6, 5)]),   # Écosse
+    794: ([(18, 3, 15, 4)], [(8, 4, 24, 4)]),   # Slovaquie
+    795: ([(20, 3, 17, 4)], [(8, 4, 23, 4)]),   # Slovénie
+    796: ([(29, 3, 26, 4)], [(29, 3, 26, 4)]),   # Espagne
+    797: ([(14, 9, 12, 10)], [(21, 9, 19, 10)]),   # Suède
+    798: ([(19, 3, 17, 4)], [(8, 4, 6, 5)]),   # Suisse
+    799: ([(9, 3, 6, 4)], [(8, 4, 7, 5)]),   # Turquie
+    800: ([(16, 3, 13, 4)], [(8, 4, 22, 4)]),   # Ukraine
+    801: ([(14, 3, 11, 4)], [(14, 3, 11, 4)]),   # Pays de Galles
+    802: ([(5, 3, 2, 4)], [(8, 4, 24, 4)]),   # Serbie
+    1435: ([(21, 9, 4, 10)], [(14, 1, 20, 1), (21, 9, 21, 9)]),   # Australie
+    1436: ([(21, 9, 27, 9)], [(21, 9, 23, 9)]),   # Îles Cook
+    1437: ([(21, 9, 11, 10)], [(21, 9, 25, 9)]),   # Îles Fidji
+    1438: ([(22, 9, 5, 10)], [(22, 9, 1, 10)]),   # Nouvelle-Zélande
+    1439: ([(21, 9, 4, 10)], [(22, 9, 25, 9)]),   # Papouasie-Nouvelle-Guinée
+    1440: ([(21, 9, 7, 10)], [(21, 9, 22, 9)]),   # Îles Salomon
+    1441: ([(8, 4, 6, 5)], [(9, 4, 9, 4)]),   # Tahiti
+    1442: ([(21, 9, 1, 10)], [(21, 9, 28, 9)]),   # Îles Tonga
+    1443: ([(8, 4, 2, 5)], [(8, 4, 13, 4)]),   # Vanuatu
+    1444: ([(8, 4, 19, 4)], [(8, 4, 11, 4)]),   # Samoa
+    1649: ([(27, 4, 25, 5)], [(21, 9, 19, 10), (1, 5, 4, 5)]),   # Argentine
+    1650: ([(21, 9, 20, 10)], [(21, 9, 9, 10)]),   # Bolivie
+    1651: ([(14, 1, 20, 1)], [(21, 9, 19, 10), (14, 1, 20, 1)]),   # Brésil
+    1652: ([(21, 9, 19, 10)], [(21, 9, 19, 10)]),   # Chili
+    1653: ([(17, 1, 14, 2)], [(21, 9, 19, 10)]),   # Colombie
+    1654: ([(21, 9, 19, 10)], [(21, 9, 18, 10)]),   # Équateur
+    1655: ([(21, 9, 19, 10)], [(21, 9, 4, 10)]),   # Paraguay
+    1656: ([(21, 9, 19, 10)], [(21, 9, 8, 10)]),   # Pérou
+    1657: ([(18, 1, 15, 2)], [(21, 9, 12, 10)]),   # Uruguay
+    1658: ([(21, 9, 19, 10)], [(21, 9, 18, 10)]),   # Venezuela
+    1662: ([(8, 4, 6, 5)], [(8, 4, 10, 4)]),   # Palestine
+    129504: ([(21, 9, 27, 9)], [(21, 9, 21, 9)]),   # Samoa américaines
+    129505: ([(21, 9, 8, 10)], [(22, 9, 22, 9)]),   # Mongolie
+    129508: ([(8, 4, 10, 4)], [(9, 4, 12, 4)]),   # Guam
+    129511: ([(22, 9, 28, 9)], [(21, 9, 22, 9)]),   # Érythrée
+    129514: ([(8, 4, 17, 4)], [(9, 4, 13, 4)]),   # Anguilla
+    129517: ([(21, 9, 29, 9)], [(22, 9, 25, 9)]),   # Îles Vierges
+    129520: ([(8, 4, 14, 4)], []),   # Montserrat
+    129523: ([(8, 4, 13, 4)], [(8, 4, 14, 4)]),   # Îles Vierges US
+    129526: ([(22, 9, 25, 9)], [(21, 9, 25, 9)]),   # Îles Turks-et-Caïcos
+    129532: ([(21, 9, 19, 10)], [(21, 9, 25, 9)]),   # Nouvelle-Calédonie
+    131012: ([(21, 9, 1, 10)], [(21, 9, 22, 9)]),   # Bhoutan
+    142527: ([(21, 9, 11, 10)], [(22, 9, 27, 9)]),   # République dominicaine
+    209002: ([], []),   # Kiribati
+    214394: ([(9, 3, 20, 3)], [(8, 4, 12, 4)]),   # Gibraltar
+    214395: ([(22, 9, 30, 9)], [(21, 9, 25, 9)]),   # Bonaire
+    217945: ([(8, 4, 6, 5)], [(8, 4, 19, 4)]),   # Kosovo
+    917496: ([(21, 9, 20, 10)], [(22, 9, 25, 9)]),   # Guyane
+    917498: ([(8, 4, 9, 4)], [(8, 4, 18, 4)]),   # Guadeloupe
+    917502: ([(8, 4, 6, 5)], [(9, 4, 17, 4)]),   # Martinique
+    917506: ([(8, 4, 15, 4)], []),   # Saint-Martin (PB)
+    917508: ([(8, 4, 16, 4)], []),   # Saint-Martin
+    917510: ([(21, 9, 29, 9)], []),   # La Réunion
+    918740: ([], []),   # Mayotte
+    918745: ([], []),   # Îles Wallis-et-Futuna
+    918748: ([], []),   # Saint-Pierre-et-Miquelon
+    919586: ([(22, 9, 9, 10)], [(21, 9, 22, 9)]),   # Comores
+    5626837: ([(21, 9, 9, 10)], [(21, 9, 26, 9)]),   # Timor Oriental
+    13100103: ([], []),   # Zanzibar
+    13113220: ([(9, 4, 30, 4)], [(9, 4, 11, 4)]),   # Soudan du Sud
+    15064643: ([(9, 4, 9, 4)], []),   # Micronésie
+    23008660: ([(21, 9, 29, 9)], [(21, 9, 24, 9)]),   # Îles Mariannes du Nord
+    23088616: ([(21, 9, 22, 9)], []),   # Tuvalu
+    62002127: ([(8, 4, 6, 5)], [(8, 4, 20, 4)]),   # Monténégro
+    82082526: ([(9, 4, 10, 4)], []),   # Saint-Barthélemy
 }
 
-VERSION = 10   # v1 (07/11/2026) : première version, construite par Claude seul (Kinito absent) ; vue en jeu le même
+# v11 : pour chaque valeur du réglage de langue de FM (languagesetting.PropertyValue), de quoi écrire une date comme FM et
+# les deux titres. Recopié du fichier de langues du jeu (languages.fmf) par identifiant, jamais retapé (même outil) :
+# mois abrégés 0x1003d02c-37 ; ordre du jour et du mois 0x1003d01a ({j} le jour, {m} le mois ; « -nth » chez FM :
+# le jour prend son ordinal) ; ordinaux 0x1003d045 (le 1) puis 0x1003d046-49 (1st, 2nd, 3rd, 4th) ; titres « Youth
+# Rating » 0x10050372 et « Youth Intake » 0x1004d566 de FM ; en français, ceux de Kinito. « spanish (latam) » :
+# l'espagnol (la table du jeu est partielle) ; « portuguese (bra) » : le portugais du jeu (une seule table).
+LANGUES_PAGE = {
+    "arabic": dict(   # اَلْعَرَبِيَّةُ
+        mois=('يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'),
+        motif="{j} {m}", ordinaux=('{n}', '{n}', '{n}', '{n}', '{n}'),
+        note="تقييم فرق الشباب", arrivee="قبول الناشئين"),
+    "chinese": dict(   # 简体中文
+        mois=('1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'),
+        motif="{m}{j}日", ordinaux=('{n}', '{n}', '{n}', '{n}', '{n}'),
+        note="青​训评​分", arrivee="青​年队​转入"),
+    "danish": dict(   # Dansk
+        mois=('Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Juni', 'Juli', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'),
+        motif="{j} {m}", ordinaux=('{n}.', '{n}.', '{n}.', '{n}.', '{n}.'),
+        note="Ungdomskarakter", arrivee="Ungdomsspillere tilført"),
+    "dutch": dict(   # Nederlands
+        mois=('jan', 'feb', 'maa', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'),
+        motif="{j} {m}", ordinaux=('{n}e', '{n}e', '{n}e', '{n}e', '{n}e'),
+        note="Jeugdwaardering", arrivee="Ingestroomde jeugdspelers"),
+    "english": dict(   # English
+        mois=('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'),
+        motif="{j} {m}", ordinaux=('{n}st', '{n}st', '{n}nd', '{n}rd', '{n}th'),
+        note="Youth Rating", arrivee="Youth Intake"),
+    "english (us)": dict(   # English (US)
+        mois=('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'),
+        motif="{j} {m}", ordinaux=('{n}st', '{n}st', '{n}nd', '{n}rd', '{n}th'),
+        note="Youth Rating", arrivee="Youth Intake"),
+    "french": dict(   # Français
+        mois=('jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'jui', 'aoû', 'sep', 'oct', 'nov', 'déc'),
+        motif="{j} {m}", ordinaux=None,
+        note="Note de formation des jeunes", arrivee="Arrivée des jeunes"),
+    "german": dict(   # Deutsch
+        mois=('Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'),
+        motif="{j} {m}", ordinaux=('{n}.', '{n}.', '{n}.', '{n}.', '{n}.'),
+        note="Jugendbewertung", arrivee="Aufnahme von Jugendspielern"),
+    "greek": dict(   # Ελληνικά
+        mois=('Ιαν', 'Φεβ', 'Μαρ', 'Απρ', 'Μαι', 'Ιουν', 'Ιουλ', 'Αυγ', 'Σεπ', 'Οκτ', 'Νοε', 'Δεκ'),
+        motif="{j}η {m}", ordinaux=None,
+        note="Αξιολόγηση Ακαδημιών", arrivee="Εισροή Παικτών Ομάδας Νέων"),
+    "indonesian": dict(   # Bahasa Indonesia
+        mois=('Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'),
+        motif="{j} {m}", ordinaux=None,
+        note="Rating Pemuda", arrivee="Penerimaan Pemain Muda"),
+    "italian": dict(   # Italiano
+        mois=('Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'),
+        motif="{j} {m}", ordinaux=None,
+        note="Valutazione giovani", arrivee="Giovani del vivaio"),
+    "japanese": dict(   # 日本語
+        mois=('1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'),
+        motif="{m}{j}日", ordinaux=('{n}', '{n}', '{n}', '{n}', '{n}'),
+        note="ユース​評価点", arrivee="ユース​加入"),
+    "korean": dict(   # 한국어
+        mois=('1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'),
+        motif="{m} {j}일", ordinaux=('{n}', '{n}', '{n}', '{n}', '{n}'),
+        note="유소년 평점", arrivee="유소년 입학"),
+    "norwegian": dict(   # Norsk
+        mois=('Jan', 'Feb', 'Mar', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Des'),
+        motif="{j} {m}", ordinaux=('{n}.', '{n}.', '{n}.', '{n}.', '{n}.'),
+        note="Ungdomsrating", arrivee="Inntak av unge spillere"),
+    "polish": dict(   # Polski
+        mois=('sty.', 'lut.', 'mar.', 'kwi.', 'maj', 'cze.', 'lip.', 'sie.', 'wrz.', 'paź.', 'lis.', 'gru.'),
+        motif="{j} {m}", ordinaux=None,
+        note="Poziom juniorów", arrivee="Nabór juniorów"),
+    "portuguese": dict(   # Português
+        mois=('Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'),
+        motif="{j} {m}", ordinaux=None,
+        note="Classificação Jovem", arrivee="Contratação de Jovens"),
+    "portuguese (bra)": dict(   # Português
+        mois=('Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'),
+        motif="{j} {m}", ordinaux=None,
+        note="Classificação Jovem", arrivee="Contratação de Jovens"),
+    "russian": dict(   # Русский
+        mois=('Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'),
+        motif="{j} {m}", ordinaux=('{n}', '{n}', '{n}', '{n}', '{n}'),
+        note="Молодежный рейтинг", arrivee="Из молодежной команды"),
+    "spanish": dict(   # Español
+        mois=('ene.', 'feb.', 'mar.', 'abr.', 'may.', 'jun.', 'jul.', 'ago.', 'sep.', 'oct.', 'nov.', 'dic.'),
+        motif="{j} {m}", ordinaux=('{n}', '{n}', '{n}', '{n}', '{n}'),
+        note="Valoración juvenil", arrivee="Juveniles admitidos"),
+    "spanish (latam)": dict(   # Español
+        mois=('ene.', 'feb.', 'mar.', 'abr.', 'may.', 'jun.', 'jul.', 'ago.', 'sep.', 'oct.', 'nov.', 'dic.'),
+        motif="{j} {m}", ordinaux=('{n}', '{n}', '{n}', '{n}', '{n}'),
+        note="Valoración juvenil", arrivee="Juveniles admitidos"),
+    "swedish": dict(   # Svenska
+        mois=('jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'),
+        motif="{j} {m}", ordinaux=('{n}:a', '{n}:a', '{n}:a', '{n}:e', '{n}:e'),
+        note="Ungdomsranking", arrivee="Ungdomsförvärv"),
+    "turkish": dict(   # Türkçe
+        mois=('Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'),
+        motif="{j} {m}", ordinaux=('{n}.', '{n}.', '{n}.', '{n}.', '{n}.'),
+        note="Altyapı Derecesi", arrivee="Altyapıya Oyuncu Alımı"),
+}
+
+# les titres de Kinito en français (v8) : les mêmes que ceux de la table
+assert (LANGUES_PAGE["french"]["note"], LANGUES_PAGE["french"]["arrivee"]) == (TITRE_NOTE, TITRE_ARRIVEE)
+
+def ecrire_date(lg, j, mo):
+    """v11 : une date (jour, mois) écrite comme FM dans la langue lg (LANGUES_PAGE)"""
+    l = LANGUES_PAGE[lg]
+    n = str(j)
+    if l["ordinaux"]:
+        un, o1, o2, o3, o4 = l["ordinaux"]
+        o = un if j == 1 else o1 if j % 10 == 1 and j % 100 != 11 else o2 if j % 10 == 2 and j % 100 != 12 \
+            else o3 if j % 10 == 3 and j % 100 != 13 else o4
+        n = o.replace("{n}", str(j))
+    return l["motif"].replace("{j}", n).replace("{m}", l["mois"][mo - 1])
+
+
+def ecrire_plages(lg, plages):
+    """v11 : les plages d'un pays (PLAGES_RELEVEES, un sexe) dans la langue lg : « 9 mar - 6 avr, 20 juin » ; « — »"""
+    if not plages:
+        return "—"
+    return ", ".join(ecrire_date(lg, j1, m1) if (j1, m1) == (j2, m2) else
+                     f"{ecrire_date(lg, j1, m1)} - {ecrire_date(lg, j2, m2)}" for j1, m1, j2, m2 in plages)
+
+
+VERSION = 11   # v1 (07/11/2026) : première version, construite par Claude seul (Kinito absent) ; vue en jeu le même
 #               soir : FM SE FERMAIT à l'ouverture d'une page Pays (2849202c recevait la liste au lieu d'un nombre).
 #               v2 : le nombre de clubs d'abord (2fe07f5c), puis nombre - 1 (2849202c), la chaîne exacte de FM ; vue en
 #               jeu le 07/11 au soir (France bonne, Bhoutan : note seule).
@@ -680,6 +814,9 @@ VERSION = 10   # v1 (07/11/2026) : première version, construite par Claude seul
 #               12/11 : la Géorgie passe, mais FM se ferme sur Gibraltar (à règles propres).
 #               v10 (12/11/2026) : plus AUCUNE lecture de club : la plage trouvée de chaque pays écrite en dur (Kinito :
 #               « afficher les dates qu'on a trouvées en dur pour tous les pays ») ; plus de date en direct ni d'année.
+#               Installée et validée par Kinito le 12/11 (43 pages Pays sans plantage).
+#               v11 (13/11/2026) : la page dans la langue du jeu (Kinito : « Oui, traduis ») : titres de FM (« Youth
+#               Rating », « Youth Intake » ; en français ceux de Kinito) et dates écrites comme FM dans chaque langue.
 PREFIXE = "UIPickerKinito-pays-formation"
 NOM = f"{PREFIXE}-v{VERSION}"
 NOM_SEL = f"{PREFIXE}-selection-v{VERSION}"
@@ -759,6 +896,18 @@ class Sources:
         self.tc_sel = o[3] if o is not None else None
         self.commut_sel = next((r for r in self.tc_sel.walk() if r in self.tc_sel.refs
                                 and commutateur_du_sexe(self.tc_sel, r)), None) if self.tc_sel else None
+        # v11 : le réglage de langue du jeu (recette 19) : le conteneur de FM et son interrupteur
+        o = ouvrir(SOURCE_LANGUE, depart_original=True)
+        self.tg = o[3] if o is not None else None
+        self.langue_env = self.langue_sw = None
+        if self.tg is not None:
+            tg = self.tg
+            self.langue_env = next((r for r in tg.walk() if typ(tg, r) == "ComponentElement" and any(
+                "languagesetting" in json.dumps((tg.refs.get(c["rid"]) or {}).get("data") or {})
+                for c in tg.sd(r).get("m_components") or [])), None)
+            self.langue_sw = next((r for r in tg.walk() if typ(tg, r) == "BindableSwitchElement" and (
+                ((tg.sd(r).get("Binding") or {}).get("m_visualFunction") or {}).get("m_target") or {}).get(
+                "m_guid") == FONCTION_LANGUE), None)
         # v5 : le texte « modèle + données » de FM (valeur de Population), pour les valeurs de la page d'une sélection
         self.tb_format = None
         o = ouvrir(MODELE, depart_original=True)
@@ -769,7 +918,8 @@ class Sources:
                 self.tb_format = copy.deepcopy(o[3].sd(valeur)["TextBinding"])
 
     def _commun(self):
-        return (("comparaison d'entiers", self.comparaison),)
+        return (("comparaison d'entiers", self.comparaison), ("conteneur de langue de FM", self.langue_env),
+                ("interrupteur de langue de FM", self.langue_sw))
 
     def manque_pays(self):
         return [n for n, v in self._commun() + (("commutateur", self.commut),) if v is None]
@@ -947,16 +1097,80 @@ def commutateur(t, m, parent):
     return sw
 
 
+def selon_langue(t, src, parent, faire, css):
+    """v11, recette 19 (26.13 v24, 26.18) : le conteneur de FM qui lit la langue du jeu (tdd-messages-banner), puis un
+    interrupteur par langue de LANGUES_PAGE (rang 1 = c'est elle, rang 0 = la suivante) ; LANGUE_DEFAUT sinon.
+    faire(par, langue) pose le contenu d'une langue. Un interrupteur de FM n'instancie que l'enfant montré : le jeu ne
+    construit que la langue réglée."""
+    env = t.clone(src.langue_env, parent, src=src.tg)
+    recaler_parent(t, env)
+    for k in list(t.children(env)):
+        if not (t.elem(k).get("m_FullTypeName") or "").endswith("Component"):
+            t.remove(k)
+    t.styles.copy_from(src.tg.styles, t, env)
+    t.sd(env)["name"] = ""
+    t.elem(env)["m_Classes"], t.elem(env)["m_RuleIndex"] = [], -1
+    donnees = json.dumps([(t.refs.get(c["rid"]) or {}).get("data") for c in t.sd(env).get("m_components") or []])
+    if "current_language" not in donnees or "app.NativeSettings" not in donnees:
+        raise ValueError("conteneur de langue de FM (tdd-messages-banner) : forme inattendue")
+    t.styles.style(t, env, css)
+    langues = [lg for lg in LANGUES_PAGE if lg not in (LANGUE_DEFAUT, "english (us)")]
+
+    def suite(par, i):
+        if i == len(langues):
+            faire(par, LANGUE_DEFAUT)
+            return
+        sw = t.clone(src.langue_sw, par, src=src.tg)
+        recaler_parent(t, sw)
+        for k in list(t.children(sw)):
+            t.remove(k)
+        t.styles.copy_from(src.tg.styles, t, sw)
+        t.sd(sw)["name"] = ""
+        t.elem(sw)["m_Classes"], t.elem(sw)["m_RuleIndex"] = [], -1
+        fn = t.sd(sw)["Binding"]["m_visualFunction"]
+        a = decode_args(fn["m_inputs"]["m_variable"]["m_argumentBytes"])
+        mots = [x for x in a if bytes(x[0]).endswith(b"StringVisualArg")]
+        if len(mots) != 1 or bytes(mots[0][1]) != bytes([1, 7]) + b"english":
+            raise ValueError("interrupteur de langue de FM : arguments inattendus")
+        mots[0][1] = chaine(langues[i])
+        fn["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(a)
+        t.styles.style(t, sw, css)
+        suite(sw, i + 1)            # rang 0 : pas cette langue
+        faire(sw, langues[i])       # rang 1 : c'est elle
+
+    suite(env, 0)
+    return env
+
+
+def titre_selon_langue(t, src, titre, cle):
+    """v11 : le titre d'une case, dans la langue du jeu (LANGUES_PAGE[langue][cle], texte fixe) : le titre de FM
+    recopié dans chaque langue, à la place de l'original"""
+    parent = t.parent[titre]
+
+    def faire(par, lg):
+        n = t.clone(titre, par)
+        recaler_parent(t, n)
+        texte_fixe(t, n, LANGUES_PAGE[lg][cle])
+    env = selon_langue(t, src, parent, faire, {"flex-direction": "column"})
+    kids = t.elem(parent)["m_Children"]          # à la place du titre (l'ordre est celui de m_Children)
+    e = next(k for k in kids if k["rid"] == env)
+    kids.remove(e)
+    kids.insert(next(i for i, k in enumerate(kids) if k["rid"] == titre), e)
+    t.remove(titre)
+    return env
+
+
 def groupe_notes(t, m, src, rangee, valeur, sexe, marge):
     """v4 : les notes sur 200 d'un sexe (0 hommes, 1 femmes)"""
     return groupe_textes(t, m, src, rangee, valeur, {uid: str(n[sexe]) for uid, n in NOTES_DEPART.items()}, marge)
 
 
-def groupe_textes(t, m, src, rangee, valeur, textes, marge):
+def groupe_textes(t, m, src, rangee, valeur, textes, marge, parent=None):
     """v4 : un texte par pays ({identifiant : texte}) : un commutateur de FM par pays de la table, enfant 0 vide,
     enfant 1 le texte fixe. Un seul s'allume : celui du pays de la page. Un pays absent de la table (autre base de
-    données) n'en allume aucun. v6 : sert aussi aux plages trouvées."""
-    g = t.clone_shallow(rangee, rangee)
+    données) n'en allume aucun. v6 : sert aussi aux plages trouvées. v11 : parent (sous un interrupteur de langue),
+    sinon dans rangee, dont il recopie la forme."""
+    g = t.clone_shallow(rangee, parent if parent is not None else rangee)
     recaler_parent(t, g)
     t.sd(g)["name"] = ""
     t.elem(g)["m_Classes"], t.elem(g)["m_RuleIndex"] = ["row-direction-normal", "align-items-center"], -1
@@ -996,7 +1210,7 @@ def case_note(t, m, src, parent):
         t.styles.style(t, mot, {"margin-right": ESPACE_MOT})
         groupe_notes(t, m, src, rangee, valeur, sexe, marge)
     t.remove(valeur)
-    texte_fixe(t, titre, TITRE_NOTE)   # v8 : après les mots (recopiés du titre tant qu'il est un texte traduit de FM)
+    titre_selon_langue(t, src, titre, "note")   # v11 (v8 : après les mots, recopiés du titre tant qu'il est de FM)
     return c
 
 
@@ -1004,7 +1218,7 @@ def case_note_selection(t, m, src, parent, sexe):
     """v5 : Note de formation | [icône] 155 (page d'une sélection) : la note de CE sexe seulement (choix de Kinito :
     « la note femme pour les femmes, la note homme pour les hommes »)"""
     c, titre, valeur = m["case"](parent, f"{NOM}-note", ICONE_NOTE)
-    texte_fixe(t, titre, TITRE_NOTE)
+    titre_selon_langue(t, src, titre, "note")
     groupe_notes(t, m, src, t.parent[valeur], valeur, sexe, 0)
     t.remove(valeur)
     return c
@@ -1029,13 +1243,17 @@ def mettre_mot(t, c, titre, valeur, mot):
 
 
 def case_trouvee(t, m, src, parent, sexe, mot=None):
-    """« Arrivée des jeunes | 9 mar - 6 avr » : la plage TROUVÉE du pays (PLAGES_TROUVEES, ce sexe), un commutateur de
-    FM par pays, comme la note. v10 : pour tous les pays, sans rien lire de leurs clubs."""
+    """« Arrivée des jeunes | 9 mar - 6 avr » : la plage TROUVÉE du pays (PLAGES_RELEVEES, ce sexe), un commutateur de
+    FM par pays, comme la note. v10 : pour tous les pays, sans rien lire de leurs clubs. v11 : le titre et les dates
+    dans la langue du jeu (un groupe de commutateurs par langue ; le jeu ne construit que la langue réglée)."""
     c, titre, valeur = m["case"](parent, f"{NOM}-trouvee", ICONE_DATE)
     if mot:
         valeur = mettre_mot(t, c, titre, valeur, mot)
-    texte_fixe(t, titre, TITRE_ARRIVEE)
-    groupe_textes(t, m, src, t.parent[valeur], valeur, {uid: p[sexe] for uid, p in PLAGES_TROUVEES.items()}, 0)
+    titre_selon_langue(t, src, titre, "arrivee")
+    ligne = t.parent[valeur]
+    selon_langue(t, src, ligne, lambda par, lg: groupe_textes(
+        t, m, src, ligne, valeur, {uid: ecrire_plages(lg, p[sexe]) for uid, p in PLAGES_RELEVEES.items()}, 0, par),
+        {"flex-direction": "row", "align-items": "center"})
     t.remove(valeur)
     return c
 
@@ -1047,7 +1265,7 @@ def trait(t, m, parent):
 
 
 def bloc_dates(t, m, src, parent, genre, mot=None):
-    """v10 : l'arrivée des jeunes du pays, écrite en dur (PLAGES_TROUVEES), sans rien lire de ses clubs. Jusqu'en v9, la
+    """v10 : l'arrivée des jeunes du pays, écrite en dur (PLAGES_RELEVEES), sans rien lire de ses clubs. Jusqu'en v9, la
     liste des clubs du pays (Nation.ClubListNation, 1er club et 6 derniers : Club.ClubNationHasValidRuleGroupRules,
     Club.IntakeDate) donnait la date en direct ; vu en jeu le 12/11 : FM se fermait (plantage natif) sur la page de la
     Géorgie, puis, la Géorgie mise à part (v9), sur celle de Gibraltar. Kinito : « afficher les dates qu'on a trouvées en
@@ -1080,7 +1298,7 @@ def poser(t, src):
     bloc_dates(t, m, src, petit, 0, T_HOMMES)   # v6 : les hommes, puis les femmes
     bloc_dates(t, m, src, petit, 1, T_FEMMES)
     return [f"page d'un pays : note de formation sur 200 au départ (hommes / femmes, {len(NOTES_DEPART)} pays), plage "
-            f"d'arrivée des jeunes, hommes et femmes (trouvée en jeu, écrite en dur, {len(PLAGES_TROUVEES)} pays) posées "
+            f"d'arrivée des jeunes, hommes et femmes (trouvée en jeu, écrite en dur, {len(PLAGES_RELEVEES)} pays, dans la langue du jeu) posées "
             f"après Population (v{VERSION})"]
 
 

@@ -941,6 +941,13 @@ const TXT = {
   cToucheDeux: ["2 couleurs", "2 colours"],
   cToucheLong: ["Longueur", "Length"],
   cToucheForce: ["Force", "Strength"],
+  cOmbrage: ["Ombrage derrière les fenêtres (Traitement)", "Shading behind windows (Processing)"],
+  cOmbrageAide: ["Pendant les changements de jour (fenêtre « Traitement ») et dans les options caméra du match, FM assombrit le jeu derrière la fenêtre. Ce réglage choisit à quel point : 0 % = le jeu bien visible, 100 % = le jeu caché. FM de base : 65 %. Pour tous les thèmes.",
+    "While the days go by (\"Processing\" window) and in the match camera options, FM darkens the game behind the window. This setting chooses how much: 0% = game fully visible, 100% = game hidden. FM default: 65%. For every theme."],
+  cOmbrageFM: ["65 % (FM)", "65% (FM)"],
+  cPolygone: ["Polygone de la fiche joueur", "Player profile polygon"],
+  cPolygoneAide: ["Couleur des polygones d'attributs (fiche joueur, infobulle, rapports) : trait fin, remplissage léger (l'opacité règle le remplissage, pas le trait). La toile derrière reste celle de FM.",
+    "Colour of the attribute polygons (player profile, tooltip, reports): thin line, light fill (opacity sets the fill, not the line). The web behind stays FM's."],
   cTexte: ["Texte de la barre du haut", "Top bar text"],
   cTexteAide: ["Les menus, la date et les icônes de la barre du haut.", "The menus, the date and the icons of the top bar."],
   cTexteAuto: ["Automatique : blanc, noir si la barre est très claire (de base)", "Automatic: white, black if the bar is very light (default)"],
@@ -2923,6 +2930,7 @@ const KINITO_GROUPES = [
   [["Portail et calendrier", "Portal and calendar"], ["option:rencontres", "kinito_calendrier_rencontres", "kinito_vacances_jour"]],
   [["Effectif, fiche joueur et jeunes", "Squad, player profile and youth"], ["kinito_entete_large", "kinito_capitaines_vues", "kinito_enregistrement", "kinito_cartes_jeunes"]],
   [["Tactiques : consignes (Terrain et vues FM24)", "Tactics: instructions (Pitch and FM24 views)"], ["kinito_consignes_essai_b"]],
+  [["Tactiques : sélections d'équipe", "Tactics: team selections"], ["kinito_raccourcis_selections"]],
   [["Match", "Match"], ["kinito_fenetre_but"]],
   [["Recrutement et contrats", "Scouting and contracts"], ["kinito_rapports_vues", "kinito_contrat_cadenas"]],
   [["Entraînement", "Training"], ["kinito_echange_seances", "kinito_vue_equipes"]],
@@ -3046,20 +3054,20 @@ const COULEURS_TITRES = { barre: "cBarre", texte: "cTexte", barre2: "cBarre2", a
   tac_barre: "tacBarre", tac_panneau: "tacPanneau", tac_terrain: "tacTerrain",
   tuiles: "cTuiles", score_fond: "cScoreFond", score_bande: "cScoreBande",
   match_boutons: "cMatchBoutons", match_effectif: "cMatchEffectif", commentaire: "cCommentaire",
-  menus: "cMenus", boutons: "cBoutons", panneaux: "cPanneaux", fiche: "cFiche",
+  menus: "cMenus", boutons: "cBoutons", panneaux: "cPanneaux", fiche: "cFiche", polygone: "cPolygone",
   continuer_alerte: "cContinuerAlerte", continuer_traitement: "cContinuerTraitement", continuer_match: "cContinuerMatch" };
 const COULEURS_AIDES = { barre: "cBarreAide", texte: "cTexteAide", barre2: "cBarre2Aide", accent: "cAccentAide",
   tac_barre: "tacBarreAide", tac_panneau: "tacPanneauAide", tac_terrain: "tacTerrainAide",
   tuiles: "cTuilesAide", score_fond: "cScoreFondAide", score_bande: "cScoreBandeAide",
   match_boutons: "cMatchBoutonsAide", match_effectif: "cMatchEffectifAide", commentaire: "cCommentaireAide",
-  menus: "cMenusAide", boutons: "cBoutonsAide", panneaux: "cPanneauxAide", fiche: "cFicheAide",
+  menus: "cMenusAide", boutons: "cBoutonsAide", panneaux: "cPanneauxAide", fiche: "cFicheAide", polygone: "cPolygoneAide",
   continuer_alerte: "cContinuerAlerteAide", continuer_traitement: "cContinuerTraitementAide", continuer_match: "cContinuerMatchAide" };
 // pipette d'une case encore « couleur de FM » : la couleur de FM elle-même pour les Tactiques (= couleurs_interface.TAC_*_FM),
 // les tuiles et le tableau de score (TUILES_FM, SCORE_*_FM)
 const COULEURS_PROPOSEES = { barre: "#1D3B57", texte: "#FFD700", barre2: "#2B2F36", accent: "#1C86C8",
   tac_barre: "#20665A", tac_panneau: "#03614F", tac_terrain: "#0C433A",
   tuiles: "#1E2129", match_boutons: "#232735", match_effectif: "#0A0F1E", commentaire: "#FFFFFF",
-  menus: "#2E3138", boutons: "#B145E3", panneaux: "#0D0E11BF", fiche: "#0D0E11BF",
+  menus: "#2E3138", boutons: "#B145E3", panneaux: "#0D0E11BF", fiche: "#0D0E11BF", polygone: "#6CB4E4",
   continuer_alerte: "#E8A21E", continuer_traitement: "#3A3D45", continuer_match: "#C8104F" };
 const TACTIQUES = ["tac_barre", "tac_panneau", "tac_terrain"];
 // couleurs des postes de l'écran Tactiques (= couleurs_interface.POSTES, couleur de FM) : section Tactiques, une ligne de
@@ -3079,7 +3087,8 @@ const THEME_NOUVELLES = [...SCORE, ...MENUS_BOUTONS, "panneaux", "fiche"];
 const THEME_EN_PLUS = ["tuiles", ...THEME_NOUVELLES];
 // clés des thèmes après « continuer » (2026-11-11 : bouton Continuer en alerte / traitement / match) : TOUJOURS à la fin
 // (code à partager = liste dans l'ordre de CLES_PERSO ; un ancien code ne les a pas -> celles en cours gardées)
-const THEME_APRES = [...CONTINUER_EN_PLUS];
+// + polygone de la fiche joueur (2026-11-14, le joueur : « brancher les thèmes aux polygones »)
+const THEME_APRES = [...CONTINUER_EN_PLUS, "polygone"];
 const aCle = (p, k) => ![...THEME_NOUVELLES, "continuer", ...THEME_APRES].includes(k) || p[k] !== undefined;   // undefined = thème d'avant le 2026-11-09 (continuer, alerte… : 2026-11-11)
 // = couleurs_interface.survol_tuiles (TUILES_SURVOL 0.06) / SCORE_SEUIL_CLAIR / SCORE_SEUIL_FONCE
 function survolTuiles(c) { const [h, l, s] = hls(c); return deHls(h, l + .06 <= .95 ? l + .06 : l - .06, s); }
@@ -3250,7 +3259,7 @@ function blocBarres() {
   if (!f) return {};
   const actuel = f.actif && E.couleurs ? E.couleurs
     : { barre: null, texte: null, barre2: null, accent: null, liseret: null, tac_barre: null, tac_panneau: null, tac_terrain: null,
-      tuiles: null, touche: null, touche_long: null, touche_force: null };
+      tuiles: null, touche: null, touche_long: null, touche_force: null, ombrage: null, polygone: null };
   if (!brouillonBarres) brouillonBarres = { ...actuel };
   const b = brouillonBarres;
   const zone = el("div", {}), zoneTac = el("div", {}), zoneTuiles = el("div", {}), zoneScore = el("div", {});
@@ -3353,7 +3362,7 @@ function blocBarres() {
       : el("span", { class: "badge vert" }, `${t("couleursFM")} · ${t("deBase")}`));
   // les deux boutons « Appliquer » envoient tout le brouillon (barres + Tactiques) : une seule action « couleurs »
   const envoyer = cfg => { cfg = { ...cfg }; lierTuiles(cfg);   // tuiles liées : panneaux / fiche suivent (retirer compris)
-    faire({ type: "couleurs", ...Object.fromEntries(Object.entries(cfg).map(([k, v]) => [k, v || ""])) }); };
+    faire({ type: "couleurs", ...Object.fromEntries(Object.entries(cfg).map(([k, v]) => [k, typeof v === "number" ? v : v || ""])) }); };   // ombrage 0 % gardé
   const tacActuel = f.actif && E.couleurs && TACTIQUES.some(k => actuel[k]);
   // bouton Continuer (2026-11-11) : choix (couleurs_interface clé « continuer »), pas une couleur ; null = auto.
   // Section Barre du haut (le joueur, 2026-11-11 : avant dans Tuiles), avec ses couleurs en alerte / traitement
@@ -3431,7 +3440,7 @@ function blocBarres() {
   const lien = el("div", { class: "ligne-couleur pleine" }, el("label", { class: "case" }, caseToutes, t("cToutesTuiles")),
     el("div", { class: "aide" }, t("cToutesTuilesAide")));
   const [reglagesTuiles, etatTuiles] = sectionAutre(
-    toutesTuiles ? ["tuiles", "boutons", "menus"] : ["panneaux", "fiche", "tuiles", "boutons", "menus"], lien);
+    toutesTuiles ? ["tuiles", "boutons", "menus", "polygone"] : ["panneaux", "fiche", "tuiles", "boutons", "menus", "polygone"], lien);
   const [reglagesScore, etatScore] = sectionAutre(["score_fond", "score_bande", "commentaire", "match_boutons", "match_effectif"]);
   const grille = (apercu, regl) => el("div", { class: "fond-grille large" }, el("div", {}, el("label", { class: "etiquette" }, t("apercuTitre")), apercu), regl);
   return {
@@ -3453,8 +3462,32 @@ function appliquerTheme() {
     barre: tb.barre || "", texte: tb.texte || "", barre2: tb.barre2 || "", accent: tb.accent || "",
     ...Object.fromEntries([...TACTIQUES, ...THEME_EN_PLUS, ...THEME_APRES].map(k => [k, tb[k] || ""])), continuer: tb.continuer || "",
     liseret: brouillonBarres?.liseret || "",
-    touche: tb.touche || "", ...(tb.touche_long ? { touche_long: tb.touche_long } : {}), ...(tb.touche_force ? { touche_force: tb.touche_force } : {}) });
+    touche: tb.touche || "", ...(tb.touche_long ? { touche_long: tb.touche_long } : {}), ...(tb.touche_force ? { touche_force: tb.touche_force } : {}),
+    ombrage: typeof brouillonBarres?.ombrage === "number" ? brouillonBarres.ombrage : "" });   // "" = 65 % de FM
 }
+// ombrage derrière les fenêtres par-dessus le jeu (2026-11-14, le joueur : Traitement entre les jours, options caméra) :
+// opacité en % du fond sombre de FM (couleurs_interface clé « ombrage ») ; null = 65 % de FM, pour tous les thèmes ; pas
+// une clé des thèmes (gardé quand on en prend un), envoyé avec « Appliquer le thème » et « Appliquer » des couleurs
+const OMBRAGE_FM = 65;
+function ligneOmbrage() {
+  const b = brouillonBarres || {};
+  const actuelO = E.couleurs?.ombrage;
+  const v = typeof b.ombrage === "number" ? b.ombrage : OMBRAGE_FM;
+  const val = el("span", { class: "val" }, `${v} %`);
+  const c = el("input", { type: "range", min: 0, max: 100, step: 5, value: v, "aria-label": t("cOmbrage") });
+  c.addEventListener("input", () => { const n = Number(c.value); b.ombrage = n === OMBRAGE_FM ? null : n; val.textContent = `${n} %`; });
+  const base = el("button", { class: "bouton", onclick: () => { b.ombrage = null; c.value = OMBRAGE_FM; val.textContent = `${OMBRAGE_FM} %`; } }, t("cOmbrageFM"));
+  return el("div", { class: "ligne-couleur pleine", style: "margin-top:14px" },
+    el("label", { class: "etiquette" }, t("cOmbrage"),
+      typeof actuelO === "number" ? el("span", { class: "badge ambre", style: "margin-left:8px" }, `${actuelO} % · ${t("pasLeChoixDeBase")}`)
+        : el("span", { class: "badge vert", style: "margin-left:8px" }, `${OMBRAGE_FM} % · ${t("deBase")}`)),
+    el("div", { class: "aide" }, t("cOmbrageAide")),
+    el("div", { class: "touche-regl" }, el("span", {}, "0 %"), c, val), el("div", { style: "margin-top:8px" }, base));
+}
+
+// polygone de la fiche joueur (2026-11-14, le joueur : maquette D, trait 1,5 ; rangé dans Panneaux / tuiles / menus /
+// boutons) : ligne de couleur comme les autres (couleurs_interface clé « polygone », opacité = remplissage) ; clé des
+// thèmes (THEME_APRES, POLYGONE_THEME)
 
 // thèmes complets : fond des pages + infobulles (theme_fond), barres / accent et verts des Tactiques (bandeau, panneau
 // et boutons, terrain ; couleurs_interface) ; texte des barres automatique ; null = couleur de FM
@@ -3557,6 +3590,11 @@ for (const p of THEMES) {
 }
 // grande tuile de la fiche joueur : la couleur des tuiles du thème
 for (const p of THEMES) p.fiche = p.tuiles || null;
+// polygone de la fiche joueur (2026-11-14, le joueur) : thèmes de base = couleur d'accent (sans accent = FM) ; SAS /
+// Alex Morak = doré du bouton, Tato = blanc du bouton (= leur accent) ; Kojuro = gris clair de son texte (« les
+// couleurs les plus communes » : ses gris, le bleu n'étant que pour les liens)
+const POLYGONE_THEME = { "FM 24 Kojuro": "#D8D9DC" };
+for (const p of THEMES) p.polygone = POLYGONE_THEME[p.nom[0]] || p.accent || null;
 // fond lisse (2026-11-10 : thèmes neutres sombres seulement ; 2026-11-11 : tous, voir plus bas). Jamais un
 // thème clair en lisse (un aplat clair sur tout l'écran, le joueur)
 // bouton Continuer (2026-11-11, le joueur) : couleur du thème (accent, texte blanc) pour TOUS les thèmes ; sans accent
@@ -3623,6 +3661,7 @@ function zoneThemes() {
     el("div", { class: "presets" }, THEMES.filter(p => p.createur).map(carte)),
     el("div", { class: "mes-themes-tete" }, el("h3", {}, t("mesThemesTitre")), el("p", { class: "aide", style: "margin:0" }, t("mesThemesSous"))),
     persos.length ? el("div", { class: "presets" }, persos) : el("p", { class: "aide" }, t("mesThemesVide")),
+    ligneOmbrage(),
     el("div", { class: "boutons-themes" },
       el("button", { class: "bouton", onclick: () => sauverTheme(themeBrouillon()) }, t("sauverTheme")),
       el("button", { class: "bouton", onclick: importerTheme }, t("importer")),
@@ -3643,6 +3682,8 @@ function prendreTheme(p) {
     // ancien thème sans Match / menus / boutons : ceux en cours gardés
     ...Object.fromEntries([...TACTIQUES, ...THEME_EN_PLUS, "continuer", ...THEME_APRES].map(k => [k, (aCle(p, k) ? p[k] : brouillonBarres?.[k]) || null])),
     ...Object.fromEntries(CLES_TOUCHE.map(k => [k, ("touche" in p ? p[k] : brouillonBarres?.[k]) || null])),
+    // ombrage (2026-11-14) : pas dans les thèmes, celui en cours gardé
+    ombrage: brouillonBarres ? (brouillonBarres.ombrage ?? null) : (E.couleurs?.ombrage ?? null),
     // postes : jamais dans les thèmes, ceux en cours gardés (le joueur, 2026-11-09)
     ...Object.fromEntries(CLES_POSTES.map(k => [k, (brouillonBarres ? brouillonBarres[k] : E.couleurs?.[k]) || null])) };
   dessiner();

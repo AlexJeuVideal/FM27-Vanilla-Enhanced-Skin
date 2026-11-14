@@ -72,6 +72,7 @@ Usage (jeu fermé) :
       theme_fond.py liste)
   couleurs_interface.py retirer | etat | si-actif
   couleurs_interface.py essai-pelouse   (ESSAI : pelouse des Tactiques, voir ESSAI_PELOUSE)
+  couleurs_interface.py essai-fenetres [--dry-run]   (ESSAI : fonds des fenêtres / cartes, voir ESSAI_FENETRES)
 """
 import colorsys
 import copy
@@ -153,6 +154,27 @@ TAC_TERRAIN_CLASSE = "tactics-collapsable-pitch-grass-colour"
 SURBRILLANCE_CLASSE = "tactics-row-highlight-highlighted"
 SURBRILLANCE_ALPHA = 0.6
 SURBRILLANCE_CONTRASTE = 2.5
+# ESSAI fenêtres (2026-11-14, le joueur : options du match, Causerie transparentes depuis v18 ; conférences de presse
+# avec du noir opaque) : chaque sélecteur (suite exacte de classes) dans une couleur vive ; un sélecteur d'une règle
+# partagée part dans une copie (sinon .sicard-container-large et .sipopup-container auraient la même couleur).
+# Retour normal : toute autre écriture des couleurs (si-actif, app, choix 1)
+# essai 1 VU (2026-11-14) : rouge .sicard-container-large = plein écran derrière Traitement / options du match / fiche
+# en match ; bleu .sipopup-container = plein écran derrière « Passer au match ? » ; Causerie, jaune / vert : rien.
+# essai 2 : tuile de droite de la Causerie (plus transparente que l'Effectif) ; clé « --var » = variable recolorée
+# essai 2 VU : cadre Causerie + options du match = --layout-surfaces-cards-surface (tuiles). v19 (règle
+# « .sicard-container-large .figma-base-card-template-inner-frame ») : PAS pris en match / Traitement.
+# essai 3 : règles « ancêtre descendant » ajoutées, une couleur par paire (ESSAI_DESCENDANTS) ; rien sur ESSAI_FENETRES
+ESSAI_FENETRES = {}
+# (ancêtre ou None, classe, couleur, même élément ?) ; essai 4 (2026-11-14) : boutons du menu principal (v22 / v23
+# sans effet, pixels identiques). Règles posées dans MENU_FEUILLES
+ESSAI_DESCENDANTS = [(None, "buttons-button-secondary-default", "#FF0000", False),                          # rouge
+                     (None, "main-menu-button-container", "#0040FF", False),                                # bleu
+                     (None, "mainmenu-headerbar", "#00E040", False),                                        # vert
+                     ("main-menu-button-container", "buttons-button-secondary-default", "#FFD000", False),  # jaune
+                     (None, "button-secondary-label", "#FF00FF", False)]                                    # magenta
+ESSAI_FENETRES_TEXTE = ("ESSAI 4 (menu principal) : rouge = .buttons-button-secondary-default (partout), bleu = "
+                        ".main-menu-button-container, vert = .mainmenu-headerbar, jaune = .main-menu-button-container "
+                        ".buttons-button-secondary-default, magenta = .button-secondary-label")
 # ESSAI (2026-10-31, Kiliwick : terrain qui reste gris avec Ardoise quoi qu'on choisisse) : quel élément fait vraiment
 # la pelouse ? Commande essai-pelouse = styles seuls, chaque candidat dans une couleur vive (règle d'une seule classe ou
 # variable) ; retour normal : toute autre écriture des couleurs (si-actif, app, choix 1)
@@ -165,6 +187,10 @@ ESSAI_PELOUSE = {"tactics-collapsable-pitch-grass-colour": "#FF0000",       # ro
 # tuiles : variables du fond des tuiles / cartes (valeur remplacée par la couleur choisie) et du survol
 TUILES_VARIABLES = ["--layout-ui-tiles-interaction-surface-light-default", "--layout-surfaces-cards-surface"]
 TUILES_VARIABLES_SURVOL = ["--layout-ui-tiles-interaction-surface-light-hover"]
+# v20 (2026-11-14, le joueur : « le jeu de base ça marche ») : --layout-surfaces-cards-surface = fond des cartes
+# FigmaBaseCard (fenêtres par-dessus le jeu : options du match, Traitement, cadre de la Causerie ; essai fenêtres 2 :
+# rien sur le Portail) ; opaque chez FM -> couleur des tuiles SANS leur transparence
+TUILES_OPAQUES = ("--layout-surfaces-cards-surface",)
 TUILES_FM = "#1E2129"           # --colours-ui-soft (choisir celle-ci = comme FM)
 # v15 (2026-11-09, le joueur : « brancher l'en-tête sur la couleur des tuiles ») : cartes de l'en-tête de la fiche
 # joueur (entete_tuile v31, classe CL_CARTE) : règle « .classe { fond } » ajoutée à AlwaysAppliedStyleSheet
@@ -198,7 +224,37 @@ MENUS_SELECTEURS = [("si-dropdown", "virtualised-list__item"), ("si-dropdown", "
 # Classement du Portail, tableau de l'Effectif, panneaux du match… classes posées par le code de FM), pop-ups,
 # report / tool containers. Sauf les voiles qui assombrissent l'écran (PANNEAUX_EXCLUS). tuiles=panneau suit.
 PANNEAUX_VARIABLE = "--midnight-alpha-65"
-PANNEAUX_EXCLUS = ("overlay", "--dimmed")
+# v18 (2026-11-14, Alex Morak ; trouvé par essai une couleur par règle) : la fenêtre Traitement entre les jours /
+# options caméra du match est une carte dans un .sicard-container-large (+ .sipopup-container, même règle) qui couvre
+# TOUT l'écran : FM = sombre à 65 % = l'ombrage sur le jeu. Recolorée opaque, elle cachait le jeu. Le joueur : « comme
+# le FM de base PARTOUT » -> jamais recolorée par les panneaux ; son opacité = clé « ombrage » (OMBRAGE_*)
+PANNEAUX_EXCLUS = ("overlay", "--dimmed", "sicard-container-large")
+# ombrage (2026-11-14, le joueur) : opacité en % du fond sombre de FM derrière les fenêtres par-dessus le jeu
+# (Traitement entre les jours, options caméra) ; None = celle de FM (65 %), la couleur reste celle de FM
+OMBRAGE_SELECTEUR = "sicard-container-large"
+OMBRAGE_RGB, OMBRAGE_FM = (0x0A, 0x0F, 0x1E), 65
+# v19 (2026-11-14, essais fenêtres 1 et 2, le joueur : « fonds secondaires toujours ombrés comme le passage entre les
+# jours », « branche tous les thèmes ») : en match, le fond plein écran restait clair (var(--midnight-alpha-65) pas
+# résolue là, supposé) -> ombrage toujours écrit en couleur (OMBRAGE_FM si pas choisi), dès que les couleurs sont
+# actives. Les fenêtres posées dessus (options du match, fiche en match, Traitement) et la tuile de droite de la
+# Causerie = carte FigmaBaseCard (fond --layout-surfaces-cards-surface = clé tuiles, 85 % dans certains thèmes).
+# Règle « ancêtre .figma-base-card-template-inner-frame » (_cartes_par_dessus) : PAS prise (essai 3 : les cartes ne
+# sont pas dans ces ancêtres), plus appelée -> v20 : TUILES_OPAQUES
+# v21 (2026-11-14, le joueur : « les boutons là-haut à brancher sur la couleur du skin ») : boutons du haut du menu
+# principal (modèle Intro, bundle intro : Les nouveautés, FMFC, Plus, Quitter ; Préférences = bouton principal =
+# accent) : fond FM transparent -> couleur de la 2e barre du haut (sinon la 1re), survol plus clair. v22 : couleur
+# des tuiles (opaque) d'abord (barre2 #242932 trop proche du gris de FM : rien ne se voyait)
+MENU_ANCETRES = ("main-menu-button-container", "mainmenu-headerbar")
+MENU_BOUTONS = ("buttons-button-secondary-default", "buttons-button-base-default", "si-dropdown__selection-field")
+# v23 : v22 VU sans effet (pixels identiques) : le menu principal ne lit pas AlwaysAppliedStyleSheet ? -> aussi dans
+# les autres feuilles (FigmaGeneratedStyles, SIStyles)
+MENU_FEUILLES = ("AlwaysAppliedStyleSheet", "FigmaGeneratedStyles", "SIStyles")
+# 2026-11-14 : v23 + essai 4 (couleurs vives) sans effet en jeu -> MIS DE CÔTÉ par le joueur (« on trouve pas la
+# couleur, c'est pas grave ») : règles plus posées. Piste si redemandé : le menu principal lit-il ces bundles de
+# styles (essai 4 jamais confirmé après relance de FM) ? sinon ui-mainmenu-assets_assets_all.bundle
+MENU_ACTIF = False
+CARTE_FIGMA = "figma-base-card-template-inner-frame"
+CARTES_PAR_DESSUS = ("sicard-container-large", "sipopup-container", "fullscreen-meeting-with-larger-speakto")
 # v14 (2026-11-09, mod diag « fonds » sur le Portail : Messages = #0D0E11 75 %) : les grands panneaux des pages sont
 # des « blocs » (.siblock-border, message-container-frame, cartes de rapport…) au fond var(--layout-modules-block-surface)
 # (FM : var(--colours-alpha-dark-75)) : la variable elle-même prend la couleur des panneaux. v11 / v13 (tuiles non
@@ -220,13 +276,24 @@ POSTES = {"poste_gb": ("goalkeeper", "#3C3C5A"), "poste_d": ("defender", "#02796
           "poste_mo": ("attacking-midfield", "#5F1084"), "poste_bt": ("striker", "#8D1363")}
 POSTES_PREFIXES = ("tactics-visualiser-player", "data_display-tables-player_position")
 POSTES_FOND = 0.55              # clarté du fond = clarté de la couleur choisie × ceci
+# polygone (2026-11-14, le joueur : maquette D, trait 1,5) : FMSpiderChart lit ses couleurs dans des variables perso des
+# règles .fmspiderchartlarge / .fmspiderchartmedium (FMColours, AlwaysAppliedStyleSheet) ; rien sur l'élément. Couleur
+# choisie pour le trait, les points et les 5 couleurs « graduées » ; remplissage léger. La toile (anneaux, axes) reste FM.
+# On ne sait pas encore si FM multiplie la couleur de remplissage par --series-fill-alpha : les deux à la racine de
+# l'opacité voulue (jamais opaque, au pire 2 fois plus visible)
+POLYGONE_CLASSES = ("fmspiderchartlarge", "fmspiderchartmedium")
+POLYGONE_TRAIT = 1.5            # px (FM : 2)
+POLYGONE_REMPLISSAGE = 0.25     # opacité du remplissage × opacité choisie (FM : 0.35)
+POLYGONE_PLEINES = ("--series-1-stroke-colour", "--series-1-chartpoint-colour",
+                    *(f"--chart-graded-colour-{i}" for i in range(1, 6)))
+POLYGONE_FOND, POLYGONE_ALPHA, POLYGONE_LARGEUR = "--series-1-fill-colour", "--series-fill-alpha", "--series-line-width"
 # =====================================================================================================
 
 MARKER =os.path.join(backup.BACKUP_DIR, "couleurs_interface.actif")
 CLES = ("barre", "texte", "barre2", "accent", "liseret", "tac_barre", "tac_panneau", "tac_terrain",
         "tuiles", "score_fond", "score_bande", "match_boutons", "match_effectif", "commentaire", "menus", "boutons",
         "panneaux", "fiche", *POSTES, "continuer", "continuer_alerte", "continuer_traitement", "continuer_match",
-        "touche", "touche_long", "touche_force")
+        "touche", "touche_long", "touche_force", "ombrage", "polygone")
 # bouton Continuer en alerte / pendant le traitement / les jours de match (2026-11-11, le joueur) : couleur, None =
 # celle de FM ; dans les thèmes de l'app (nuance de la couleur du bouton, page.html nuanceContinuer)
 CONTINUER_EN_PLUS = {"continuer_alerte": "alerte", "continuer_traitement": "traitement", "continuer_match": "match"}
@@ -238,7 +305,7 @@ COULEURS = CLES[:4]            # couleurs des barres (le trait entre les barres 
 TACTIQUES = ("tac_barre", "tac_panneau", "tac_terrain")
 AUTRES = ("tuiles", "score_fond", "score_bande", "match_boutons", "match_effectif",
           "commentaire", "menus", "boutons", "panneaux", "fiche", *POSTES, "continuer",
-          *CONTINUER_EN_PLUS)   # ne cachent pas le trait entre les barres non plus
+          *CONTINUER_EN_PLUS, "ombrage", "polygone")   # ne cachent pas le trait entre les barres non plus
 MODELE_COMMENTAIRE = "MatchCommentaryBar"
 COMMENTAIRE_REPERE = "CommentaryBar"
 CLASSES_CLUB = ("fm-club-primary-color", "fm-club-secondary-color")   # posées par le SIStyleSetter (couleurs du club)
@@ -558,9 +625,42 @@ def _tuiles(tt, rgb, alpha=1.0):
         for p in rule["m_Properties"]:
             nom = p.get("m_Name") or p.get("m_CustomName") or ""
             c = rgb if nom in TUILES_VARIABLES else survol if nom in TUILES_VARIABLES_SURVOL else None
-            if c is not None:
-                p["m_Values"] = [{"m_ValueType": 4, "valueIndex": _rgba(tt, c, alpha)}]
+            if c is not None:   # v20 : cartes (fenêtres) toujours opaques, comme FM
+                a = 1.0 if nom in TUILES_OPAQUES else alpha
+                p["m_Values"] = [{"m_ValueType": 4, "valueIndex": _rgba(tt, c, a)}]
                 n += 1
+    return n
+
+
+def _cartes_par_dessus(tt, rgb):
+    """« .ancêtre .figma-base-card-template-inner-frame { fond opaque } » ajoutée à la fin de la feuille (v19)"""
+    idx = len(tt["m_Rules"])
+    tt["m_Rules"].append({"m_ComplexSelectors": [{"m_Specificity": SPECIFICITE, "ruleIndex": idx, "m_Selectors": [
+        {"m_Parts": [{"m_Value": anc, "m_Type": 3}], "m_PreviousRelationship": 0},
+        {"m_Parts": [{"m_Value": CARTE_FIGMA, "m_Type": 3}], "m_PreviousRelationship": 2}]}
+        for anc in CARTES_PAR_DESSUS],
+        "line": -1, "m_Properties": [{"m_Id": FOND_ID, "m_CustomName": "", "m_Line": -1,
+                                      "m_Values": [{"m_ValueType": 4, "valueIndex": _rgba(tt, rgb, 1.0)}]}]})
+
+
+def _boutons_menu(tt, rgb, a=1.0):
+    """boutons du haut du menu principal (v21) : « .ancêtre .bouton { fond } » (+ :hover plus clair) ajoutées à la
+    fin de la feuille ; renvoie le nombre de règles"""
+    survol = survol_tuiles(rgb)
+    n = 0
+    for hover, c in ((False, rgb), (True, survol)):
+        idx = len(tt["m_Rules"])
+        sels = []
+        for anc in MENU_ANCETRES:
+            for btn in MENU_BOUTONS:
+                parts = [{"m_Value": btn, "m_Type": 3}] + ([{"m_Value": "hover", "m_Type": 4}] if hover else [])
+                sels.append({"m_Specificity": SPECIFICITE + hover, "ruleIndex": idx, "m_Selectors": [
+                    {"m_Parts": [{"m_Value": anc, "m_Type": 3}], "m_PreviousRelationship": 0},
+                    {"m_Parts": parts, "m_PreviousRelationship": 2}]})
+        tt["m_Rules"].append({"m_ComplexSelectors": sels, "line": -1, "m_Properties": [
+            {"m_Id": FOND_ID, "m_CustomName": "", "m_Line": -1,
+             "m_Values": [{"m_ValueType": 4, "valueIndex": _rgba(tt, c, a)}]}]})
+        n += 1
     return n
 
 
@@ -654,6 +754,43 @@ def _panneaux(tt, rgb, a=1.0):
     return n
 
 
+def _ombrage(tt, pc):
+    """fond sombre de FM derrière les fenêtres par-dessus le jeu à pc % d'opacité ; renvoie le nombre"""
+    n = 0
+    chaines = tt.get("strings") or []
+    for rule in tt.get("m_Rules") or []:
+        if [OMBRAGE_SELECTEUR] not in _selecteurs(rule):
+            continue
+        for p in rule["m_Properties"]:
+            if p["m_Id"] == FOND_ID and any(v["m_ValueType"] == 8 and v["valueIndex"] < len(chaines)
+                                            and chaines[v["valueIndex"]] == PANNEAUX_VARIABLE for v in p["m_Values"]):
+                p["m_Values"] = [{"m_ValueType": 4, "valueIndex": _rgba(tt, OMBRAGE_RGB, pc / 100)}]
+                n += 1
+    return n
+
+
+def _polygone(tt, rgb, a=1.0):
+    """polygone des attributs (FMSpiderChart) à la couleur choisie, trait POLYGONE_TRAIT ; renvoie le nombre"""
+    n = 0
+    rempli = (POLYGONE_REMPLISSAGE * a) ** 0.5
+    for rule in tt.get("m_Rules") or []:
+        if not any([c] in _selecteurs(rule) for c in POLYGONE_CLASSES):
+            continue
+        for p in rule["m_Properties"]:
+            nom = p.get("m_CustomName") or ""
+            if nom in POLYGONE_PLEINES:
+                p["m_Values"] = [{"m_ValueType": 4, "valueIndex": _rgba(tt, rgb)}]
+            elif nom == POLYGONE_FOND:
+                p["m_Values"] = [{"m_ValueType": 4, "valueIndex": _rgba(tt, rgb, rempli)}]
+            elif nom in (POLYGONE_ALPHA, POLYGONE_LARGEUR):
+                tt.setdefault("floats", []).append(float(rempli if nom == POLYGONE_ALPHA else POLYGONE_TRAIT))
+                p["m_Values"] = [{"m_ValueType": 2, "valueIndex": len(tt["floats"]) - 1}]
+            else:
+                continue
+            n += 1
+    return n
+
+
 def _fonds_selecteurs(tt, selecteurs, rgb, a=1.0):
     """fond des règles dont un sélecteur est exactement l'une de ces suites de classes (règle partagée : nos sélecteurs
     dans une copie ajoutée à la fin, l'originale garde les autres) ; renvoie le nombre de valeurs changées"""
@@ -696,6 +833,45 @@ def _essai_pelouse(tt):
             if c:
                 p["m_Values"] = [{"m_ValueType": 4, "valueIndex": _rgba(tt, to_rgb(c))}]
                 n += 1
+    return n
+
+
+def _essai_fenetres(tt):
+    """ESSAI_FENETRES : fond de chaque sélecteur listé -> couleur vive (sélecteur séparé de sa règle si elle est
+    partagée) ; renvoie le nombre"""
+    n = 0
+    regles = tt.get("m_Rules") or []
+    for rule in regles:   # variables (définies dans :root)
+        for p in rule["m_Properties"]:
+            nom = p.get("m_Name") or p.get("m_CustomName") or ""
+            if nom.startswith("--") and nom in ESSAI_FENETRES:
+                c, a = ESSAI_FENETRES[nom]
+                p["m_Values"] = [{"m_ValueType": 4, "valueIndex": _rgba(tt, to_rgb(c), a)}]
+                n += 1
+    for rule in list(regles):
+        css = rule.get("m_ComplexSelectors") or []
+        cles = [tuple(p["m_Value"] for s in cs["m_Selectors"] for p in s["m_Parts"]) for cs in css]
+        if not any(k in ESSAI_FENETRES for k in cles):
+            continue
+        for cs, k in zip(css, cles):
+            if k not in ESSAI_FENETRES:
+                continue
+            r = rule
+            if len(rule["m_ComplexSelectors"]) > 1:   # copie avec ce seul sélecteur, ajoutée à la fin (la règle
+                # d'origine garde toujours au moins un sélecteur)
+                rule["m_ComplexSelectors"] = [c for c in rule["m_ComplexSelectors"] if c is not cs]
+                r = copy.deepcopy(rule)
+                r["m_ComplexSelectors"] = [copy.deepcopy(cs)]
+                r["m_ComplexSelectors"][0]["ruleIndex"] = len(regles)
+                regles.append(r)
+            c, a = ESSAI_FENETRES[k]
+            props = [p for p in r["m_Properties"] if p["m_Id"] == FOND_ID]
+            if not props:
+                props = [{"m_Id": FOND_ID, "m_CustomName": "", "m_Line": -1, "m_Values": []}]
+                r["m_Properties"].append(props[0])
+            for p in props:
+                p["m_Values"] = [{"m_ValueType": 4, "valueIndex": _rgba(tt, to_rgb(c), a)}]
+            n += 1
     return n
 
 
@@ -769,11 +945,19 @@ def ecrire_styles(infobulle="marqueur", cfg=None, essai=False):
     a_panneaux = alpha(cfg.get("panneaux"))
     fiche = to_rgb(cfg["fiche"]) if cfg.get("fiche") else None
     a_fiche = alpha(cfg.get("fiche"))
+    polygone = to_rgb(cfg["polygone"]) if cfg.get("polygone") else None
+    a_polygone = alpha(cfg.get("polygone"))
     postes = {POSTES[k][0]: (to_rgb(cfg[k]), alpha(cfg[k])) for k in POSTES if cfg.get(k)}
+    ombrage = cfg.get("ombrage")   # % ; None = celui de FM
+    # v22 (le joueur : « couleur des tuiles ») : boutons du menu principal = tuiles opaques, sinon barre2 / barre
+    _t = tuiles_voulues(cfg)
+    cle_menu = "barre2" if cfg.get("barre2") else "barre" if cfg.get("barre") else None
+    menu_btn = _t[0] if _t else to_rgb(cfg[cle_menu]) if cle_menu else None
+    a_menu_btn = 1.0
     connaissance = connaissance_active()
-    if (infobulle is None and accent is None and texte is None and panneau is None and terrain is None
+    if (menu_btn is None and infobulle is None and accent is None and texte is None and panneau is None and terrain is None
             and tuiles is None and not match and menus is None and panneaux is None and fiche is None
-            and not postes and not essai and not connaissance):
+            and not postes and not essai and not connaissance and ombrage is None and polygone is None):
         for path in STYLES:
             if os.path.exists(backup.backup_path(path)):
                 if not DRY_RUN:
@@ -823,13 +1007,23 @@ def ecrire_styles(infobulle="marqueur", cfg=None, essai=False):
             n = _panneaux(tt, panneaux, a_panneaux)
             if n:
                 fait.append(f"panneaux {n}")
+        n = _ombrage(tt, OMBRAGE_FM if ombrage is None else ombrage)   # v19 : toujours en couleur
+        if n:
+            fait.append(f"ombrage {OMBRAGE_FM if ombrage is None else ombrage} %")
         if fiche:
             n = _fonds_selecteurs(tt, FICHE_SELECTEURS, fiche, a_fiche)
             if n:
                 fait.append(f"fiche joueur {n}")
+        if polygone:
+            n = _polygone(tt, polygone, a_polygone)
+            if n:
+                fait.append(f"polygone {n}")
         if texte is not None and tt.get("m_Name") == FEUILLE_TEXTE:
             _texte(tt, texte, a_texte)
             fait.append("texte de la barre")
+        if MENU_ACTIF and menu_btn is not None and tt.get("m_Name") in MENU_FEUILLES:
+            _boutons_menu(tt, menu_btn, a_menu_btn)
+            fait.append("boutons du menu principal")
         if panneau or terrain:
             n = _tactiques(tt, panneau, terrain, a_panneau, a_terrain)
             if n:
@@ -853,7 +1047,26 @@ def ecrire_styles(infobulle="marqueur", cfg=None, essai=False):
             n = _postes(tt, postes)
             if n:
                 fait.append(f"postes {n}")
-        if essai:
+        if essai == "fenetres":
+            n = _essai_fenetres(tt)
+            if n:
+                fait.append(f"ESSAI fenêtres {n}")
+            if tt.get("m_Name") in MENU_FEUILLES:
+                for anc, cls, c, meme in ESSAI_DESCENDANTS:
+                    idx = len(tt["m_Rules"])
+                    sel = ([{"m_Parts": [{"m_Value": cls, "m_Type": 3}], "m_PreviousRelationship": 0}] if anc is None
+                           else [{"m_Parts": [{"m_Value": anc, "m_Type": 3}, {"m_Value": cls, "m_Type": 3}],
+                                  "m_PreviousRelationship": 0}] if meme else
+                           [{"m_Parts": [{"m_Value": anc, "m_Type": 3}], "m_PreviousRelationship": 0},
+                            {"m_Parts": [{"m_Value": cls, "m_Type": 3}], "m_PreviousRelationship": 2}])
+                    tt["m_Rules"].append({"m_ComplexSelectors": [{"m_Specificity": SPECIFICITE + 1 + (anc is not None),
+                                                                  "ruleIndex": idx,
+                                                                  "m_Selectors": sel}],
+                                          "line": -1, "m_Properties": [{"m_Id": FOND_ID, "m_CustomName": "",
+                                          "m_Line": -1, "m_Values": [{"m_ValueType": 4,
+                                                                      "valueIndex": _rgba(tt, to_rgb(c))}]}]})
+                fait.append(f"ESSAI descendants {len(ESSAI_DESCENDANTS)}")
+        elif essai:
             n = _essai_pelouse(tt)
             if n:
                 fait.append(f"ESSAI pelouse {n}")
@@ -1348,6 +1561,14 @@ def lire_args(args, cfg):
                 sys.exit(f"{k} : {v!r} pas compris (nombre, en %)")
             cfg[k] = int(v)
             continue
+        if k == "ombrage":   # % (0 à 100) ; fm = celui de FM (65 %)
+            if v.lower() in ("", "fm", "auto", "base"):
+                cfg[k] = None
+            elif v.isdigit() and int(v) <= 100:
+                cfg[k] = None if int(v) == OMBRAGE_FM else int(v)
+            else:
+                sys.exit(f"ombrage : {v!r} pas compris (0 à 100, en %, ou fm)")
+            continue
         if k == "tuiles" and v.lower() == TUILES_PANNEAU:
             cfg[k] = TUILES_PANNEAU
             continue
@@ -1357,11 +1578,16 @@ def lire_args(args, cfg):
 
 def cmd_appliquer(args):
     cfg = lire_args(args, config())
-    if not any(cfg[k] for k in COULEURS + TACTIQUES + AUTRES) and cfg["liseret"] != CACHE:
+    if (not any(cfg[k] for k in COULEURS + TACTIQUES + AUTRES) and cfg["liseret"] != CACHE
+            and cfg["ombrage"] is None):   # ombrage 0 % = un choix
         return cmd_retirer()   # rien à poser (trait affiché = FM)
     modeles(cfg)
     ecrire_styles(cfg=cfg)
     for k in COULEURS + TACTIQUES + AUTRES:
+        if k == "ombrage":
+            print(f"ombrage derrière les fenêtres (Traitement) : "
+                  + (f"{cfg[k]} %" if cfg[k] is not None else f"{OMBRAGE_FM} % (FM)"))
+            continue
         print(f"{k} : {cfg[k] or ('auto' if k == 'texte' else 'FM')}")
     print("trait entre les barres :", "caché" if liseret_cache(cfg) else "affiché (FM)",
           "" if cfg["liseret"] else "(auto)")
@@ -1392,7 +1618,8 @@ def cmd_etat():
                          "menus et fenêtres", "boutons d'action", "grands panneaux", "grande tuile de la fiche joueur",
                          "poste GB", "poste D", "poste AL / MD", "poste MC", "poste MO", "poste BT",
                          "bouton Continuer (fm / theme / club, vide = auto)", "bouton Continuer en alerte",
-                         "bouton Continuer pendant le traitement", "bouton Continuer les jours de match")):
+                         "bouton Continuer pendant le traitement", "bouton Continuer les jours de match",
+                         "ombrage derrière les fenêtres (Traitement), en %", "polygone de la fiche joueur")):
         print(f"{titre} : {cfg[k] or ('auto' if k == 'texte' else 'couleur de FM')}")
     actif = os.path.exists(MARKER)
     print("trait entre les barres :", "caché" if actif and liseret_cache(cfg) else "affiché (FM)",
@@ -1435,6 +1662,9 @@ def main(argv):
         ecrire_styles(cfg=config(), essai=True)
         print("ESSAI pelouse : rouge = grass-colour, bleu = tactics-pitch-block, cyan = pitch-container, "
               "orange = visualiser-pitch, jaune = --pitch-tile-default-background, magenta = --colours-tactics-base-50")
+    elif op == "essai-fenetres":   # styles seuls, couleurs enregistrées + ESSAI_FENETRES ; marqueur pas touché
+        ecrire_styles(cfg=config(), essai="fenetres")
+        print(ESSAI_FENETRES_TEXTE)
     else:
         sys.exit(__doc__)
 

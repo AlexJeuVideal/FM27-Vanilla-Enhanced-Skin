@@ -50,6 +50,66 @@ la GAUCHE, Filtre reste au bord), et le menu est plafonné à LARGEUR_MAX_MENU (
 se coupe en « … » (son texte, dans le modèle de FM GenericDisplayValuePairDropdownRow, a déjà content-no-wrap et
 content-ellipsis). Seuls nos éléments changent (la zone et l'enveloppe du menu) : aucun modèle de FM n'est touché.
 
+v18 (Kinito, 13/11, ESSAI) : « si je regarde le calendrier de l'année passée je ne peux pas filtrer ceux de l'an
+passé ». Relevé dans le code du jeu : le menu « Saison » de FM (CalendarHeaderSeasonBlock) écrit Year / yearindex, que
+team.FixtureListElements suit (contextes YearIndex, PreviousAmount, FutureAmount, FixturePadding) ; team.CurrentComps n'a
+AUCUN contexte (la saison en cours seulement), et aucune propriété d'équipe, de club, de personne ni de compétition ne
+donne « les compétitions d'une saison » (TeamReference / ClubReference / PersonReference / CompReference ::
+GetContextsInternal). Une compétition de l'an passé absente cette saison (championnat quitté en montant) n'était donc ni
+dans le panneau ni jamais cachée. La v18 ajoutait une section « Compétitions nationales » = Nation.DivisionList du pays
+du championnat de l'équipe (copie dans les archives) : VUE EN JEU le 13/11 (Rodez, saison 2026/27), le titre s'affichait, AUCUNE ligne
+(liste vide ici ; peut-être la variable « gender » que la page d'un pays déclare autour, pas prouvé), et la Coupe de
+France pas encore commencée manquait aussi à la liste de la saison.
+v19 (Kinito, 13/11, ESSAI, son choix : « masquer au clic ») : plus aucune liste de FM. Section « Compétitions masquées »
+du panneau : « Masquer la compétition du match sélectionné » copie selectedfixturelistelement.Fixture.Competition (ce que
+le bloc de FM passe à l'aperçu : selectedfixture) dans la 1re case libre de MASQUES cases (variables kinitofmasque1..N à la
+racine) ; chaque case remplie s'affiche (nom) avec « Remettre » (copie const.NullRef, comme FM). Pour chaque case, à la
+racine, la fonction de FM BindAndSetAOrBToDestinationUsingReferenceIsNullAsBool (079b54af, celle de ViewedFixtureTooltip :
+« isClub ») calcule kinitofpleinN (case remplie) et kinitofidN (UniqueId de sa compétition, 0 si vide) SANS jamais lire
+une référence vide (IsNullReference) ; dans chaque ligne, la comparaison d'entiers déjà utilisée pour Domicile
+(c4a44b78, op 2 = égal) compare binding.fixture.Competition.UniqueId à kinitofidN : jamais un entier vide (GetInt de FM
+plante sur une valeur vide : relevé dans son code). Une ligne est cachée si une case est remplie ET égale. Vaut pour toute
+saison et toute compétition (coupe pas commencée, championnat quitté, coupe d'Europe d'il y a 3 ans). Textes écrits en
+clair (comme ceux du skin d'Alex : FM n'a pas de « Masquer » à recopier). Aussi : le titre du mois passe AVANT les
+enveloppes du filtre : un 1er match du mois caché (un amical) emportait le titre du mois avec lui. VUE EN JEU par Kinito
+le 13/11 : « le reste fonctionne » ; un mois entièrement filtré garde son titre seul (juillet, tout en amicaux) : il
+choisit de le garder ainsi.
+v20 (Kinito, 13/11 : « n'utiliser que ce procédé pour filtrer », ses choix) : la liste à cases des compétitions de cette
+saison est RETIRÉE (V_FCOMPS, V_PRET, la condition « comp », le tableau du panneau ; la vue VUE_FILTRE, plus utilisée,
+est remise d'origine). Le bouton « Masquer cette compétition » passe dans le bandeau du calendrier, entre le menu des
+vues et Filtre (« Vues - Masquer la compétition - Filtre ») : un seul bouton visible, celui de la 1re case libre (6
+SIVisible, ET sur les cases d'avant remplies et la sienne vide), dans 6 enveloppes qui le cachent si la compétition du
+match sélectionné est déjà masquée (kinitofidsel, UniqueId de la sélection ou 0, calculé comme les cases, comparé à
+chaque kinitofidN). Le panneau Filtre : Réinitialiser (tout : cases vidées, Hors compétition, Domicile, Extérieur), les
+compétitions masquées (nom + « Remettre », ou « Aucune… »), Hors compétition, Lieu. VUE EN JEU par Kinito le 13/11 :
+« ça fonctionne ».
+v21 (Kinito, 13/11 : « traduis cette feature dans toutes les langues du jeu ») : nos quatre textes (« Masquer cette
+compétition », « Compétitions masquées », « Remettre », « Aucune… ») suivent la langue RÉGLÉE DANS FM, en direct :
+recette 19 (comme 26.18, vue en jeu) : le conteneur de FM de tdd-messages-banner (bundle global, variable
+current_language, languagesetting -> app.NativeSettings), puis un interrupteur de FM par langue (7980ef35 : texte ==
+languagesetting.PropertyValue ; rang 1 = c'est elle) ; l'anglais sinon (anglais US, tchèque, thaï : le fichier de FM 27
+n'a pas ces deux dernières). Un interrupteur de FM ne construit que la langue réglée. Les deux boutons sont recopiés
+entiers dans chaque langue (le bouton de FM et son texte, comme en v20), les deux textes seuls. Traductions : TRADUCTIONS
+(mots de FM recopiés du fichier des langues de FM 27 quand il les a, le reste par nous ; personne de langue maternelle ne
+les a relus). Les autres textes du filtre (Filtre, Réinitialiser, Hors compétition, Lieu, Domicile, Extérieur, les vues,
+les mois) étaient déjà ceux de FM, par leur n° de traduction : rien à faire. VUE EN JEU par Kinito le 14/11 : « ça
+fonctionne ».
+v22 (Kinito, 14/11 : « parfois le filtre bug un peu » : toutes les compétitions masquées sauf la Coupe de France, des
+tours manquaient, revenus en faisant défiler, « comme un retard d'affichage ») : CAUSE (code du jeu, lu le 14/11) : le
+tableau de FM ne construit que les lignes censées être à l'écran (DynamicSizeVirtualisationController) et place les
+autres avec la hauteur MÉMORISÉE la dernière fois qu'il les a vues (SizeCache, mis à jour seulement par la ligne
+affichée : VirtualisedElementSizeChanged). Une ligne masquée hors de l'écran garde donc pour lui ses 32 px d'avant au
+lieu d'1 px : des matchs plus bas lui semblent hors de l'écran, jusqu'à ce que le défilement les lui fasse mesurer.
+CORRECTIF : rebrancher le tableau après chaque changement du filtre. StreamedListView.BindToData pose l'état 8, que
+StateChanged traite par Rebuild, qui VIDE le SizeCache (SetFallbackSize de la moyenne, Clear, ResetView). Le tableau est
+donc dans un SIVisible de FM sur kinitofaffiche (V_AFFICHE, vrai au départ), en VisibilityType 1 (VisibilityFlag : il
+garde sa place, rien ne saute à l'écran) ; caché, FM le débranche (SIVisible.ShowWidget -> BindChildren(faux) ->
+DeferredContent.TeardownFromChildren), remontré il le rebranche (ResumeFromChildren). Chaque geste du filtre (Masquer,
+Remettre, Réinitialiser, les trois cases) finit par « kinitofaffiche = faux » ; un SIVisible inversé sur la même variable
+porte un SIDelayEvent de FM qui la remet à vrai DELAI_RECHARGE plus tard (rebranché à chaque fois qu'il se remontre,
+comme la zone d'écriture de 26.6 v8). Conséquence : comme à l'ouverture, le tableau revient sur le prochain match
+(ScrollToElementBinding + SetScrollToAsSelected), qui devient le match sélectionné.
+
 Historique des versions (demandes, relevés en jeu, essais) : résumé dans « AJOUTS KINITO - DETAILS.md »,
 § 10 ; texte complet gardé par Kinito.
 
@@ -94,9 +154,14 @@ ECART_MENU = 8       # px entre le menu des vues et le bouton Filtre (v15 ; 8 = 
 LARGEUR_MAX_MENU = 300   # px : largeur maximale du menu des vues (v16, choix de Kinito ; au-delà, le nom se coupe en « … »)
 # =====================================================================================================
 
-VERSION = 17  # historique : voir la docstring ; v15 (Alex, 11/10) : menu des vues à gauche de Filtre, variables des
+VERSION = 22  # historique : voir la docstring ; v15 (Alex, 11/10) : menu des vues à gauche de Filtre, variables des
               # vues à la racine du bloc ; v16 (Kinito, 13/10) : le menu s'étend vers la gauche, plafonné ;
-              # v17 (Alex, 20/10) : VisualElement nu cherché dans plusieurs modèles (MAJ de FM, SOURCES_ELEMENT)
+              # v17 (Alex, 20/10) : VisualElement nu cherché dans plusieurs modèles (MAJ de FM, SOURCES_ELEMENT) ;
+              # v18 (Kinito, 13/11, essai) : « Compétitions nationales » dans le filtre (liste vide en jeu) ;
+              # v19 (Kinito, 13/11, essai) : « Compétitions masquées » au clic, titre du mois hors du filtre ;
+              # v20 (Kinito, 13/11) : « Masquer cette compétition » dans le bandeau, plus de liste à cases ;
+              # v21 (Kinito, 13/11) : nos quatre textes dans la langue réglée dans FM (TRADUCTIONS) ;
+              # v22 (Kinito, 14/11) : le tableau rebranché après chaque geste du filtre (des matchs manquaient)
 COLONNE_SELECTION = "kinito-selection"   # v5 : notre colonne de sélection, 0 px, cellule vide (SelectionCellID)
 SOURCE_SELECTION = ("PlayerPositionalRolesTableFactory", "selection-small")   # v8 : la colonne de sélection à 0 px de FM
 GUID_CELLULE_SELECTION = "b08b21f21a0ebe24fb8168b6dd702eeb"   # sa cellule : RadioToggleCell (un bouton, AUCUN texte)
@@ -239,28 +304,118 @@ MARKER = os.path.join(backup.BACKUP_DIR, "kinito_rencontres_vues.actif")
 # v7 : « mettre de base tous les filtres actifs ») -----
 # Chaque case : cochée = « afficher ça » ; tout est coché au départ, décocher cache. Aucun filtre côté moteur
 # (InteropEventIDs : rien pour les matchs) : tout se fait dans la ligne.
-V_FCOMPS = "kinitofcomps"   # les compétitions cochées : la sélection du tableau du panneau (SelectedItemsBinding)
 V_FHC, V_FDOM, V_FEXT = "kinitofhc", "kinitofdom", "kinitofext"   # cases Hors compétition, Domicile, Extérieur
 VARS_FILTRE = [V_FHC, V_FDOM, V_FEXT]   # v7 : vraies (cochées) au départ
-V_PRET = "kinitofpret"   # v7 : vrai une fois V_FCOMPS remplie ; faux = le filtre des compétitions ne cache rien
-COMPS_EQUIPE = "team.CurrentComps"   # les compétitions de l'équipe (liste du moteur ; lignes du tableau du panneau)
-# v7 : au départ, COMPS_EQUIPE est copiée dans V_FCOMPS (tout coché) par BindAndSetAorBToDestinationOnIntComparison
-# (const.One = const.One : toujours la source « vrai ») ; son nœud Bind n'écoute que ses sources (SourceBindingTrue /
-# False, int1, int2 : relevé dans le graphe de la fonction), jamais sa destination : décocher n'est pas annulé, et la
-# copie se refait quand COMPS_EQUIPE change (autre équipe, boutons 26.2). Le tableau écrit une NOUVELLE liste à chaque
-# clic (StreamedListView.OnSelectionChangedInternal : TypedValue.Create<List<TypedValue>>) : celle du moteur n'est
-# jamais modifiée. FM copie lui aussi des propriétés du moteur dans ses variables (ex. setupgame.SelectedDatabase).
-L_DANS, L_ENCOURS, L_DOM = "kinitoxdansliste", "kinitoxencours", "kinitoxdomicile"   # calculés dans chaque ligne
+# v7 à v19 : la liste à cases des compétitions de cette saison (team.CurrentComps copiée dans kinitofcomps, kinitofpret,
+# condition « comp » de la ligne) ; v20 : retirée (Kinito : « n'utiliser que ce procédé », le masquage)
+L_DOM = "kinitoxdomicile"   # calculé dans chaque ligne
+# v19 : les compétitions masquées au clic (toute saison) : MASQUES cases à la racine du bloc (préfixe « kinitof » : retirées
+# avec les autres), et pour chacune « remplie » et l'UniqueId de sa compétition (0 si vide), calculés sans lire de vide
+MASQUES = 6
+V_MASQUE = [f"kinitofmasque{k}" for k in range(1, MASQUES + 1)]   # la compétition masquée (référence, vide au départ)
+V_PLEIN = [f"kinitofplein{k}" for k in range(1, MASQUES + 1)]     # vrai : la case est remplie
+V_ID = [f"kinitofid{k}" for k in range(1, MASQUES + 1)]           # UniqueId de sa compétition, 0 si vide
+L_EGAL = [f"kinitoxegal{k}" for k in range(1, MASQUES + 1)]       # dans chaque ligne : la compétition du match = la case
+SELECTION_COMP = "selectedfixturelistelement.Fixture.Competition"   # le match sélectionné (comme selectedfixture de FM)
+ID_COMP = "binding.fixture.Competition.UniqueId"
+# v20 : la compétition du match sélectionné est-elle déjà masquée ? (UniqueId de la sélection, 0 sans sélection, calculé
+# comme les cases ; une égalité par case) : le bouton du bandeau se cache alors
+V_IDSEL = "kinitofidsel"
+V_SELEGAL = [f"kinitofselegal{k}" for k in range(1, MASQUES + 1)]
+# v22 : le tableau rebranché après chaque geste du filtre (voir la docstring) : faux = débranché, un SIDelayEvent de FM le
+# remet à vrai DELAI_RECHARGE secondes plus tard
+V_AFFICHE = "kinitofaffiche"
+DELAI_RECHARGE = 0.05
+VISIBILITE_PLACE = 1   # SI.Bindable.VisibilityChangeType.VisibilityFlag (0 DisplayStyle, 2 Fade) : caché, garde sa place
+NOM_RECHARGE = f"{PREFIXE}-rencontres-vues-recharge-v{VERSION}"   # préfixe « -rencontres-vues » : retiré par retirer_bloc
+NOM_RECHARGE_DELAI = f"{PREFIXE}-rencontres-vues-recharge-delai"
+
+
+def recharger():
+    """v22 : le dernier événement de chaque geste du filtre (le tableau se débranche, puis se rebranche)"""
+    return copier("const.False", V_AFFICHE)
+TEXTE_TITRE_MASQUES = "Compétitions masquées"
+TEXTE_MASQUER = "Masquer cette compétition"   # v20 : son texte (v19 : « Masquer la compétition du match sélectionné »)
+TEXTE_REMETTRE = "Remettre"
+TEXTE_AUCUNE = "Aucune. Sélectionne un match, puis « Masquer cette compétition »."
+# v21 : la langue du jeu (recette 19, comme 26.18 kinito_fenetre_but, vue en jeu) : le conteneur de FM de
+# tdd-messages-banner (bundle global) lit le réglage de langue ; son interrupteur compare un texte à
+# languagesetting.PropertyValue (rang 1 = c'est elle, rang 0 = la suite)
+SOURCE_LANGUE = "tdd-messages-banner"
+FONCTION_LANGUE = "7980ef35a33c35e43940a2b7add470dd"
+LANGUE_DEFAUT = "english"
+LANGUES_JEU = ("english", "english (us)", "french", "german", "italian", "spanish", "spanish (latam)", "portuguese",
+               "portuguese (bra)", "dutch", "danish", "norwegian", "swedish", "polish", "czech", "russian", "turkish",
+               "greek", "indonesian", "japanese", "korean", "chinese", "chinese (traditional)", "thai", "arabic")
+#               (les valeurs du réglage natif current_language, lues dans game_plugin.dll : 26.13 v24, v95)
+MEMES = {"english (us)": "english", "spanish (latam)": "spanish", "portuguese (bra)": "portuguese",
+         "czech": "english", "thai": "english", "chinese (traditional)": "chinese"}   # comme 26.13 v95 : absentes du
+#        fichier de langues de FM 27 (tchèque, thaï, chinois traditionnel) ou partielles (espagnol d'Amérique latine)
+# Nos quatre textes dans chaque langue du fichier de FM 27. Mots de FM recopiés de ce fichier (languages.fmf, lu par
+# chantier-cartes-jeunes\outils\mots_fm_ids.mjs) : le verbe « masquer » de « Hide details » / « Hide loans »
+# (0x100a6a0c, 0x1008825e), « Show » (0x10048d00, « Afficher »), « Hidden » (0x10053f07), « Competition »
+# (0x100a28cb), « None » (0x10038553, « Aucune ») ; le reste par nous (FM n'a ni « Hide competition » ni « Unhide »),
+# au vouvoiement quand FM vouvoie (allemand, turc, grec…) ; le français reste celui de Kinito. « ​ » : l'espace
+# sans largeur que FM met dans ses textes japonais et chinois (où la ligne peut se couper).
+TRADUCTIONS = {
+    "masquer": {
+        "english": "Hide this competition", "french": TEXTE_MASQUER, "german": "Diesen Wettbewerb ausblenden",
+        "italian": "Nascondi questa competizione", "spanish": "Ocultar esta competición",
+        "portuguese": "Ocultar esta competição", "dutch": "Deze competitie verbergen", "danish": "Skjul denne turnering",
+        "norwegian": "Skjul denne turneringen", "swedish": "Dölj denna tävling", "polish": "Ukryj te rozgrywki",
+        "russian": "Скрыть этот турнир", "turkish": "Bu turnuvayı gizle",
+        "greek": "Απόκρυψη αυτής της διοργάνωσης", "indonesian": "Sembunyikan kompetisi ini",
+        "japanese": "この大会を非表示", "korean": "이 대회 숨기기", "chinese": "隐藏此赛事", "arabic": "إخفاء هذه البطولة"},
+    "titre_masques": {
+        "english": "Hidden competitions", "french": TEXTE_TITRE_MASQUES, "german": "Ausgeblendete Wettbewerbe",
+        "italian": "Competizioni nascoste", "spanish": "Competiciones ocultas", "portuguese": "Competições ocultas",
+        "dutch": "Verborgen competities", "danish": "Skjulte turneringer", "norwegian": "Skjulte turneringer",
+        "swedish": "Dolda tävlingar", "polish": "Ukryte rozgrywki", "russian": "Скрытые турниры",
+        "turkish": "Gizlenen turnuvalar", "greek": "Κρυφές διοργανώσεις", "indonesian": "Kompetisi tersembunyi",
+        "japanese": "非表示の大会", "korean": "숨긴 대회", "chinese": "已隐藏的赛事", "arabic": "البطولات المخفية"},
+    "remettre": {
+        "english": "Show", "french": TEXTE_REMETTRE, "german": "Einblenden", "italian": "Mostra", "spanish": "Mostrar",
+        "portuguese": "Mostrar", "dutch": "Weergeven", "danish": "Vis", "norwegian": "Vis", "swedish": "Visa",
+        "polish": "Pokaż", "russian": "Показать", "turkish": "Göster", "greek": "Εμφάνιση", "indonesian": "Tampilkan",
+        "japanese": "再表示", "korean": "다시 표시", "chinese": "重新显示", "arabic": "إظهار"},
+    "aucune": {
+        "english": "None. Select a match, then “Hide this competition”.",
+        "french": TEXTE_AUCUNE,
+        "german": "Keine. Wählen Sie ein Spiel aus, dann „Diesen Wettbewerb ausblenden“.",
+        "italian": "Nessuna. Seleziona una partita, poi «Nascondi questa competizione».",
+        "spanish": "Ninguna. Selecciona un partido y luego «Ocultar esta competición».",
+        "portuguese": "Nenhuma. Seleccione um jogo e depois «Ocultar esta competição».",
+        "dutch": "Geen. Selecteer een wedstrijd en daarna “Deze competitie verbergen”.",
+        "danish": "Ingen. Vælg en kamp og derefter »Skjul denne turnering«.",
+        "norwegian": "Ingen. Velg en kamp og deretter «Skjul denne turneringen».",
+        "swedish": "Inga. Välj en match och sedan ”Dölj denna tävling”.",
+        "polish": "Brak. Wybierz mecz, a następnie „Ukryj te rozgrywki”.",
+        "russian": "Нет. Выберите матч, затем «Скрыть этот турнир».",
+        "turkish": "Yok. Bir maç seçin, ardından “Bu turnuvayı gizle”.",
+        "greek": "Καμία. Επιλέξτε έναν αγώνα και μετά «Απόκρυψη αυτής της διοργάνωσης».",
+        "indonesian": "Tidak ada. Pilih sebuah pertandingan, lalu “Sembunyikan kompetisi ini”.",
+        "japanese": "なし。​試合を​選んでから​「この大会を非表示」を​押してください。",
+        "korean": "없음. 경기를 선택한 후 '이 대회 숨기기'를 누르십시오.",
+        "chinese": "无。​请选择​一场比赛，​然后点击​“隐藏此赛事”。",
+        "arabic": "لا شيء. حدد مباراة، ثم «إخفاء هذه البطولة»."},
+}
+
+
+def texte_langue(cle, langue):
+    """v21 : notre texte cle dans une langue du réglage de FM (LANGUES_JEU)"""
+    return TRADUCTIONS[cle][MEMES.get(langue, langue)]
+
+
+def _slug(langue):
+    return "".join(c if c.isalnum() else "-" for c in langue).strip("-").replace("--", "-")
 AMICAL = "binding.fixture.Competition.IsFriendly"
 DOMICILE = ("binding.fixture.awayteam.UniqueId", "binding.fixture.TeamOpponent.UniqueId")   # le test de FM
 # (NextFixtureCell : l'équipe qui se déplace = l'adversaire -> on joue à domicile), sans dépendre de la langue
 CONDITIONS = [   # la ligne est cachée si UNE de ces conditions (ET de ses vrai/faux, (chemin, inversé)) est vraie
-    ("comp", [(V_PRET, 0), (L_ENCOURS, 0), (L_DANS, 1)]),   # une compétition de l'équipe, décochée (v7 ; une
-                                                            # compétition hors de la liste actuelle n'est jamais cachée)
     ("amical", [(AMICAL, 0), (V_FHC, 1)]),                  # un amical, Hors compétition décoché
     ("domicile", [(L_DOM, 0), (V_FDOM, 1)]),                # à domicile, Domicile décoché
     ("exterieur", [(L_DOM, 1), (V_FEXT, 1)]),               # à l'extérieur, Extérieur décoché
-]
+] + [(f"masque{k + 1}", [(V_PLEIN[k], 0), (L_EGAL[k], 0)]) for k in range(MASQUES)]   # v19 : case remplie et égale
 PANNEAU = "ClubSupportersConfidenceRow"   # gameworld, inutilisé : réécrit en contenu du panneau du filtre
 GUID_PANNEAU = "b6ef021c86228fa40bc3cd737041d17c"
 VUE_FILTRE = "SquadHierarchyManagerTable"   # v12 : ui-tableviews, citée par rien (vues_libres.py) : réécrite
@@ -281,6 +436,10 @@ SOURCE_CALCUL = ("GoOnHolidayWidget", "BindingSetter")
 FONCTIONS = {   # une fonction de FM recopiée de ce modèle, arguments réécrits
     "contient": ("ControllerRemapSettingsRow", "53435a45561e1754cba90ac41c45e5a7"),   # BindListContainsValueToDestination
     "aorb": ("LiveCupDrawButtons", "c4a44b7871191264db60b54fb75c714a"),   # BindAndSetAorBToDestinationOnIntComparison
+    # v19 : BindAndSetAOrBToDestinationUsingReferenceIsNullAsBool (ValidateReference, PrimaryBinding, FallbackBinding,
+    # Destination, ForceUpdate) : Primary, ou Fallback si la référence est vide ou n'existe pas (IsNullReference, jamais
+    # de lecture d'une valeur vide) ; dans ViewedFixtureTooltip : Event.team.Club, const.true, const.false, isClub
+    "nul": ("ViewedFixtureTooltip", "079b54afdf49eb242aba84c36407187b"),
 }
 # v12 : le SIVisible de FM dont la liaison est BindMultipleBooleanArgsToVisible (Show(vrai / faux), dans les deux sens) ;
 # v6 à v11 : BindMultipleBooleanArgsToUSSClass (678bbaf2), dont la branche « faux » ne fait rien (classe jamais retirée)
@@ -297,14 +456,14 @@ TEXTES = {   # un texte de FM recopié de ce modèle (n° de traduction ; anglai
 # v13 : 52 px, la hauteur que FM donne à la colonne « competition » (logo + nom + pays, deux lignes : ScoutingCompetition-
 # Table de CustomPortalScoutingCompetitionCalendarNewsBlock) ; v7 à v12 : 32 px (le pays était coupé)
 HAUTEUR_LIGNE_PANNEAU, LARGEUR_PANNEAU = 52, 280   # px
-COMPS_MAX = 8   # v13 : team.CurrentComp1 à 8 (propriétés de l'équipe, TeamReference) : une cale par compétition existante
-NOM_ZONE_COMPS = "UIPickerKinito-rencontres-panneau-zone-comps"
+NOM_MASQUES = f"{PREFIXE}-rencontres-panneau-masques-v{VERSION}"   # v19 : la section des compétitions masquées
+NOM_MASQUER = f"{PREFIXE}-rencontres-vues-masquer"   # v20 : le bouton du bandeau (préfixe « -rencontres-vues » :
+                                                     # retiré par retirer_bloc, comme la zone du Filtre où il est)
 NOM_FILTRE = f"{PREFIXE}-rencontres-vues-filtre"        # le bouton : préfixe « -rencontres-vues », retiré par retirer_bloc
 NOM_ESPACE = f"{PREFIXE}-rencontres-vues-filtre-espace"
 NOM_PANNEAU = f"{PREFIXE}-rencontres-panneau"
 NOM_CALCUL = f"{PREFIXE}-rencontres-filtre-calcul-v{VERSION}"
-NOM_INIT = f"{PREFIXE}-rencontres-vues-filtre-init"   # v7 : la copie de COMPS_EQUIPE (préfixe retiré par retirer_bloc)
-NOM_TABLE_PANNEAU = f"{PREFIXE}-rencontres-panneau-competitions-v{VERSION}"
+NOM_INIT = f"{PREFIXE}-rencontres-vues-filtre-init"   # v7 : les calculs de départ (préfixe retiré par retirer_bloc)
 FABRIQUES = os.path.join(nb.AA, "ui-tablefactories_assets_all.bundle")
 VUES = os.path.join(nb.AA, "ui-tableviews_assets_all.bundle")
 
@@ -496,6 +655,27 @@ class Sources:
         self.mx = ee.Morceaux()
         ob = ouvrir(ee.BOUTON_SOURCE)
         self.bouton_equipe = ob and ob[3]
+        # v21 : la langue du jeu (le conteneur de FM qui la lit, et son interrupteur « texte == langue »)
+        self.tlg = ouvre(SOURCE_LANGUE)
+        self.langue_env = self.langue_sw = None
+        if self.tlg:
+            tg = self.tlg
+            self.langue_env = first(tg, lambda r: typ(tg, r) == "ComponentElement" and any(
+                "languagesetting" in json.dumps((tg.refs.get(c["rid"]) or {}).get("data") or {})
+                for c in tg.sd(r).get("m_components") or []))
+            self.langue_sw = first(tg, lambda r: typ(tg, r) == "BindableSwitchElement" and _fn_guid(
+                (tg.sd(r).get("Binding") or {}).get("m_visualFunction")) == FONCTION_LANGUE)
+            if self.langue_env is not None:
+                donnees = json.dumps([(tg.refs.get(c["rid"]) or {}).get("data")
+                                      for c in tg.sd(self.langue_env).get("m_components") or []])
+                if "current_language" not in donnees or "app.NativeSettings" not in donnees:
+                    self.langue_env = None
+            if self.langue_sw is not None:
+                f = tg.sd(self.langue_sw)["Binding"]["m_visualFunction"]
+                mots = [x for x in decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+                        if bytes(x[0]).endswith(b"StringVisualArg")]
+                if len(mots) != 1 or bytes(mots[0][1]) != bytes([1, 7]) + b"english":
+                    self.langue_sw = None
 
     def manque(self):
         noms = {"tableau du Portail": self.tableau, "menu des vues des capitaines": self.menu,
@@ -511,7 +691,12 @@ class Sources:
         noms.update({f"texte {k} de FM": v for k, v in self.textes.items()})
         noms.update({"rangée d'équipes d'Alex": self.mx if self.mx.ok() else None,
                      "bouton d'équipe de FM": self.bouton_equipe})   # v13
+        noms.update({"conteneur de langue de FM (tdd-messages-banner)": self.langue_env,   # v21
+                     "interrupteur de langue de FM (tdd-messages-banner)": self.langue_sw})
         out = [n for n, v in noms.items() if v is None]
+        if any(MEMES.get(lg, lg) not in TRADUCTIONS[c] for c in TRADUCTIONS for lg in LANGUES_JEU) \
+                or any(texte_langue("masquer", lg) not in texte_langue("aucune", lg) for lg in LANGUES_JEU):
+            out.append("traductions incomplètes (v21)")
         if not evenements_ok():
             out.append("format des événements")
         if not ee._verifier_evenement() or not evenement_ia_ok():   # v13
@@ -551,7 +736,9 @@ def marques(t):
 def bloc_a_jour(t):
     noms = {t.name(r) for r in t.walk()}
     return {NOM_CACHE, NOM_VUES, NOM_TABLEAU, NOM_MENU, NOM_DELAI, NOM_FILTRE, NOM_INIT, NOM_MONTRE, NOM_ZONE_FILTRE,
-            NOM_EQUIPES_IA} <= noms   # v13 : la rangée IA (nom versionné : un bloc v12 n'est pas à jour)
+            NOM_EQUIPES_IA,   # v13 : la rangée IA (nom versionné : un bloc v12 n'est pas à jour)
+            f"{NOM_MASQUER}-bouton-1-langue-v{VERSION}",   # v21 : le bouton du bandeau dans la langue du jeu
+            NOM_RECHARGE, NOM_RECHARGE_DELAI} <= noms   # v22 : le tableau rebranché après chaque geste du filtre
 
 
 def _visible(t, src, parent, chemin, inverse, nom, index=None, toujours=0):
@@ -676,6 +863,26 @@ def construire_bloc(t, src):
     # v12 : pas de zébrage (réglage par défaut de FM ; le tableau du Portail recopié le met à 1). Une ligne cachée garde
     # 1 px (construire_ligne) : zébrée, la ligne impaire y laissait un trait (--data-tables-background-odd, blanc 6 %)
     _poser(sd, "AlternateRows", 0)
+    # v22 : le tableau dans un SIVisible de FM sur V_AFFICHE (caché : FM le débranche ; remontré : il le rebranche, et le
+    # tableau oublie les hauteurs qu'il avait mémorisées), en VisibilityFlag (il garde sa place) ; puis, montrée quand
+    # V_AFFICHE est faux, la zone dont le SIDelayEvent de FM le remet à vrai
+    rech = _visible(t, src, bv, V_AFFICHE, False, NOM_RECHARGE, index=t.children(bv).index(tab), toujours=1)
+    t.elem(rech)["m_Classes"] = ["base-template-grow"]
+    t.styles.style(t, rech, {"flex-direction": "column"})
+    dr = t.sd(rech)
+    if "VisibilityType" not in dr or dr.get("AlwaysBindChildren"):
+        return ["SIVisible de FM : VisibilityType absent ou AlwaysBindChildren allumé (inattendu)"]
+    _poser(dr, "VisibilityType", VISIBILITE_PLACE)
+    _deplacer(t, tab, rech)
+    zone = _visible(t, src, bv, V_AFFICHE, True, NOM_RECHARGE_DELAI)
+    t.styles.style(t, zone, {"position": "absolute", "width": 0, "height": 0})
+    mr = t.clone(src.delai, zone, src=src.td)
+    _parent_id(t, mr)
+    _nommer(t, mr, NOM_RECHARGE_DELAI + "-minuteur")
+    t.elem(mr)["m_Classes"], t.elem(mr)["m_RuleIndex"] = [], -1
+    t.styles.style(t, mr, {"position": "absolute", "width": 0, "height": 0})
+    _poser(t.sd(mr), "m_duration", float(DELAI_RECHARGE))
+    _poser(t.sd(mr), "TransitionEvents", {"m_bytes": liste([copier("const.True", V_AFFICHE)])})
     # 2c. le délai : VUES_PRETES passe à vrai, le menu des vues se relie après le tableau
     dl = t.clone(src.delai, bv, src=src.td)
     _parent_id(t, dl)
@@ -685,7 +892,8 @@ def construire_bloc(t, src):
     dd = t.sd(dl)
     _poser(dd, "m_duration", float(DELAI))
     _poser(dd, "TransitionEvents", {"m_bytes": liste([copier("const.True", VUES_PRETES)])})
-    pb = filtre_bloc(t, src) or equipes_ia(t, src) or menu_a_cote_du_filtre(t, src, env, rangee)   # v6 ; v13 ; v15
+    pb = (filtre_bloc(t, src) or equipes_ia(t, src) or menu_a_cote_du_filtre(t, src, env, rangee)   # v6 ; v13 ; v15
+          or masquer_dans_le_bandeau(t, src))   # v20
     if pb:
         return [pb]
     return [f"bouton « Filtre » dans l'en-tête, variables du filtre à la racine du bloc",
@@ -717,6 +925,39 @@ def menu_a_cote_du_filtre(t, src, env, rangee):
     d.setdefault("ReferenceVariables", []).append(decl)
     d.setdefault("ValueVariables", []).append({"m_name": VUES_PRETES, "m_scopeValue": {"m_serializedData": "Bool|0|"}})
     d["ValueVariables_UxmlAttributeFlags"] = d["ReferenceVariables_UxmlAttributeFlags"] = 1
+    return None
+
+
+def masquer_dans_le_bandeau(t, src):
+    """v20 (Kinito, 13/11 : « Vues - Masquer la compétition - Filtre ») : le bouton « Masquer cette compétition » dans la
+    zone du Filtre, juste avant lui (donc après le menu des vues). Un seul bouton visible : MASQUES SIVisible (ET : les
+    cases d'avant remplies, la sienne vide), chacun copie la compétition du match sélectionné dans SA case ; le tout dans
+    MASQUES enveloppes (OU : case vide, ou pas la compétition sélectionnée) qui le cachent si elle est déjà masquée. Plus
+    rien quand les cases sont pleines. SIVisible de FM sans AlwaysInstantiate. None ou un texte d'erreur"""
+    filtre = first(t, lambda r: t.name(r) == NOM_FILTRE)
+    zone = filtre is not None and t.parent.get(filtre)
+    if not zone or t.name(zone) != NOM_ZONE_FILTRE:
+        return "bouton Filtre introuvable dans sa zone (inattendu)"
+    grp = t.clone(src.element, zone, t.children(zone).index(filtre), src=src.tl)
+    _parent_id(t, grp)
+    _nommer(t, grp, NOM_MASQUER)
+    t.elem(grp)["m_Classes"], t.elem(grp)["m_RuleIndex"] = ["row-direction-normal", "align-items-center"], -1
+    t.styles.style(t, grp, {"align-self": "center", "flex-shrink": 0, "margin-right": ECART_MENU})
+    parent = grp
+    for j in range(MASQUES):
+        w = _visible_fn(t, src, parent, [(V_PLEIN[j], 1), (V_SELEGAL[j], 1)], OU, f"{NOM_MASQUER}-deja-{j + 1}")
+        if isinstance(w, str):
+            return w
+        t.styles.style(t, w, {"flex-direction": "row", "align-items": "center"})
+        parent = w
+    for k in range(MASQUES):
+        v = _visible_fn(t, src, parent, [(V_PLEIN[i], 0) for i in range(k)] + [(V_PLEIN[k], 1)], 0,
+                        f"{NOM_MASQUER}-case-{k + 1}")
+        if isinstance(v, str):
+            return v
+        # v21 : le bouton dans la langue du jeu
+        _bouton_langue(t, src, v, f"{NOM_MASQUER}-bouton-{k + 1}", "masquer",
+                       [copier(SELECTION_COMP, V_MASQUE[k]), recharger()])   # v22 : puis le tableau rebranché
     return None
 
 
@@ -980,12 +1221,10 @@ def construire_ligne(t, src):
     # hauteur qu'enregistrée) rien n'est recalculé : en jeu, décocher puis recocher une compétition vidait le tableau
     # jusqu'au prochain changement d'équipe (qui reconstruit tout). À 1 px, chaque changement est enregistré.
     t.styles.style(t, be, {"flex-direction": "column", "min-height": 1})
-    # 0. v6 : le filtre (calcul, et les enveloppes qui cachent la ligne) ; le reste va dans la plus intérieure
-    contenu = _filtre_ligne(t, src, be)
-    if isinstance(contenu, str):
-        return contenu
-    # 1. le bandeau du mois (seulement sur le 1er match du mois)
-    mois = t.clone(src.mois, contenu, src=src.tr)
+    # 1. le bandeau du mois (seulement sur le 1er match du mois) ; v19 : AVANT le filtre, hors de ses enveloppes (jusqu'à
+    # la v18, il était dans la plus intérieure : un 1er match du mois caché, un amical par exemple, emportait le titre
+    # du mois avec lui ; relevé par Kinito le 13/11, « août 2026 » absent)
+    mois = t.clone(src.mois, be, src=src.tr)
     t.styles.copy_from(src.tr.styles, t, mois)
     _parent_id(t, mois)
     _nommer(t, mois, NOM_MOIS)
@@ -1005,6 +1244,11 @@ def construire_ligne(t, src):
     _parent_id(t, trait)
     _nommer(t, trait, f"{PREFIXE}-rencontres-trait")
     t.elem(trait)["m_Classes"], t.elem(trait)["m_RuleIndex"] = [CLASSE_TRAIT], -1
+    # 0. v6 : le filtre (calcul, et les enveloppes qui cachent la ligne), après le bandeau du mois ; les cellules vont dans
+    # la plus intérieure
+    contenu = _filtre_ligne(t, src, be)
+    if isinstance(contenu, str):
+        return contenu
     # 2. la zone des cellules : en ligne, hauteur FIXE d'une ligne de match (v9 ; jusqu'à la v8 une hauteur mini : en jeu,
     # la 1re ligne et toutes ses cellules faisaient 8 388 670 px, le plafond du moteur de mise en page, avec ou sans
     # flex-grow (v7) et avec ou sans cellule texte dans la colonne de sélection (v8) : une cellule grandissait sans
@@ -1212,10 +1456,10 @@ def _booleens(cond):
 
 
 def _filtre_ligne(t, src, parent):
-    """dans la ligne de match : un BindingSetter de FM qui calcule L_DANS (la compétition du match est cochée),
-    L_ENCOURS (c'est une compétition de l'équipe), L_DOM (match à domicile), puis une enveloppe par condition de CONDITIONS,
-    cachée si la condition est vraie (v12 : un SIVisible de FM, qui montre et cache) ; renvoie la plus intérieure (le
-    bandeau du mois et les cellules y vont), ou un texte d'erreur"""
+    """dans la ligne de match : un BindingSetter de FM qui calcule L_DOM (match à domicile) et L_EGAL (v19 : la
+    compétition du match = la case k ; v20 : plus de L_DANS / L_ENCOURS, la liste à cases est retirée), puis une
+    enveloppe par condition de CONDITIONS, cachée si la condition est vraie (v12 : un SIVisible de FM, qui montre et
+    cache) ; renvoie la plus intérieure (les cellules y vont), ou un texte d'erreur"""
     calc = t.clone(src.calcul, parent, src=src.tcalc)
     _vider(t, calc)
     _parent_id(t, calc)
@@ -1226,20 +1470,21 @@ def _filtre_ligne(t, src, parent):
     t.styles.style(t, calc, {"flex-direction": "column"})
     fns = []
     for cle, attendu, valeurs in (
-            ("contient", [ARG_BOOL, ARG_CHEMIN, ARG_CHEMIN, ARG_BOOL, ARG_CHEMIN],
-             [b"\x00", _chemin(V_FCOMPS), _chemin("binding.fixture.Competition"), None, _chemin(L_DANS)]),
-            ("contient", [ARG_BOOL, ARG_CHEMIN, ARG_CHEMIN, ARG_BOOL, ARG_CHEMIN],
-             [b"\x00", _chemin(COMPS_EQUIPE), _chemin("binding.fixture.Competition"), None, _chemin(L_ENCOURS)]),
             ("aorb", [ARG_CHEMIN, ARG_CHEMIN, ARG_CHEMIN, ARG_BOOL, ARG_COMPARAISON, ARG_CHEMIN, ARG_CHEMIN],
              [_chemin("const.True"), _chemin("const.False"), _chemin(L_DOM), None, struct.pack("<i", 2),
-              _chemin(DOMICILE[0]), _chemin(DOMICILE[1])])):
+              _chemin(DOMICILE[0]), _chemin(DOMICILE[1])]),) + tuple(
+            # v19 : la compétition du match = la case k ? Deux entiers jamais vides : l'UniqueId de la compétition du
+            # match, et V_ID[k], que la racine met à 0 quand la case est vide (op 2 = égal, comme Domicile)
+            ("aorb", [ARG_CHEMIN, ARG_CHEMIN, ARG_CHEMIN, ARG_BOOL, ARG_COMPARAISON, ARG_CHEMIN, ARG_CHEMIN],
+             [_chemin("const.True"), _chemin("const.False"), _chemin(L_EGAL[k]), None, struct.pack("<i", 2),
+              _chemin(ID_COMP), _chemin(V_ID[k])]) for k in range(MASQUES)):
         f = copy.deepcopy(src.fn[cle])
         if not _args(f, attendu, valeurs):
             return f"fonction « {cle} » de FM : arguments inattendus"
         fns.append(f)
     sd = t.sd(calc)
     _poser(sd, "ValueVariables", [{"m_name": n, "m_scopeValue": {"m_serializedData": "Bool|0|"}}
-                                  for n in (L_DANS, L_ENCOURS, L_DOM)])
+                                  for n in (L_DOM, *L_EGAL)])   # v19 : une égalité par case ; v20 : sans la liste
     _poser(sd, "ReferenceVariables", [])
     _poser(sd, "BindFunction", fns)
     contenu = calc
@@ -1287,11 +1532,20 @@ def filtre_bloc(t, src):
     retirer_variables_filtre(t)
     d.setdefault("ValueVariables", []).extend([{"m_name": n, "m_scopeValue": {"m_serializedData": "Bool|1|"}}
                                                for n in VARS_FILTRE]   # v7 : cochées au départ
-                                              + [{"m_name": V_PRET, "m_scopeValue": {"m_serializedData": "Bool|0|"}},
-                                                 # v12 : faux au départ (la liste de FM d'abord, jamais nos morceaux
-                                                 # sur un écran qui n'est pas le nôtre)
-                                                 {"m_name": V_HUMAIN, "m_scopeValue": {"m_serializedData": "Bool|0|"}}])
-    d.setdefault("ReferenceVariables", []).append({"m_type": {"id": 0}, "m_initToNull": 1, "m_name": V_FCOMPS})
+                                              # v12 : faux au départ (la liste de FM d'abord, jamais nos morceaux sur un
+                                              # écran qui n'est pas le nôtre)
+                                              + [{"m_name": V_HUMAIN, "m_scopeValue": {"m_serializedData": "Bool|0|"}}]
+                                              # v19 : case remplie (faux) et UniqueId de sa compétition (0) ; « Int|0| » :
+                                              # le format de FM (FilterListID de NationSiteContentBlock) ; v20 : la
+                                              # sélection déjà masquée (une égalité par case) et son UniqueId
+                                              + [{"m_name": n, "m_scopeValue": {"m_serializedData": "Bool|0|"}}
+                                                 for n in V_PLEIN + V_SELEGAL]
+                                              + [{"m_name": n, "m_scopeValue": {"m_serializedData": "Int|0|"}}
+                                                 for n in V_ID + [V_IDSEL]]
+                                              # v22 : le tableau branché (vrai au départ)
+                                              + [{"m_name": V_AFFICHE, "m_scopeValue": {"m_serializedData": "Bool|1|"}}])
+    d.setdefault("ReferenceVariables", []).extend([{"m_type": {"id": 0}, "m_initToNull": 1, "m_name": n}
+                                                   for n in V_MASQUE])   # v19 : les cases, vides au départ
     d["ValueVariables_UxmlAttributeFlags"] = d["ReferenceVariables_UxmlAttributeFlags"] = 1
     racine = t.children(t.tt["m_VisualTree"]["rid"])[0]
     entete = next((k for k in t.children(racine) if typ(t, k) == "VisualElement"
@@ -1314,7 +1568,7 @@ def filtre_bloc(t, src):
     _nommer(t, w, NOM_FILTRE)
     _poser(t.sd(w), "ContentTemplate", {"m_AssetGUID": GUID_PANNEAU, "m_SubObjectName": "", "m_SubObjectType": ""})
     t.styles.style(t, w, {"align-self": "center", "flex-shrink": 0})
-    # v7 : au départ (et à chaque changement de COMPS_EQUIPE), toutes les compétitions cochées, puis V_PRET vrai
+    # les calculs de départ (v7 à v19 : aussi la copie de la liste à cases, retirée en v20)
     init = t.clone(src.calcul, entete, src=src.tcalc)
     _vider(t, init)
     _parent_id(t, init)
@@ -1322,13 +1576,6 @@ def filtre_bloc(t, src):
     t.elem(init)["m_Classes"], t.elem(init)["m_RuleIndex"] = [], -1
     t.styles.style(t, init, {"position": "absolute", "width": 0, "height": 0})
     fns = []
-    for source, dest in ((COMPS_EQUIPE, V_FCOMPS), ("const.True", V_PRET)):
-        f = copy.deepcopy(src.fn["aorb"])
-        if not _args(f, [ARG_CHEMIN, ARG_CHEMIN, ARG_CHEMIN, ARG_BOOL, ARG_COMPARAISON, ARG_CHEMIN, ARG_CHEMIN],
-                     [_chemin(source), _chemin(source), _chemin(dest), None, struct.pack("<i", 2),
-                      _chemin("const.One"), _chemin("const.One")]):
-            return "fonction « A ou B » de FM : arguments inattendus"
-        fns.append(f)
     # v12 : V_HUMAIN = l'équipe affichée (team, paramètre du bloc) est dans les équipes du club du joueur (v13 : choisit
     # la rangée d'équipes, celle de 26.2 ou celle d'un club IA)
     f = copy.deepcopy(src.fn["contient"])
@@ -1336,6 +1583,31 @@ def filtre_bloc(t, src):
                  [b"\x00", _chemin(EQUIPES_HUMAIN), _chemin("team"), None, _chemin(V_HUMAIN)]):
         return "fonction « contient » de FM : arguments inattendus"
     fns.append(f)
+    # v19 : pour chaque case de masquage, sans jamais lire une référence vide (fonction de FM sur IsNullReference) :
+    # V_PLEIN = la case est remplie, V_ID = l'UniqueId de sa compétition, 0 si elle est vide
+    for k in range(MASQUES):
+        for primaire, secours, dest in (("const.True", "const.False", V_PLEIN[k]),
+                                        (f"{V_MASQUE[k]}.UniqueId", "const.Zero", V_ID[k])):
+            f = copy.deepcopy(src.fn["nul"])
+            if not _args(f, [ARG_CHEMIN, ARG_CHEMIN, ARG_CHEMIN, ARG_CHEMIN, ARG_BOOL],
+                         [_chemin(V_MASQUE[k]), _chemin(primaire), _chemin(secours), _chemin(dest), None]):
+                return "fonction « référence vide » de FM : arguments inattendus"
+            fns.append(f)
+    # v20 : l'UniqueId de la compétition du match sélectionné (0 sans sélection, même fonction de FM), puis, pour chaque
+    # case, est-ce la même ? (deux entiers jamais vides, op 2 = égal) : le bouton du bandeau se cache si elle est masquée
+    f = copy.deepcopy(src.fn["nul"])
+    if not _args(f, [ARG_CHEMIN, ARG_CHEMIN, ARG_CHEMIN, ARG_CHEMIN, ARG_BOOL],
+                 [_chemin(SELECTION_COMP), _chemin(f"{SELECTION_COMP}.UniqueId"), _chemin("const.Zero"),
+                  _chemin(V_IDSEL), None]):
+        return "fonction « référence vide » de FM : arguments inattendus"
+    fns.append(f)
+    for k in range(MASQUES):
+        f = copy.deepcopy(src.fn["aorb"])
+        if not _args(f, [ARG_CHEMIN, ARG_CHEMIN, ARG_CHEMIN, ARG_BOOL, ARG_COMPARAISON, ARG_CHEMIN, ARG_CHEMIN],
+                     [_chemin("const.True"), _chemin("const.False"), _chemin(V_SELEGAL[k]), None, struct.pack("<i", 2),
+                      _chemin(V_IDSEL), _chemin(V_ID[k])]):
+            return "fonction « A ou B » de FM : arguments inattendus"
+        fns.append(f)
     sd = t.sd(init)
     _poser(sd, "ValueVariables", [])
     _poser(sd, "ReferenceVariables", [])
@@ -1345,7 +1617,7 @@ def filtre_bloc(t, src):
 
 # ---------- v6 : le panneau du filtre (ClubSupportersConfidenceRow, seul propriétaire) ----------
 def panneau_a_jour(t):
-    return any(t.name(r) == NOM_TABLE_PANNEAU for r in t.walk())   # v7 : nom versionné
+    return any(t.name(r) == NOM_MASQUES for r in t.walk())   # v7 : nom versionné (v20 : la section des masquées)
 
 
 def panneau_modifie(t):
@@ -1374,8 +1646,8 @@ def _case(t, src, parent, var, cle):
     _nommer(t, c, f"{PREFIXE}-rencontres-panneau-{cle}-case")
     d = t.sd(c)
     _poser(d, "SelectionBinding", {"m_path": var})
-    _poser(d, "CheckedEvents", {"m_bytes": liste([copier("const.True", var)])})
-    _poser(d, "UncheckedEvents", {"m_bytes": liste([copier("const.False", var)])})
+    _poser(d, "CheckedEvents", {"m_bytes": liste([copier("const.True", var), recharger()])})   # v22 : puis le tableau
+    _poser(d, "UncheckedEvents", {"m_bytes": liste([copier("const.False", var), recharger()])})   # rebranché
     _libelle(t, src, r, cle, ["body-md", "global-text-primary", "padding-left-global-padding-regular"],
              f"{PREFIXE}-rencontres-panneau-{cle}-texte")
 
@@ -1389,9 +1661,149 @@ def _trait(t, src, parent, cle):
     t.styles.style(t, x, {"margin-top": 4, "margin-bottom": 10})
 
 
+def _texte_fixe(t, r, s):
+    """v19 : un texte écrit tel quel (comme les textes du skin d'Alex et kinito_pays_formation : TextBinding m_kind 0,
+    le champ « text » d'Unity)"""
+    sd = t.sd(r)
+    tb = copy.deepcopy(sd.get("TextBinding") or {})
+    tb["m_kind"] = 0
+    tb.setdefault("m_direct", {}).setdefault("Path", {})["m_path"] = ""
+    tb["m_visualFunction"] = {"m_target": {"m_guid": ""}, "m_inputs": {"m_variable": {"m_argumentBytes": []}},
+                              "m_outputs": {"m_variable": {"m_argumentBytes": []}}}
+    _poser(sd, "TextBinding", tb)
+    sd["text"], sd["text_UxmlAttributeFlags"] = s, 1
+    sd["DebugDisplay"], sd["DebugDisplay_UxmlAttributeFlags"] = s, 1
+
+
+def _texte_chemin(t, r, chemin):
+    """v19 : un texte lu sur un chemin (TextBinding m_kind 1, comme le nom de l'équipe dans l'en-tête de ce bloc)"""
+    sd = t.sd(r)
+    tb = copy.deepcopy(sd.get("TextBinding") or {})
+    tb["m_kind"] = 1
+    tb.setdefault("m_direct", {}).setdefault("Path", {})["m_path"] = chemin
+    tb["m_visualFunction"] = {"m_target": {"m_guid": ""}, "m_inputs": {"m_variable": {"m_argumentBytes": []}},
+                              "m_outputs": {"m_variable": {"m_argumentBytes": []}}}
+    _poser(sd, "TextBinding", tb)
+
+
+def _libelle_fixe(t, src, parent, texte, classes, nom):
+    x = t.clone(src.libelle, parent, src=src.to)
+    _parent_id(t, x)
+    _nommer(t, x, nom)
+    t.elem(x)["m_Classes"], t.elem(x)["m_RuleIndex"] = list(classes), -1
+    _texte_fixe(t, x, texte)
+    return x
+
+
+def _bouton(t, src, parent, nom, texte, evenements):
+    """v19 : le bouton de FM de Réinitialiser (TacticsPitchViewOptions), avec un texte écrit tel quel"""
+    b = t.clone(src.bouton, parent, src=src.to)
+    t.styles.copy_from(src.to.styles, t, b)
+    _vider(t, b)
+    _parent_id(t, b)
+    _nommer(t, b, nom)
+    _poser(t.sd(b), "Events", {"m_bytes": liste(evenements)})
+    _libelle_fixe(t, src, b, texte, ["body-md", "global-text-primary"], nom + "-texte")
+    return b
+
+
+def selon_langue(t, src, parent, nom, cle, faire, css, css_sw=None, index=None):
+    """v21, recette 19 (26.18) : sous parent, le conteneur de FM qui lit la langue du jeu (tdd-messages-banner, ses
+    composants seuls), puis un interrupteur de FM par langue dont notre texte cle diffère de l'anglais (rang 1 = c'est
+    elle, rang 0 = la suite) ; l'anglais au bout. faire(par, texte, suffixe) pose le contenu d'une langue (suffixe : ""
+    pour l'anglais, « -german »…). Un interrupteur de FM ne construit que l'enfant montré : le jeu ne construit que la
+    langue réglée. Renvoie le conteneur"""
+    tg = src.tlg
+    env = t.clone(src.langue_env, parent, index, src=tg)
+    _parent_id(t, env)
+    for k in list(t.children(env)):
+        if not (t.elem(k).get("m_FullTypeName") or "").endswith("Component"):
+            t.remove(k)
+    t.styles.copy_from(tg.styles, t, env)
+    _nommer(t, env, f"{nom}-langue-v{VERSION}")
+    t.elem(env)["m_Classes"], t.elem(env)["m_RuleIndex"] = [], -1
+    t.styles.style(t, env, css)
+    defaut = texte_langue(cle, LANGUE_DEFAUT)
+    autres = [(lg, texte_langue(cle, lg)) for lg in LANGUES_JEU if texte_langue(cle, lg) != defaut]
+    css_sw = css_sw or {"flex-direction": css.get("flex-direction", "column")}
+
+    def suite(par, i):
+        if i == len(autres):
+            faire(par, defaut, "")
+            return
+        lg, texte = autres[i]
+        sw = t.clone(src.langue_sw, par, src=tg)
+        _parent_id(t, sw)
+        _vider(t, sw)
+        t.styles.copy_from(tg.styles, t, sw)
+        _nommer(t, sw, f"{nom}-langue-{_slug(lg)}")
+        t.elem(sw)["m_Classes"], t.elem(sw)["m_RuleIndex"] = [], -1
+        f = t.sd(sw)["Binding"]["m_visualFunction"]
+        a = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+        mots = [x for x in a if bytes(x[0]).endswith(b"StringVisualArg")]
+        mots[0][1] = b"\x01" + _enc_varint(len(lg.encode())) + lg.encode()
+        f["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(a)
+        t.styles.style(t, sw, css_sw)
+        suite(sw, i + 1)                    # rang 0 : pas cette langue
+        faire(sw, texte, f"-{_slug(lg)}")   # rang 1 : c'est elle
+
+    suite(env, 0)
+    return env
+
+
+def _libelle_langue(t, src, parent, cle, classes, nom, css=None):
+    """v21 : un texte à nous (TRADUCTIONS[cle]) dans la langue du jeu"""
+    return selon_langue(t, src, parent, nom, cle,
+                        lambda par, texte, s: _libelle_fixe(t, src, par, texte, classes, nom + s),
+                        dict(css or {}, **{"flex-direction": "column"}))
+
+
+def _bouton_langue(t, src, parent, nom, cle, evenements, css=None):
+    """v21 : le bouton de _bouton recopié entier dans chaque langue (comme en v20 : le bouton de FM et son texte)"""
+    return selon_langue(t, src, parent, nom, cle,
+                        lambda par, texte, s: _bouton(t, src, par, nom + s, texte, evenements),
+                        dict(css or {}, **{"flex-direction": "column"}),
+                        {"flex-direction": "column", "flex-shrink": 0})
+
+
+def _section_masques(t, src, be):
+    """v19 : COMPÉTITIONS MASQUÉES ; v20 : sans bouton « Masquer » (il est dans le bandeau). Une ligne par case remplie
+    (SIVisible sur la case, sans AlwaysInstantiate : le nom n'est lu que si elle est remplie) : son nom et « Remettre »
+    (la vide) ; « Aucune… » si toutes sont vides (ET sur les V_PLEIN inversés). None, ou un texte d'erreur"""
+    sec = t.clone(src.element, be, src=src.tl)
+    _parent_id(t, sec)
+    _nommer(t, sec, NOM_MASQUES)
+    t.elem(sec)["m_Classes"], t.elem(sec)["m_RuleIndex"] = [], -1
+    t.styles.style(t, sec, {"flex-direction": "column", "flex-shrink": 0})
+    _trait(t, src, sec, "masques")
+    # v21 : nos textes dans la langue du jeu (_libelle_langue, _bouton_langue)
+    _libelle_langue(t, src, sec, "titre_masques", ["heading-small-12px", "global-text-primary"],
+                    f"{PREFIXE}-rencontres-panneau-titre-masques")
+    aucune = _visible_fn(t, src, sec, [(p, 1) for p in V_PLEIN], 0, f"{PREFIXE}-rencontres-panneau-masques-aucune")
+    if isinstance(aucune, str):
+        return aucune
+    t.styles.style(t, aucune, {"margin-top": 6})
+    _libelle_langue(t, src, aucune, "aucune", ["body-md", "global-text-primary"],
+                    f"{PREFIXE}-rencontres-panneau-masques-aucune-texte")
+    for k in range(MASQUES):
+        base = f"{PREFIXE}-rencontres-panneau-masque-{k + 1}"
+        plein = _visible(t, src, sec, V_MASQUE[k], False, base + "-pleine")
+        t.elem(plein)["m_Classes"] = ["row-direction-normal", "align-items-center"]
+        t.styles.style(t, plein, {"margin-top": 6})
+        nom = t.clone(src.libelle, plein, src=src.to)
+        _parent_id(t, nom)
+        _nommer(t, nom, base + "-nom")
+        t.elem(nom)["m_Classes"], t.elem(nom)["m_RuleIndex"] = ["body-md", "global-text-primary", "flex-grow-class"], -1
+        _texte_chemin(t, nom, f"{V_MASQUE[k]}.Name")
+        _bouton_langue(t, src, plein, base + "-remettre", "remettre",
+                       [copier("const.NullRef", V_MASQUE[k]), recharger()],   # v22 : puis le tableau rebranché
+                       {"flex-shrink": 0, "margin-left": 8})
+    return None
+
+
 def construire_panneau(t, src):
-    """le contenu du panneau : Réinitialiser, COMPÉTITIONS (tableau de FM à cases sur team.CurrentComps, sélection
-    multiple = V_FCOMPS), Hors compétition, LIEU, Domicile, Extérieur"""
+    """le contenu du panneau (v20) : Réinitialiser (tout), COMPÉTITIONS MASQUÉES (nom + Remettre), Hors compétition,
+    LIEU, Domicile, Extérieur ; v7 à v19 : aussi le tableau de FM à cases sur team.CurrentComps, retiré en v20"""
     enfants = t.children(t.tt["m_VisualTree"]["rid"])
     if len(enfants) != 1 or typ(t, enfants[0]) != "BindingExpect":
         return "panneau : contenu inattendu (un BindingExpect attendu)"
@@ -1409,49 +1821,19 @@ def construire_panneau(t, src):
     _vider(t, b)
     _parent_id(t, b)
     _nommer(t, b, f"{PREFIXE}-rencontres-panneau-reinitialiser")
-    _poser(t.sd(b), "Events", {"m_bytes": liste([copier(COMPS_EQUIPE, V_FCOMPS)]
-                                                + [copier("const.True", v) for v in VARS_FILTRE + [V_PRET]])})
+    # v19 : vide aussi les cases de masquage (const.NullRef, comme FM ; ce qui les lit tolère une référence vide : la
+    # fonction IsNullReference de FM et les SIVisible ; v6 plantait parce qu'un TABLEAU lisait la liste vidée) ; v20 :
+    # plus de liste à cases à recocher
+    _poser(t.sd(b), "Events", {"m_bytes": liste([copier("const.True", v) for v in VARS_FILTRE]
+                                                + [copier("const.NullRef", v) for v in V_MASQUE]
+                                                + [recharger()])})   # v22 : puis le tableau rebranché
     t.styles.style(t, b, {"align-self": "flex-start", "margin-bottom": 10})
     _libelle(t, src, b, "reinitialiser", ["body-md", "global-text-primary"], f"{PREFIXE}-rencontres-panneau-reinitialiser-texte")
-    # COMPÉTITIONS (v7 : un trait de FM au-dessus de chaque section, comme les sections du filtre de FM24)
-    _trait(t, src, be, "comp")
-    _libelle(t, src, be, "competitions", ["heading-small-12px", "global-text-primary"], f"{PREFIXE}-rencontres-panneau-titre-comp")
-    # v13 : la zone du tableau a la hauteur de ses compétitions : une cale de HAUTEUR_LIGNE_PANNEAU par compétition de
-    # l'équipe (SIVisible de FM sur team.CurrentComp1 à COMPS_MAX : montré si elle existe), le tableau posé dessus en
-    # absolu (il ne compte pas dans la hauteur de la zone). v7 à v12 : LIGNES_PANNEAU (3) lignes fixes de 32 px
-    zone = t.clone(src.element, be, src=src.tl)
-    _parent_id(t, zone)
-    _nommer(t, zone, NOM_ZONE_COMPS)
-    t.elem(zone)["m_Classes"], t.elem(zone)["m_RuleIndex"] = [], -1
-    t.styles.style(t, zone, {"flex-shrink": 0, "margin-top": 4})
-    for k in range(1, COMPS_MAX + 1):
-        v = _visible(t, src, zone, f"team.CurrentComp{k}", False, f"{PREFIXE}-rencontres-panneau-comp-{k}")
-        cale = t.clone(src.element, v, src=src.tl)
-        _parent_id(t, cale)
-        _nommer(t, cale, f"{PREFIXE}-rencontres-panneau-cale-{k}")
-        t.elem(cale)["m_Classes"], t.elem(cale)["m_RuleIndex"] = [], -1
-        t.styles.style(t, cale, {"height": HAUTEUR_LIGNE_PANNEAU, "flex-shrink": 0})
-    tab = t.clone(src.tableau, zone, src=src.tp)
-    t.styles.copy_from(src.tp.styles, t, tab)
-    _parent_id(t, tab)
-    _nommer(t, tab, NOM_TABLE_PANNEAU)
-    t.elem(tab)["m_Classes"] = ["streamed-table__header-hide"]   # .streamed-table__header-hide #ScrollView_Headers
-    t.styles.style(t, tab, {"position": "absolute", "left": 0, "top": 0, "right": 0, "bottom": 0})
-    sd = t.sd(tab)
-    if (sd.get("FactoryAsset") or {}).get("m_AssetGUID") != GUID_FABRIQUE:
-        return "panneau : fabrique inattendue sur le tableau du Portail"
-    sd["FactoryAsset"]["m_AssetGUID"] = GUID_FABRIQUE_COMPS   # des lignes de compétitions, comme le recrutement
-    sd["Binding"]["m_direct"]["Path"]["m_path"] = COMPS_EQUIPE
-    if _remplacer_octets(sd["InitFunction"], GUID_VUE_PORTAIL.encode(), GUID_VUE_FILTRE.encode()) != 1:
-        return "panneau : vue du tableau du Portail introuvable dans son InitFunction"
-    _poser(sd, "SelectionMode", 3)                      # plusieurs (SI.UI.VirtualisedList.SelectionModes.Many) : cases
-    _poser(sd, "SelectedItemsBinding", {"m_path": V_FCOMPS})
-    _poser(sd, "SelectionCellID", "")                   # la colonne de cases de FM (default-selection-column)
-    _poser(sd, "SetScrollToAsSelected", 0)
-    _poser(sd, "ScrollToElementBinding", {"m_path": ""})
-    _poser(sd, "FixedElementSize", float(HAUTEUR_LIGNE_PANNEAU))
-    _poser(sd, "DisableSorting", 1)
-    # Hors compétition (les amicaux), puis LIEU
+    # v20 : COMPÉTITIONS MASQUÉES (trait de FM et titre au-dessus, comme les sections du filtre de FM24), puis Hors
+    # compétition (les amicaux), puis LIEU
+    pb = _section_masques(t, src, be)
+    if pb:
+        return pb
     _case(t, src, be, V_FHC, "horscomp")
     _trait(t, src, be, "lieu")
     _libelle(t, src, be, "lieu", ["heading-small-12px", "global-text-primary"], f"{PREFIXE}-rencontres-panneau-titre-lieu")
@@ -1509,6 +1891,9 @@ def _modifie_fm(o):
         out.append((o["fab_comps"], FABRIQUES, FABRIQUE_COMPS))
     if o["vue_v6"] is not None and vue_modifiee(o["vue_v6"]):
         out.append((o["vue_v6"], VUES, VUE_FILTRE_V6))
+    # v20 : la vue du tableau à cases (réécrite de la v12 à la v19, citée par rien) n'est plus utilisée : d'origine
+    if o["vue_filtre"] is not None and vue_modifiee(o["vue_filtre"]):
+        out.append((o["vue_filtre"], VUES, VUE_FILTRE))
     return out
 
 
@@ -1520,7 +1905,6 @@ def a_jour():
             and panneau_a_jour(o["panneau"][3]) and cellule_date_a_jour(o["date"][3])
             and cellule_ia_a_jour(o["cellule_ia"][3])
             and fabrique_a_jour(o["fab_tab"].read_typetree()) and collection_a_jour(o["col"].read_typetree())
-            and vue_filtre_a_jour(o["vue_filtre"].read_typetree())
             and vue_colonnes(o["vue_rencontres"].read_typetree()) == COLONNES_VUE
             and not _modifie_fm(o))
 
@@ -1591,11 +1975,6 @@ def cmd_appliquer():
             print(f"[Kinito] Rencontres (vues) : {FABRIQUE_TABLEAU} : pas d'original, ou pas du même type que "
                   f"{FABRIQUE}, rien enregistré")
             return
-        tfc = hp.original(FABRIQUES, o["fab_comps"]) or o["fab_comps"].read_typetree()
-        if COLONNE_COMP_FM not in {c["m_id"] for c in tfc.get("m_rowData") or []}:
-            print(f"[Kinito] Rencontres (vues) : {FABRIQUE_COMPS} : colonne « {COLONNE_COMP_FM} » introuvable, "
-                  "rien enregistré")
-            return
         vue_portail = mono(o["env_v"], VUE_DEFAUT)
         noms = mono(o["env_v"], SOURCE_NOMS_VUES)
         if vue_portail is None or noms is None:
@@ -1655,20 +2034,19 @@ def cmd_appliquer():
         tc = hp.original(VUES, o["col"]) or o["col"].read_typetree()
         construire_collection(tc, tn, o["vue_rencontres"].path_id, titres, type_entree)
         tvr = hp.original(VUES, o["vue_rencontres"])
-        tvf = hp.original(VUES, o["vue_filtre"])
-        if tvr is None or tvf is None:
-            print(f"[Kinito] Rencontres (vues) : pas d'original de {VUE_RENCONTRES} ou {VUE_FILTRE}, rien enregistré")
+        if tvr is None:
+            print(f"[Kinito] Rencontres (vues) : pas d'original de {VUE_RENCONTRES}, rien enregistré")
             return
         construire_vue(tvr, tp["m_tableView"], modele_colonne, COLONNES_VUE)
-        construire_vue(tvf, tp["m_tableView"], modele_colonne, [COLONNE_FILTRE])
+        # v20 : plus de vue du tableau à cases (VUE_FILTRE) : remise d'origine plus bas (_modifie_fm)
         for m in msgs:
             print(f"[Kinito] Rencontres (vues) : {BLOC} : {m}")
         print(f"[Kinito] Rencontres (vues) : {CELLULE} : spectateurs si le match est joué (binding.HasResult > "
               "binding.Attendance)")
         print(f"[Kinito] Rencontres (vues) : {LIGNE} : modèle de ligne (filtre par SIVisible, bandeau du mois au 1er "
               "match du mois, zone des cellules)")
-        print(f"[Kinito] Rencontres (vues) : {PANNEAU} : panneau du filtre (Réinitialiser, compétitions, hors "
-              "compétition, lieu)")
+        print(f"[Kinito] Rencontres (vues) : {PANNEAU} : panneau du filtre (Réinitialiser, {MASQUES} compétitions "
+              "masquées au plus, hors compétition, lieu)")
         print(f"[Kinito] Rencontres (vues) : {CELLULE_DATE} : la date avec le jour (texte {TRAD_DATE_JOUR} de "
               f"{SOURCE_DATE})")
         print(f"[Kinito] Rencontres (vues) : {CELLULE_IA} : bouton d'équipe d'un club IA (clic = son programme)")
@@ -1677,8 +2055,6 @@ def cmd_appliquer():
         print(f"[Kinito] Rencontres (vues) : {COLLECTION} : vue « Programme des rencontres » ({VUE_RENCONTRES}), vues "
               f"personnalisées, menu « Insérer colonne » ({len(COLONNES_MENU)} colonnes)")
         print(f"[Kinito] Rencontres (vues) : {VUE_RENCONTRES} : {', '.join(COLONNES_VUE)}")
-        print(f"[Kinito] Rencontres (vues) : {VUE_FILTRE} : vue du tableau du filtre ({FABRIQUE_COMPS}, colonne "
-              f"{COLONNE_FILTRE} de FM)")
         enregistrer(*o["bloc"])
         for om in repris:
             enregistrer(*om)
@@ -1686,7 +2062,6 @@ def cmd_appliquer():
         nb._dirty.add(FABRIQUES)
         o["col"].save_typetree(tc)
         o["vue_rencontres"].save_typetree(tvr)
-        o["vue_filtre"].save_typetree(tvf)
         nb._dirty.add(VUES)
         for objet, bundle, nom in _modifie_fm(o):   # v12 : ce que les anciennes versions avaient touché chez FM
             _remettre(objet, bundle, nom)
@@ -1771,7 +2146,10 @@ def cmd_etat():
          lambda x: collection_modifiee(x.read_typetree()), f"vues des rencontres v{VERSION}")
     dire(VUE_RENCONTRES, o["vue_rencontres"], lambda x: vue_colonnes(x.read_typetree()) == COLONNES_VUE, vue_modifiee,
          "vue « Programme des rencontres »")
-    dire(VUE_FILTRE, o["vue_filtre"], lambda x: vue_filtre_a_jour(x.read_typetree()), vue_modifiee, "vue du filtre")
+    o_vf = o["vue_filtre"]   # v20 : plus utilisée (la liste à cases est retirée), attendue d'origine
+    print(f"{VUE_FILTRE} (plus utilisée depuis la v20) : " + ("introuvable" if o_vf is None else
+                                                               "MODIFIÉE par une ancienne version" if vue_modifiee(o_vf)
+                                                               else "d'origine"))
     for objet, nom, modifie in ((o["fab"], FABRIQUE, lambda x: fabrique_modifiee(x.read_typetree())),
                                 (o["fab_comps"], FABRIQUE_COMPS, lambda x: fabrique_comps_modifiee(x.read_typetree())),
                                 (o["vue_v6"], VUE_FILTRE_V6, vue_modifiee)):

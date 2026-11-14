@@ -75,6 +75,177 @@ base.sm.PROPRIETES.setdefault("align-content", (131072, 7))   # v67 : StylePrope
 SOURCE_DEGRADE = ("tile-figma-fixture-background-template", "background-gradient")   # comme 26.22
 FONCTION_DEGRADE = "47578265f34902049a44904bda1f1db1"   # StaticSIGradientColours : [couleur début, couleur fin]
 VUE_TUILES, VUE_TERRAIN, VUE_FM24 = 0, 1, 2   # valeurs de base.VARIABLE (kinitovue)
+# ---------- v95 : la vue Terrain dans la LANGUE DU JEU (Kinito, 13/11 : « traduire dans les langues du jeu ») ----------
+# Ses choix : la langue réglée dans FM, en direct ; un texte plus long que le français coupé avec « … » ; nos mots
+# traduits par nous. Comment (voir chantier-consignes\TRADUCTION - consignes dans les langues du jeu.md) :
+# - les noms de consigne et d'option (360 textes sur 418) : par leur N° DE TRADUCTION (m_nameTranslationID des données
+#   ui-staticdataentries, lu à la pose) ; le jeu les écrit lui-même dans sa langue (liaison de traduction de FM, comme
+#   la case « Ne plus afficher ce message » de la fenêtre de confirmation) : un seul élément par texte. L'export de la
+#   maquette dit lequel est lequel (fm : ["n", consigne] / ["o", consigne, option]) ;
+# - les autres (58) : une copie par langue, montrée par une classe de langue posée sur le conteneur de l'écran (un
+#   réglage de FM par langue compare languagesetting.PropertyValue, comme v87) et nos règles CLASSE_MOT ;
+# - chaque texte s'étend sur sa PLACE LIBRE mesurée dans la maquette (place), puis « … »
+base.sm.PROPRIETES.setdefault("text-overflow", (196609, 7))   # StylePropertyId.TextOverflow (Unity 6 : Clip, Ellipsis)
+SOURCE_TRADUIT = "GenericModalDialog"   # la case « Do not show this message again. » : un texte traduit par le jeu
+FONCTION_TRADUIT = "eae2be944eee9e2449baef416111a087"   # le texte n° TranslationID, dans la langue du jeu
+CHEMIN_LANGUE = "languagesetting.PropertyValue"   # la langue du jeu, sous le conteneur de tdd-messages-banner (v24)
+CLASSE_LANGUE = "kinito-lg-"       # sur le conteneur de langue de l'écran, une par langue : kinito-lg-german…
+CLASSE_MOT = "kinito-lt"           # un mot écrit dans une langue : caché, sauf sous sa classe de langue
+CLASSE_MOT_DEFAUT = "kinito-ltd"   # le mot de secours (anglais) : montré seulement si la langue n'est pas connue
+REPERE_LANGUE = 95.0               # nos règles de langue (REPERE_REGLE_ECRAN)
+MARGE_ELLIPSE = 6    # un texte traduit : sa boîte = sa place libre, au moins sa largeur française + cette marge
+LANGUES_JEU = [code for code, _ in base.COURSES_LANGUES]   # les valeurs de current_language (game_plugin.dll)
+DEUX_LIGNES = {("Centrer de", "loin"): ("o", 18, 0), ("Jouer le ballon", "dans la surface"): ("o", 18, 2)}   # v58 :
+#               deux lignes de la maquette ; traduit, le nom entier de l'option dans la boîte des deux lignes
+MOTS_KINITO = {}   # nos mots par langue posés par kinito_consignes_essai_b (« Partir de zéro », « Tuiles »)
+LIBRES_FM = {"Gauche": ("o", 30, 2), "Axiale": ("o", 30, 1), "Droite": ("o", 30, 3)}   # v59 : les noms sous les flèches
+#               de la Progression, écrits en toutes lettres par la maquette : les options 2, 1 et 3 de la consigne 30
+# v95 (traduction, Kinito 13/11 : « dans les langues du jeu ») : les MOTS DE FM de l'écran qui ne sont ni un nom de
+# consigne ni un nom d'option, dans chaque langue du jeu (valeurs du réglage natif current_language, comme
+# base.COURSES_LANGUES) : recopiés du fichier des langues de FM 27 (data\game_simulation\languages.fmf) PAR LEUR
+# CLÉ, jamais retapés (Consignes 0x7da4d, Avec / Sans le ballon 0x9b81f / 0x9b81e, 30 derniers mètres 0x9b822,
+# Relance 0x9b824 + Progression 0xa6aa9, Courses de soutien 0xa6a9d) ; czech et thai, absentes du fichier : l'anglais ;
+# chinese (traditional) : le chinois simplifié (seule table chinoise du fichier)
+MOTS_FM = {
+    'Consignes': {
+        'english': 'Instructions', 'english (us)': 'Instructions',
+        'french': 'Consignes', 'german': 'Anweisungen',
+        'italian': 'Istruzioni', 'spanish': 'Instrucciones',
+        'spanish (latam)': 'Instrucciones', 'portuguese': 'Instruções',
+        'portuguese (bra)': 'Instruções', 'dutch': 'Instructies',
+        'danish': 'Instruktioner', 'norwegian': 'Instruksjoner',
+        'swedish': 'Instruktioner', 'polish': 'Polecenia',
+        'czech': 'Instructions', 'russian': 'Инструкции',
+        'turkish': 'Talimatlar', 'greek': 'Οδηγίες',
+        'indonesian': 'Instruksi', 'japanese': '指示',
+        'korean': '지시 사항', 'chinese': '指\u200b令',
+        'chinese (traditional)': '指\u200b令', 'thai': 'Instructions',
+        'arabic': 'التعليمات',
+    },
+    'Avec le ballon': {
+        'english': 'In Possession', 'english (us)': 'In Possession',
+        'french': 'Avec le ballon', 'german': 'Mit Ball',
+        'italian': 'In possesso', 'spanish': 'Con posesión',
+        'spanish (latam)': 'Con posesión', 'portuguese': 'Com posse de bola',
+        'portuguese (bra)': 'Com posse de bola', 'dutch': 'In balbezit',
+        'danish': 'I boldbesiddelse', 'norwegian': 'Med ball',
+        'swedish': 'Med boll', 'polish': 'Przy piłce',
+        'czech': 'In Possession', 'russian': 'С мячом',
+        'turkish': 'Topa Sahipken', 'greek': 'Κατοχή',
+        'indonesian': 'Saat Menguasai Bola', 'japanese': 'ポゼッション時',
+        'korean': '공 소유 시', 'chinese': '持球',
+        'chinese (traditional)': '持球', 'thai': 'In Possession',
+        'arabic': 'الاستحواذ',
+    },
+    'Sans le ballon': {
+        'english': 'Out of Possession', 'english (us)': 'Out of Possession',
+        'french': 'Sans le ballon', 'german': 'Ohne Ball',
+        'italian': 'Non in possesso', 'spanish': 'Sin posesión',
+        'spanish (latam)': 'Sin posesión', 'portuguese': 'Sem Posse de Bola',
+        'portuguese (bra)': 'Sem Posse de Bola', 'dutch': 'Zonder balbezit',
+        'danish': 'Uden boldbesiddelse', 'norwegian': 'Uten ball',
+        'swedish': 'Utan boll', 'polish': 'Bez piłki',
+        'czech': 'Out of Possession', 'russian': 'Без мяча',
+        'turkish': 'Top Rakipteyken', 'greek': 'Χωρίς Κατοχή',
+        'indonesian': 'Saat Tidak Menguasai Bola', 'japanese': '非ポゼッション時',
+        'korean': '공 미소유 시', 'chinese': '无球阶段',
+        'chinese (traditional)': '无球阶段', 'thai': 'Out of Possession',
+        'arabic': 'عدم الاستحواذ',
+    },
+    '30 derniers mètres': {
+        'english': 'Final Third', 'english (us)': 'Final Third',
+        'french': '30 derniers mètres', 'german': 'Angriffsdrittel',
+        'italian': 'Trequarti', 'spanish': 'Último tercio',
+        'spanish (latam)': 'Último tercio', 'portuguese': 'Último terço',
+        'portuguese (bra)': 'Último terço', 'dutch': 'Helft van de tegenstander',
+        'danish': 'Sidste tredjedel', 'norwegian': 'Siste tredjedel',
+        'swedish': 'Sista tredjedelen', 'polish': 'Na przedpolu bramki rywala',
+        'czech': 'Final Third', 'russian': 'Последняя треть',
+        'turkish': 'Üçüncü Bölge', 'greek': 'Επιθετικό Τρίτο',
+        'indonesian': 'Sepertiga Akhir', 'japanese': 'アタッキングサード',
+        'korean': '상대팀 진영', 'chinese': '前场进攻',
+        'chinese (traditional)': '前场进攻', 'thai': 'Final Third',
+        'arabic': 'الثلث الأخير',
+    },
+    'Relance · Progression': {
+        'english': 'Buildup · Progress Through', 'english (us)': 'Buildup · Progress Through',
+        'french': 'Relance · Progression', 'german': 'Aufbaudrittel · Aufbauspiel',
+        'italian': 'Costruzione del gioco · Sviluppa gioco', 'spanish': 'Área de creación de oportunidades · Progresar por',
+        'spanish (latam)': 'Área de creación de oportunidades · Avance', 'portuguese': 'Primeiro terço · Avançar por',
+        'portuguese (bra)': 'Primeiro terço · Avançar por', 'dutch': 'Opbouw · Aanvallen',
+        'danish': 'Opbygning · Løb gennem', 'norwegian': 'Oppbygning · Gå gjennom',
+        'swedish': 'Uppbyggnad · Avancera genom', 'polish': 'Na przedpolu swojej bramki · Wejścia',
+        'czech': 'Buildup · Progress Through', 'russian': 'Схема · Продвижение',
+        'turkish': 'Oyun Kurma · Oynanacak Bölge', 'greek': 'Ανάπτυξη Από Τα Μετόπισθεν · Προώθηση',
+        'indonesian': 'Build-Up · Progres Melalui', 'japanese': 'ディフェンシブサード · 攻撃',
+        'korean': '빌드업 · 전진', 'chinese': '组织进攻 · 向前推进',
+        'chinese (traditional)': '组织进攻 · 向前推进', 'thai': 'Buildup · Progress Through',
+        'arabic': 'بناء الهجمات · الانطلاقات التقدمية من',
+    },
+    'Courses de soutien': {
+        'english': 'Supporting Runs', 'english (us)': 'Supporting Runs',
+        'french': 'Courses de soutien', 'german': 'Unterstützende Läufe',
+        'italian': 'Movimenti a supporto', 'spanish': 'Carreras de apoyo',
+        'spanish (latam)': 'Carreras de apoyo', 'portuguese': 'Apoiar Corridas com Bola',
+        'portuguese (bra)': 'Apoiar Corridas com Bola', 'dutch': 'Overlappende runs',
+        'danish': 'Støttende løb', 'norwegian': 'Støtteløp',
+        'swedish': 'Understödjande löpningar', 'polish': 'Wejścia za piłką',
+        'czech': 'Supporting Runs', 'russian': 'Поддержка в атаке',
+        'turkish': 'Destek Koşuları', 'greek': 'Υποστηρικτικές Κινήσεις',
+        'indonesian': 'Pergerakan Mendukung', 'japanese': 'サポートラン',
+        'korean': '공격 가담', 'chinese': '支援跑动',
+        'chinese (traditional)': '支援跑动', 'thai': 'Supporting Runs',
+        'arabic': 'انطلاقات المساندة',
+    },
+}
+# v95 : le texte anglais de secours de chaque nom de FM (consigne n, option n.k), écrit avec son n° de traduction :
+# le jeu l'affiche si le n° ne se lisait pas (alors visible tout de suite dans une partie en français). Relevé par
+# le texte français de la maquette dans le fichier des langues (1re clé) ; écarts de la maquette : à la main
+ANGLAIS_FM = {
+    'n1': 'Passing Directness', 'o1.0': 'Much Shorter', 'o1.1': 'Shorter',
+    'o1.2': 'Standard', 'o1.3': 'More Direct', 'o1.4': 'Much More Direct',
+    'n3': 'Attacking Transition', 'o3.0': 'Hold Shape', 'o3.1': 'Standard',
+    'o3.2': 'Counter Attack', 'n4': 'Attacking Width', 'o4.0': 'Much Narrower',
+    'o4.1': 'Narrower', 'o4.2': 'Standard', 'o4.3': 'Wider',
+    'o4.4': 'Much Wider', 'n5': 'Creative Freedom', 'o5.0': 'More Disciplined',
+    'o5.1': 'Balanced', 'o5.2': 'More Expressive', 'n6': 'Play For Set Pieces',
+    'o6.0': 'Keep Ball in Play', 'o6.1': 'Play For Set Pieces', 'n7': 'Time Wasting',
+    'o7.0': 'Less Often', 'o7.1': 'Standard', 'o7.2': 'More Often',
+    'n8': 'Line Of Engagement', 'o8.0': 'Low Block', 'o8.1': 'Mid Block',
+    'o8.2': 'High Press', 'n9': 'Defensive Line', 'o9.0': 'Much Lower',
+    'o9.1': 'Lower', 'o9.2': 'Standard', 'o9.3': 'Higher',
+    'o9.4': 'Much Higher', 'n10': 'Trigger Press', 'o10.0': 'Much Less Often',
+    'o10.1': 'Less Often', 'o10.2': 'Standard', 'o10.3': 'More Often',
+    'o10.4': 'Much More Often', 'n11': 'Defensive Transition', 'o11.0': 'Regroup',
+    'o11.1': 'Standard', 'o11.2': 'Counter-Press', 'n12': 'Tackling',
+    'o12.0': 'Stay On Feet', 'o12.1': 'Standard', 'o12.2': 'Get Stuck In',
+    'n15': 'Defensive Line Behaviour', 'o15.0': 'Hold the Line', 'o15.1': 'Balanced',
+    'o15.2': 'Drop Off', 'n16': 'GK Distribution', 'o16.0': 'Balanced',
+    'o16.1': 'Centre-Backs', 'o16.2': 'Full-Backs', 'o16.3': 'Flanks',
+    'o16.4': 'midfield playmaker', 'o16.5': 'Target Forward', 'o16.6': 'Over Opposition Defence',
+    'n17': 'GK Distribution (Speed)', 'o17.0': 'Slow Pace Down', 'o17.1': 'Balanced',
+    'o17.2': 'Distribute Quickly', 'n18': 'Patience', 'o18.0': 'Hit Early Crosses',
+    'o18.1': 'Standard', 'o18.2': 'Work Ball Into Box', 'n19': 'Dribbles',
+    'o19.0': 'Discourage', 'o19.1': 'Standard', 'o19.2': 'Encourage',
+    'n20': 'Pass Reception', 'o20.0': 'Pass to Feet', 'o20.1': 'Standard',
+    'o20.2': 'Pass Into Space', 'n21': 'Tempo', 'o21.0': 'Much Lower',
+    'o21.1': 'Lower', 'o21.2': 'Standard', 'o21.3': 'Higher',
+    'o21.4': 'Much Higher', 'n22': 'CROSS ENGAGEMENT', 'o22.0': 'Stop Crosses',
+    'o22.1': 'Standard', 'o22.2': 'Invite Crosses', 'n23': 'Short Goalkeeper Distribution',
+    'o23.0': 'No', 'o23.1': 'Yes', 'n24': 'Build-Up Strategy',
+    'o24.0': 'Play Through Press', 'o24.1': 'Balanced', 'o24.2': 'Bypass Press',
+    'n25': 'Pressing Trap', 'o25.0': 'Trap Inside', 'o25.1': 'Balanced',
+    'o25.2': 'Trap Outside', 'n26': 'Crossing Style', 'o26.0': 'Balanced',
+    'o26.1': 'Floated Crosses', 'o26.2': 'Whipped Crosses', 'o26.3': 'Low Crosses',
+    'n27': 'long shots', 'o27.0': 'Discourage', 'o27.1': 'Standard',
+    'o27.2': 'Encourage', 'n28': 'Supporting Runs', 'o28.0': 'Balanced',
+    'o28.1': 'Left', 'o28.2': 'Right', 'o28.3': 'Both Flanks',
+    'n29': 'Goal Kicks', 'o29.0': 'Short', 'o29.1': 'Mixed',
+    'o29.2': 'Long', 'n30': 'Progress', 'o30.0': 'Balanced',
+    'o30.1': 'Middle', 'o30.2': 'Left', 'o30.3': 'Right',
+    'o30.4': 'Both Flanks', 'n31': 'Supporting Runs', 'o31.0': 'Balanced',
+    'o31.1': 'Left', 'o31.2': 'Right', 'o31.3': 'Both Flanks',
+}
 BRANCHEES = None    # v56 : toutes les cartes qui ont leurs variantes (v54, v55 : (12,), En taclant seule)
 SANS_RETOUR = {8}   # comme 26.13 : la hauteur du pressing n'a pas d'option neutre (pas de 2e clic qui y ramène)
 DECALAGE_HAUT = 8   # v56 à v59 : l'écran posé 8 unités plus bas que le centre de #Body (sa capture de la v55 : tout 9 px
@@ -220,6 +391,65 @@ def donnees():
     return json.loads(zlib.decompress(base64.b64decode(d.DONNEES)).decode("utf-8"))
 
 
+# ---------- v95 : la langue du jeu ----------
+def slug(code):
+    """« english (us) » -> « english-us » (un nom de classe)"""
+    return code.replace(" (", "-").replace(")", "").replace(" ", "-")
+
+
+def majuscules(s, code):
+    """les capitales d'un mot dans sa langue (la maquette écrit certains titres en capitales) : le i pointé du turc,
+    les capitales grecques sans accent"""
+    if code == "turkish":
+        return s.replace("i", "İ").replace("ı", "I").upper()
+    if code == "greek":
+        import unicodedata
+        return unicodedata.normalize("NFC", "".join(c for c in unicodedata.normalize("NFD", s.upper())
+                                                    if c not in "́͂"))
+    return s.upper()
+
+
+def mots_langues():
+    """{texte français de la maquette : {langue du jeu : texte}} : les mots de FM (MOTS_FM), les nôtres (base), et ceux
+    que pose kinito_consignes_essai_b (MOTS_KINITO). Les courses de soutien intérieures / extérieures (noms de Kinito,
+    la maquette) : ailleurs qu'en français, le nom de FM et notre mot entre parenthèses"""
+    d = {k: dict(v) for k, v in MOTS_FM.items()}
+    d["Extérieur"] = {lg: m[0] for lg, m in base.COURSES_LANGUES}
+    d["Intérieur"] = {lg: m[1] for lg, m in base.COURSES_LANGUES}
+    d["Terrain"] = {lg: m[1] for lg, m in base.VUES_LANGUES}
+    soutien = MOTS_FM["Courses de soutien"]
+    for fr, rang in (("Courses de soutien intérieures", 1), ("Courses de soutien extérieures", 0)):
+        d[fr] = {lg: fr if lg == "french" else f"{soutien[lg]} ({m[rang]})" for lg, m in base.COURSES_LANGUES}
+    d.update({k: dict(v) for k, v in MOTS_KINITO.items()})
+    return d
+
+
+def ids_traduction():
+    """{n° de consigne : (n° de traduction de son nom, [n° de traduction de chaque option, dans l'ordre du jeu])},
+    lus dans les données du jeu (ui-staticdataentries, comme base.options_consignes)"""
+    import UnityPy
+    env = UnityPy.load(os.path.join(base.chemin_jeu.AA, "ui-staticdataentries_assets_all.bundle"))
+    out = {}
+    for o in env.objects:
+        if o.type.name != "MonoBehaviour":
+            continue
+        try:
+            d = o.read_typetree()
+        except Exception:
+            continue
+        if "m_instructionOptionEntries" in d and "m_instructionID" in d:
+            out[d["m_instructionID"]] = (d["m_nameTranslationID"]["GameID"],
+                                         [e["m_nameTranslationID"]["GameID"] for e in d["m_instructionOptionEntries"]])
+    return out
+
+
+def texte_arg(s):
+    b = s.encode("utf-8")
+    if len(b) > 127:
+        raise ValueError(f"texte trop long : {s}")
+    return bytes([1, len(b)]) + b
+
+
 # ---------- accélérer l'arbre (3 200 éléments : la recherche linéaire d'Unity Tree prenait des minutes) ----------
 def accelerer(t):
     """new_rid : un compteur au lieu de max() à chaque appel ; Styles._index : un dictionnaire des valeurs déjà
@@ -288,9 +518,27 @@ class SourcesEcran:
         self.tr = o[3] if o else None
         self.remap = self.tr and first(self.tr, lambda r: typ(self.tr, r) == "BindingRemapper"
                                        and (self.tr.sd(r).get("Mappings") or []))
+        # v95 : la liaison de traduction de FM (un texte n° TranslationID dans la langue du jeu) et les n° des noms
+        o = ouvrir(SOURCE_TRADUIT, depart_original=True)
+        tf = o[3] if o else None
+        traduit = tf and first(tf, lambda r: typ(tf, r) == "SIText" and (
+            ((tf.sd(r).get("TextBinding") or {}).get("m_visualFunction") or {}).get("m_target") or {}).get(
+            "m_guid") == FONCTION_TRADUIT)
+        self.liaison_traduite = copy.deepcopy(tf.sd(traduit)["TextBinding"]) if traduit else None
+        self.ids = ids_traduction()
 
     def manque(self):
         out = []
+        lt = self.liaison_traduite
+        args = decode_args(lt["m_visualFunction"]["m_inputs"]["m_variable"]["m_argumentBytes"]) if lt else []
+        if lt is None or lt.get("m_kind") != 2 or len(args) != 1 or not bytes(args[0][0]).endswith(
+                b"[SI.Translation.TranslationID]"):
+            out.append(f"texte traduit par le jeu ({SOURCE_TRADUIT}) : forme inattendue")
+        if any(n not in self.ids for n in base.DEFAUTS):
+            out.append("n° de traduction des consignes (ui-staticdataentries)")
+        s = self.src
+        if None in (getattr(s, "langue_env", None), getattr(s, "tg", None)) or REGLAGE_TEXTE is None:
+            out.append("conteneur de la langue du jeu (tdd-messages-banner) ou réglage de classe")
         if self.proto is None or self.inter is None:
             out.append("boîte ou interrupteur de notre bloc")
         if self.degrade is None:
@@ -329,6 +577,8 @@ class Ecran:
         self.clics = []         # v56 : (x, y, w, h, données) des éléments cliquables des terrains
         self.n_clics = 0
         self.n_cartes = 0
+        self.mots = mots_langues()   # v95
+        self.n_traduits = self.n_mots = self.n_fixes = self.n_vues_dans = self.n_survols = 0
         fab = base.Fab.__new__(base.Fab)
         fab.t, fab.src, fab.n, fab.defile = t, src, 0, None
         self.fab = fab
@@ -500,6 +750,39 @@ class Ecran:
         return "gauche"
 
     def texte(self, parent, n, pn=None, gpn=None):
+        """v95 : un texte de la maquette, dans la langue du jeu : un mot de MOTS (une copie par langue), un nom de FM
+        (fm : par son n° de traduction, le jeu l'écrit), sinon tel quel (FM24)"""
+        mots = self.mots.get(n["txt"])
+        if mots:
+            return self.texte_langues(parent, n, pn, gpn, mots)
+        fm = n.get("fm") or LIBRES_FM.get(n["txt"])
+        if fm:
+            return self.texte_un(parent, n, pn, gpn, fm=list(fm))
+        self.n_fixes += 1
+        return self.texte_un(parent, n, pn, gpn)
+
+    def texte_langues(self, parent, n, pn, gpn, mots):
+        """v95 : une copie du texte par mot différent ; chacune porte la classe des langues qui l'écrivent ainsi
+        (montrée sous la classe de langue du conteneur, voir regles_langues), plus le mot de secours (anglais)"""
+        maj = n["f"].get("maj") == "uppercase"
+        groupes = {}
+        for code in LANGUES_JEU:
+            mot = mots.get(code) or mots.get("english") or n["txt"]
+            groupes.setdefault(majuscules(mot, code) if maj else mot, []).append(code)
+        r = None
+        for mot, codes in groupes.items():
+            r = self.texte_un(parent, n, pn, gpn, mot=mot, classes=[CLASSE_MOT] + [f"{CLASSE_MOT}-{slug(c)}" for c in codes])
+        defaut = mots.get("english") or n["txt"]
+        self.texte_un(parent, n, pn, gpn, mot=majuscules(defaut, "english") if maj else defaut,
+                      classes=[CLASSE_MOT_DEFAUT])
+        self.n_mots += 1
+        return r
+
+    def texte_un(self, parent, n, pn=None, gpn=None, fm=None, mot=None, classes=(), flux=False):
+        """un SIText de FM en absolu à la place du texte n de la maquette. fm : le nom de FM par son n° de traduction ;
+        mot : ce texte-là (une langue). v95 : traduit (fm ou mot), la boîte prend la place libre du texte (place, relevée
+        dans la maquette) et le texte trop long finit par « … » ; flux : dans le flux de son parent (en-tête), à la
+        largeur de son mot"""
         t, src = self.t, self.src
         f = n["f"]
         r = t.clone(src.titre, parent, src=src.tp)
@@ -509,18 +792,22 @@ class Ecran:
             t.remove(k)
         sd = t.sd(r)
         sd["name"], sd["name_UxmlAttributeFlags"] = "", 0
-        # v55 : les capitales écrites dans le texte (en jeu, la v54 montrait « Relance » au lieu de « RELANCE »)
-        mot = n["txt"].upper() if f.get("maj") == "uppercase" else n["txt"]
+        traduit = fm is not None or mot is not None
+        if mot is None:
+            # v55 : les capitales écrites dans le texte (en jeu, la v54 montrait « Relance » au lieu de « RELANCE »)
+            mot = n["txt"].upper() if f.get("maj") == "uppercase" else n["txt"]
         sd.update(text=mot, text_UxmlAttributeFlags=1, DebugDisplay=mot)
         sd["TextBinding"]["m_kind"] = 0
         sd["TextBinding"]["m_direct"]["Path"]["m_path"] = ""
         base.fonction_vide(sd["TextBinding"]["m_visualFunction"])
+        if fm is not None:
+            self.lier_traduction(r, fm)
         if "TextCase" in sd:
             sd["TextCase"], sd["TextCase_UxmlAttributeFlags"] = 0, 1
         fam = f["fam"]
         if fam not in CLASSES_POLICE:
             self.alertes.append(f"police inconnue : {fam}")
-        t.elem(r)["m_Classes"], t.elem(r)["m_RuleIndex"] = [CLASSES_POLICE.get(fam, "body-sm")], -1
+        t.elem(r)["m_Classes"], t.elem(r)["m_RuleIndex"] = [CLASSES_POLICE.get(fam, "body-sm"), *classes], -1
         taille = f["taille"] if fam == POLICE_FIXE else f["taille"] / TAILLE_TEXTE
         bw, _bh = f["boite"]
         p0, p1 = f["pad"]
@@ -534,14 +821,80 @@ class Ecran:
         if n.get("lignes", 1) <= 1:
             larg = w + MARGE_TEXTE
             gauche = x + w / 2 - larg / 2 if ou == "centre" else (x + w - larg if ou == "droite" else x)
+            if traduit:   # v95 : la place libre, au moins la largeur française et MARGE_ELLIPSE
+                pg, pd = n.get("place") or (x, x + w)
+                if ou == "centre":
+                    cx = x + w / 2
+                    demi = max(min(cx - pg, pd - cx), (w + MARGE_ELLIPSE) / 2)
+                    gauche, larg = cx - demi, 2 * demi
+                elif ou == "droite":
+                    gauche = min(pg, x - MARGE_ELLIPSE)
+                    larg = x + w - gauche
+                else:
+                    gauche, larg = x, max(pd - x, w + MARGE_ELLIPSE)
             css.update({"left": round(gauche, 2), "width": round(larg, 2), "white-space": "nowrap",
                         "-unity-text-align": al})
         else:
             css.update({"left": p0, "width": round(bw - p0 - p1, 2), "white-space": "normal", "-unity-text-align": al})
+        if traduit:
+            css.update({"overflow": "hidden", "text-overflow": "ellipsis"})
+            if n.get("lignes", 1) > 1:   # deux lignes : la boîte un peu plus large, même centre (police du jeu)
+                css.update({"left": round(p0 - MARGE_ELLIPSE / 2, 2), "width": round(bw - p0 - p1 + MARGE_ELLIPSE, 2)})
+        if flux:   # v95 : l'en-tête, dans le flux du bouton
+            for k in ("left", "top", "width", "overflow", "text-overflow"):
+                css.pop(k, None)
+            css.update({"position": "relative", "flex-shrink": 0, "white-space": "nowrap",
+                        "-unity-text-align": "middle-center"})
+        elif traduit:   # v96 : coupé par « … », le survol montre la phrase entière (comme les en-têtes de FM)
+            sd["DisplayTooltipWhenElided"], sd["DisplayTooltipWhenElided_UxmlAttributeFlags"] = 1, 1
         t.styles.style(t, r, css)
-        self.sans_clic(r)
+        if traduit and not flux:   # v96 : il reçoit le survol (dessous des boutons de clic : il ne leur prend rien)
+            self.avec_clic(r)
+            self.n_survols += 1
+        else:
+            self.sans_clic(r)
         self.n += 1
         return r
+
+    def lier_traduction(self, r, fm):
+        """v95 : le SIText r affiche le nom de FM fm (["n", consigne] ou ["o", consigne, option]) dans la langue du jeu :
+        la liaison de traduction de FM recopiée (SourcesEcran.liaison_traduite), avec le n° de traduction du nom (lu
+        dans les données du jeu) et son texte anglais de secours"""
+        t, se = self.t, self.se
+        if fm[0] == "n":
+            ident, cle = se.ids[fm[1]][0], f"n{fm[1]}"
+        else:
+            ident, cle = se.ids[fm[1]][1][fm[2]], f"o{fm[1]}.{fm[2]}"
+        anglais = ANGLAIS_FM.get(cle, "")
+        if cle not in ANGLAIS_FM:
+            self.alertes.append(f"texte anglais de secours : {cle} (introuvable)")
+        tb = copy.deepcopy(se.liaison_traduite)
+        fn = tb["m_visualFunction"]
+        args = decode_args(fn["m_inputs"]["m_variable"]["m_argumentBytes"])
+        args[0][1] = struct.pack("<i", ident) + texte_arg(anglais)
+        fn["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(args)
+        sd = t.sd(r)
+        sd["TextBinding"], sd["TextBinding_UxmlAttributeFlags"] = tb, 1
+        sd.update(text=anglais, DebugDisplay=anglais)
+        self.n_traduits += 1
+
+    @staticmethod
+    def paire_deux_lignes(enfants):
+        """v95 : (1re ligne, 2e ligne, nom de FM) d'un texte écrit sur deux lignes par la maquette (DEUX_LIGNES), ou None"""
+        textes = [k for k in enfants if k["t"] == "#text"]
+        for a, b in zip(textes, textes[1:]):
+            fm = DEUX_LIGNES.get((a["txt"], b["txt"]))
+            if fm:
+                return a, b, list(fm)
+        return None
+
+    def texte_deux_lignes(self, parent, a, b, fm, pn, gpn):
+        """v95 : les deux lignes de la maquette remplacées par le nom entier de l'option (le jeu l'écrit dans sa langue),
+        sur deux lignes au plus dans la boîte des deux, centré"""
+        x0, x1 = min(a["x"], b["x"]), max(a["x"] + a["w"], b["x"] + b["w"])
+        n = dict(a, x=x0, w=x1 - x0, h=b["y"] + b["h"] - a["y"], lignes=2, anc="c", fm=fm,
+                 txt=f"{a['txt']} {b['txt']}", f=dict(a["f"], al="center"))
+        return self.texte_un(parent, n, pn, gpn, fm=fm)
 
     def icone(self, parent, n):
         """une icône de FM (classe de l'option), la boîte agrandie de la toile pour que le DESSIN tombe sur l'image de
@@ -657,6 +1010,9 @@ class Ecran:
             return
         if self.vide(n):
             return
+        if any("btn-e" in (k.get("cl") or "").split() for k in n.get("k") or []):   # v95 : l'en-tête
+            self.entete(parent, n, ox, oy, pn)
+            return
         if "btn-e" in n.get("cl", "").split():
             mot = " ".join(k["txt"] for k in n.get("k") or [] if k["t"] == "#text")
             valeur = {"FM24": VUE_FM24, "Tuiles": VUE_TUILES, "Terrain": VUE_TERRAIN}.get(mot)
@@ -667,7 +1023,14 @@ class Ecran:
         if n.get("deg"):
             self.degrade(r, n)
         bl = n.get("bw") or [0, 0, 0, 0]
-        for k in self.ordre(n.get("k") or []):
+        enfants = self.ordre(n.get("k") or [])
+        paire = self.paire_deux_lignes(enfants)   # v95
+        for k in enfants:
+            if paire and k is paire[1]:
+                continue
+            if paire and k is paire[0]:
+                self.texte_deux_lignes(r, paire[0], paire[1], paire[2], n, pn)
+                continue
             self.construire(r, k, ox + n["x"] + bl[3], oy + n["y"] + bl[0], brancher, n, pn)
 
     # -- la carte branchée --
@@ -811,16 +1174,156 @@ class Ecran:
             self.n_clics += 1
 
     # -- l'en-tête : les boutons de vue --
+    def entete(self, parent, n, ox, oy, pn):
+        """v95 : l'en-tête de la maquette (titre, « Partir de zéro », FM24 / Tuiles / Terrain). Ses boutons avaient la
+        largeur de leur mot français : traduits (« Kacheln », « Spielfeld »), ils étaient coupés. Chaque groupe de
+        boutons voisins est une RANGÉE accrochée du côté où il est (le dernier groupe à droite), chaque bouton prend la
+        largeur de son mot dans la langue du jeu (copies par langue dans le flux : les cachées ne prennent pas de
+        place) et porte son bouton de FM invisible qui écrit la vue (les 3 boutons de vue)"""
+        r = self.boite(parent, self.css_boite(n))
+        self.transformer(r, n)
+        bl = n.get("bw") or [0, 0, 0, 0]
+        largeur = n["w"] - bl[1] - bl[3]
+        groupes, courant = [], []
+        for k in n.get("k") or []:
+            if "btn-e" in (k.get("cl") or "").split():
+                if courant and k["x"] - (courant[-1]["x"] + courant[-1]["w"]) > 12:
+                    groupes.append(courant)
+                    courant = []
+                courant.append(k)
+                continue
+            if courant:
+                groupes.append(courant)
+                courant = []
+            self.construire(r, k, ox + n["x"] + bl[3], oy + n["y"] + bl[0], True, n, pn)
+        if courant:
+            groupes.append(courant)
+        for g in groupes:
+            a_droite = largeur - (g[-1]["x"] + g[-1]["w"]) < g[0]["x"]
+            css = {"position": "absolute", "top": g[0]["y"], "height": g[0]["h"], "flex-direction": "row",
+                   "align-items": "center"}
+            css.update({"right": round(largeur - (g[-1]["x"] + g[-1]["w"]), 2)} if a_droite else {"left": g[0]["x"]})
+            rangee = self.boite(r, css)
+            ecart = g[1]["x"] - (g[0]["x"] + g[0]["w"]) if len(g) > 1 else 0
+            for i, b in enumerate(g):
+                css_b = {k: v for k, v in self.css_boite(b).items() if k not in ("position", "left", "top", "width")}
+                tx = next((k for k in b.get("k") or [] if k["t"] == "#text"), None)
+                pad = tx["f"]["pad"] if tx else [8, 8]
+                css_b.update({"position": "relative", "flex-shrink": 0, "flex-direction": "row", "align-items": "center",
+                              "justify-content": "center", "padding-left": pad[0], "padding-right": pad[1],
+                              "margin-left": round(ecart, 2) if i else 0})
+                bouton = self.boite(rangee, css_b)
+                if tx is None:
+                    continue
+                self.texte_flux(bouton, tx)
+                valeur = {"FM24": VUE_FM24, "Tuiles": VUE_TUILES, "Terrain": VUE_TERRAIN}.get(tx["txt"])
+                if valeur is not None:
+                    self.bouton_vue(bouton, 0, 0, base.pc(100), base.pc(100), valeur)
+                    self.n_vues_dans += 1
+
+    def texte_flux(self, parent, n):
+        """v95 : un texte de l'en-tête DANS LE FLUX de son bouton (sa largeur fait celle du bouton) : une copie par
+        langue si c'est un de nos mots, sinon tel quel"""
+        mots = self.mots.get(n["txt"])
+        if mots:
+            maj = n["f"].get("maj") == "uppercase"
+            groupes = {}
+            for code in LANGUES_JEU:
+                mot = mots.get(code) or mots.get("english") or n["txt"]
+                groupes.setdefault(majuscules(mot, code) if maj else mot, []).append(code)
+            for mot, codes in groupes.items():
+                self.texte_un(parent, n, mot=mot, classes=[CLASSE_MOT] + [f"{CLASSE_MOT}-{slug(c)}" for c in codes],
+                              flux=True)
+            self.texte_un(parent, n, mot=mots.get("english") or n["txt"], classes=[CLASSE_MOT_DEFAUT], flux=True)
+            self.n_mots += 1
+        else:
+            self.n_fixes += 1
+            self.texte_un(parent, n, flux=True)
+
     def bouton_vue(self, cadre, x, y, w, h, valeur):
         t, se = self.t, self.se
         r = self.seul(self.src.th, se.bouton, cadre)
         sd = t.sd(r)
         sd["Events"] = {"m_bytes": base.liste([base.copier(base.PLACES[valeur], base.VARIABLE, 1)])}
-        t.styles.style(t, r, {"position": "absolute", "left": round(x, 2), "top": round(y, 2), "width": w,
+        t.styles.style(t, r, {"position": "absolute", "left": x if isinstance(x, dict) else round(x, 2),
+                              "top": y if isinstance(y, dict) else round(y, 2), "width": w,
                               "height": h, "background-color": (0.0, 0.0, 0.0, 0.0), "border-top-width": 0,
                               "border-bottom-width": 0, "border-left-width": 0, "border-right-width": 0,
                               "margin-top": 0, "margin-bottom": 0, "margin-left": 0, "margin-right": 0})
         self.avec_clic(r)
+
+
+def conteneur_langue(e, parent, largeur, hauteur, version):
+    """v95 : le conteneur de FM qui lit la langue du jeu (celui de tdd-messages-banner : current_language, et
+    languagesetting -> app.NativeSettings ; comme Fab.selon_langue de 26.13 v24), sur toute la boîte de l'écran, sans
+    clic ; dedans, un réglage de FM par langue (comparaison de texte, REGLAGE_TEXTE comme la v87) qui pose sur lui la
+    classe CLASSE_LANGUE + la langue ; nos règles (regles_langues) montrent sous elle les mots de cette langue"""
+    t, src = e.t, e.src
+    env = t.clone(src.langue_env, parent, src=src.tg)
+    base.recaler_parent(t, env)
+    for k in list(t.children(env)):
+        if not t.elem(k).get("m_FullTypeName", "").endswith("Component"):
+            t.remove(k)
+    t.styles.copy_from(src.tg.styles, t, env)
+    sd = t.sd(env)
+    sd["name"], sd["name_UxmlAttributeFlags"] = f"{nom_racine(version)}-langue", 1
+    t.elem(env)["m_Classes"], t.elem(env)["m_RuleIndex"] = [], -1
+    donnees_ = json.dumps([(t.refs.get(c["rid"]) or {}).get("data") for c in sd.get("m_components") or []])
+    if "current_language" not in donnees_ or "app.NativeSettings" not in donnees_:
+        raise ValueError("conteneur de langue de FM (tdd-messages-banner) : forme inattendue")
+    t.styles.style(t, env, {"position": "absolute", "left": 0, "top": 0, "width": largeur, "height": hauteur})
+    e.fab.traverse(env)
+    for code in LANGUES_JEU:
+        REGLAGE_TEXTE(t, env, f"{nom_racine(version)}-langue-{slug(code)}", CHEMIN_LANGUE, code,
+                      CLASSE_LANGUE + slug(code), {"position": "absolute", "width": 0, "height": 0})
+    attacher_feuille(t, env)
+    regles_langues(t)
+    return env
+
+
+CHEMIN_EXPLICATION = "data.TacticTeamInstructionOption.DescriptionLong"   # v96 : comme la vue FM24 (v38)
+
+
+def bulles_options(e, racine):
+    """v96 (Kinito, 13/11 : « l'infobulle correspondant au choix de la consigne, comme sur la vue FM24 ») : dans
+    chaque bouton d'option de l'écran (crans des cartes, zones et pastilles des terrains : ceux qu'enveloppe le
+    BindingSetter « id » de Fab.option), l'infobulle de FM (celle de RoleLabelwIcon, dans le bouton même : v16)
+    liée à l'explication de l'option dans la langue du jeu — comme kinito_consignes_essai_b.bulles_equipe24"""
+    t, src, fab = e.t, e.src, e.fab
+    n = 0
+    for r in list(t.walk(racine)):
+        if typ(t, r) != "SIButton" or any(typ(t, k) == "Tooltip" for k in t.children(r)):
+            continue
+        p, option = r, False
+        while p in t.parent:
+            p = t.parent[p]
+            if any(v.get("m_name") == "id" for v in t.sd(p).get("ValueVariables") or []):
+                option = True
+                break
+            if p == racine:
+                break
+        if not option:
+            continue
+        bu = t.clone(src.bulle, r, src=src.tu)
+        t.styles.copy_from(src.tu.styles, t, bu)
+        base.recaler_parent(t, bu)
+        fab._nom(bu, f"ecran-bulle-{n}")
+        base.texte_lie(t, t.children(bu)[0], CHEMIN_EXPLICATION, "explication")
+        n += 1
+    return n
+
+
+def regles_langues(t):
+    """v95 : un mot écrit dans une langue est caché (CLASSE_MOT), sauf sous la classe de sa langue ; le mot de secours
+    (CLASSE_MOT_DEFAUT, anglais) est caché sous toute classe de langue connue"""
+    affichage = base.sm.PROPRIETES["display"][0]
+    regle_selecteurs(t, [(affichage, "", [(7, "none")])], REPERE_LANGUE, [[(TYPE_CLASSE, CLASSE_MOT, 0)]])
+    regle_selecteurs(t, [(affichage, "", [(7, "flex")])], REPERE_LANGUE + 0.01,
+                     [[(TYPE_CLASSE, CLASSE_LANGUE + slug(c), 0), (TYPE_CLASSE, f"{CLASSE_MOT}-{slug(c)}", DESCENDANT)]
+                      for c in LANGUES_JEU])
+    regle_selecteurs(t, [(affichage, "", [(7, "none")])], REPERE_LANGUE + 0.02,
+                     [[(TYPE_CLASSE, CLASSE_LANGUE + slug(c), 0), (TYPE_CLASSE, CLASSE_MOT_DEFAUT, DESCENDANT)]
+                      for c in LANGUES_JEU])
 
 
 def course_nu(fab, place, n, autre, gauche):
@@ -1932,16 +2435,18 @@ def poser(o, src, tb, version):
     css_ecran.update({"position": "absolute", "flex-shrink": 0})
     ecran = e.boite(ajuste, css_ecran, nom=f"{nom_racine(version)}-ecran")
     e.avec_clic(ecran)
+    dessin = conteneur_langue(e, ecran, iw, ih, version)   # v95 : tout le dessin sous la langue du jeu
     for k in e.ordre(rd.get("k") or []):
-        e.construire(ecran, k, bl[3], bl[0], True, rd, None)
+        e.construire(dessin, k, bl[3], bl[0], True, rd, None)
     for k in rd.get("k") or []:   # v56 : les clics des terrains, au-dessus de tout le dessin (dans les bords de l'écran,
         e.collecter(k, 0.0, 0.0)  #       comme ses enfants en absolu)
     e.poser_clics(ecran)
     for x, y, w, h, valeur in e.boutons_vue:
         e.bouton_vue(ecran, x - bl[3], y - bl[0], w, h, valeur)
+    n_bulles = bulles_options(e, ecran)   # v96 : l'explication de chaque option au survol
     e.boite(sw, {"width": 0, "height": 0})   # 2 : FM24, rien par-dessus
     n_match = poser_match(t, src, corps, racine, version, iw, ih, marge_bas)   # v80
-    msgs = [f"écran plein (maquette {data['maquette']}) : {e.n} éléments, {len(e.boutons_vue)} boutons de vue, "
+    msgs = [f"écran plein (maquette {data['maquette']}) : {e.n} éléments, {len(e.boutons_vue) + e.n_vues_dans} boutons de vue, "
             f"{e.n_cartes} cartes branchées, {e.n_deps} groupes de terrain, {e.n_clics} zones de clic des terrains, "
             f"{n_tuiles} tuiles de FM en bande ({n_ligne} en rangée, Moyen) ; vue large : {n_large} éléments de FM "
             f"recopiés ; remplaçants : {n_remplacants} ; dispositif ou visualiseur à gauche : {n_gauche}"]
@@ -1951,12 +2456,17 @@ def poser(o, src, tb, version):
         msgs.append(f"écran plein : vue large, {n_large} éléments de FM sur {len(BANDE4) + 2} (introuvables)")
     if n_remplacants != 1 or n_gauche != 1:
         msgs.append("écran plein : remplaçants ou dispositif de gauche (introuvables)")
+    msgs.append(f"langue du jeu (v95) : {e.n_traduits} noms de FM par leur n° de traduction, {e.n_mots} mots écrits "
+                f"dans {len(LANGUES_JEU)} langues, {e.n_fixes} textes fixes")
+    msgs.append(f"infobulles (v96) : {n_bulles} boutons d'option avec l'explication de FM, {e.n_survols} textes qui "
+                f"montrent leur phrase entière quand elle est coupée")
+    msgs += [f"écran plein : {a}" for a in sorted(set(e.alertes)) if "texte" in a or "langue" in a]
     msgs.append(f"en match : {n_match} règles (vue Terrain sur la ligne de FM, blocs de FM masqués dessous, 3 440 Petit "
                 f"sans tuiles ni visualiseur à droite, écran jusqu'à {AGRANDI_MATCH})")
     if n_ligne != len(LIGNE_TERRAIN):
         msgs.append(f"écran plein : rangée du Moyen, {n_ligne} tuiles sur {len(LIGNE_TERRAIN)} (introuvables)")
-    if len(e.boutons_vue) != 3:
-        msgs.append(f"écran plein : boutons de vue {len(e.boutons_vue)} sur 3 (introuvables)")
+    if len(e.boutons_vue) + e.n_vues_dans != 3:   # v95 : dans les boutons de l'en-tête
+        msgs.append(f"écran plein : boutons de vue {len(e.boutons_vue) + e.n_vues_dans} sur 3 (introuvables)")
     # v56 : l'option neutre de la maquette = celle de 26.13 (DEFAUTS), sinon un 2e clic ne ferait pas la même chose
     ecarts = [c for c, d in (data.get("defauts") or {}).items() if base.DEFAUTS.get(int(c)) != d]
     if ecarts or set(data.get("sansRetour") or [8]) != SANS_RETOUR:

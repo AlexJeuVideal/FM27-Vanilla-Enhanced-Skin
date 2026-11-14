@@ -97,13 +97,25 @@ import notes_au_lieu_des_libelles as nb  # noqa: E402
 import sauvegarde_originaux as backup  # noqa: E402
 import hierarchie_pyramide as hp  # noqa: E402
 from hierarchie_pyramide import typ, ouvrir  # noqa: E402
-from langue import texte as L  # noqa: E402
 from notes_installations import first, _enc_varint  # noqa: E402
 import notes_installations as ni  # noqa: E402
 from arbre import Tree  # noqa: E402
 import kinito_cartes_jeunes as cj  # noqa: E402  (les cartes 26.19 et leurs outils)
 
-VERSION = 18  # v1 (09/11/2026) : fenêtre « Dossier du recruteur » (2 phases), rideau sur la fiche, interrupteur en jeu
+L = cj.L   # v20 : le texte de la langue de l'app, qui garde son français (la clé de ses traductions, cj.TRADUCTIONS)
+
+VERSION = 20  # v20 (13/11, Kinito : « oui, comme les consignes ») : nos textes suivent la LANGUE DU JEU, en direct
+#               (26.19 v33 : conteneur de langue de FM, une copie par langue) ; un conteneur dans la grande carte et
+#               sur la fiche ; les traductions de nos textes sont dans cj.TRADUCTIONS ; rien d'autre ne change
+# v19 (13/11, Kinito : « je n'ai pas l'animation d'ouverture de la fiche en automatique, je ne vois pas
+#               l'écran récap ») : le cache naissait DÉJÀ parti (sa classe de départ posée au même instant que lui, à
+#               0,05 s : une transition ne joue pas sur un élément qui naît avec sa classe d'arrivée) ; maintenant la
+#               classe arrive 2 s après le cache (l'écran récap reste), puis le mouvement dure 3 s, sans attente de
+#               transition. Et (maquette C) : « Révélation » et « Dévoiler la fiche » dans la bande des réglages de
+#               26.19 v32 (étiquette au-dessus, champ sombre, nom entier, une phrase sous chaque choix de la liste),
+#               « Tout seul | À la main » ; la barre ne passe plus sous celle d'Alex en texte Normal (elle n'a plus
+#               que deux boutons)
+# v1 (09/11/2026) : fenêtre « Dossier du recruteur » (2 phases), rideau sur la fiche, interrupteur en jeu
 #               v2 (09/11, v1 vue en jeu) : hauteur du contenu ; projets écrits comme la personnalité, court et long
 #               terme toujours ; phase 2 = les points Pour / Contre (pastilles d'Alex et phrases)
 #               v3 (09/11) : le rideau manuel, au choix dans l'app (option « rideau_jeunes », automatique par défaut)
@@ -241,11 +253,19 @@ TEXTE_OUI = L("Révélation : oui", "Reveal: on")     # (jusqu'à la v17)
 TEXTE_NON = L("Révélation : non", "Reveal: off")
 TEXTE_REV = L("Révélation :", "Reveal:")           # v18 : le menu des groupes
 CL_MENU_REV = "kinito-rev-menu-groupes"
-# v18 : (valeur, nom dans la liste, nom court dans le menu fermé), dans l'ordre de la liste
-CHOIX_REV = ((cj.REV_NON, L("Non", "No"), L("Non", "No")),
-             (cj.REV_ELITE, L("Élite", "Elite"), L("Élite", "Elite")),
+# v18 : (valeur, nom dans la liste, nom court dans le menu fermé), dans l'ordre de la liste ; v19 : dans la bande des
+# réglages (26.19 v32), le nom entier partout (le nom court n'est plus montré) et une phrase dans la liste ouverte
+CHOIX_REV = ((cj.REV_NON, L("Aucune", "None"), L("Aucune", "None")),
+             (cj.REV_ELITE, L("Élite seulement", "Elite only"), L("Élite", "Elite")),
              (cj.REV_DEUX, L("Élite et excellents", "Elite and top"), L("Élite + exc.", "Elite + top")),
              (cj.REV_TOUS, L("Tous les groupes", "All groups"), L("Tous", "All")))
+DESC_REV = (L("un clic retourne la carte, rien de plus", "a click flips the card, nothing more"),
+            L("une carte d'élite s'ouvre en grand, puis son dossier", "an elite card opens big, then its file"),
+            L("pareil pour les excellents candidats", "the same for top candidates"),
+            L("chaque carte s'ouvre en grand", "every card opens big"))
+TEXTE_CHAMP_REV = L("RÉVÉLATION", "REVEAL")
+TEXTE_CHAMP_FICHE = L("DÉVOILER LA FICHE", "REVEAL THE PROFILE")
+VIOLET_CHOISI = "#8D5CF6"   # v19 : le mode choisi, dans la bande (maquette C)
 SEUIL_GROUPE = (cj.REV_ELITE, cj.REV_DEUX, cj.REV_TOUS, cj.REV_TOUS, cj.REV_TOUS)   # groupe i : menu >= seuil
 CL_ON, CL_OUVERT, CL_PHASE2 = "kinito-rev-on", "kinito-rev-ouvert", "kinito-rev-phase2"
 CL_F1, CL_F2, CL_F3 = "kinito-rev-f1", "kinito-rev-f2", "kinito-rev-f3"   # opacité / glissé / rotation de la fenêtre
@@ -279,6 +299,9 @@ V_MODE = "kinitodevoilemanuel"       # Bool : vrai = manuel
 CLE_MODE = "(Persistent,Explicit,{kinito-revelation},{manuel})"
 METHODES = ((1, "fondu", L("Fondu", "Fade")), (2, "rideau", L("Rideau", "Curtain")),
             (3, "portes", L("Portes", "Doors")))   # v15 : balayage retiré (Kinito : « trop proche du rideau »)
+DESC_METHODES = (L("la fiche apparaît peu à peu", "the profile fades in"),
+                 L("un rideau doré s'ouvre de gauche à droite", "a gold curtain opens left to right"),
+                 L("deux portes s'écartent", "two doors slide apart"))   # v19 : la phrase de la liste ouverte
 METHODE_DEFAUT = 2                   # le rideau (celui de la v8)
 PALIERS = 20                         # manuel, fondu et portes : la barre avance par 20 crans de 5 %
 HAUT_BARRE = 46                      # px : la barre dorée sous la fiche (fondu et portes, manuel ; maquette du 09/11)
@@ -287,9 +310,9 @@ HAUT_BARRE = 46                      # px : la barre dorée sous la fiche (fondu
 MODELE_LIGNE = "AnimTransitionSpeedDropdownRow"   # global, cité par RIEN (modeles_libres.py, 09/11) : réécrit, seul
 GUID_LIGNE = "a7b08a801b5b3b04d9c719a0788efb96"   #   propriétaire ; une ligne de menu de FM (paramètre « row »)
 TEXTE_MENU = L("Fiche :", "Profile:")
-TEXTE_AUTO, TEXTE_MANU = L("Auto", "Auto"), L("Manuel", "Manual")
+TEXTE_AUTO, TEXTE_MANU = L("Tout seul", "Auto"), L("À la main", "By hand")   # v19 : les mots de la maquette C
 CL_MENU = "kinito-rev-menu"
-CL_GO = "kinito-devoile-go"                       # posée 0,05 s après l'arrivée : les caches automatiques partent
+CL_GO = "kinito-devoile-go"   # v19 : posée PAUSE_ECRAN après l'arrivée du cache (v15 à v18 : en même temps que lui)
 CL_FONDU, CL_BALAYAGE = "kinito-devoile-fondu", "kinito-devoile-balayage"
 CL_PORTE_G, CL_PORTE_D = "kinito-devoile-porte-g", "kinito-devoile-porte-d"
 CL_COUVRE = "kinito-devoile-couvre"               # manuel, rideau et balayage : la barre du curseur EST le cache
@@ -1377,6 +1400,8 @@ def construire_fenetre(t, src, k, x):
                                           (V_INTRO_GO, "Bool|0|")]   # v13 : l'ouverture
                             + [(f"{V_GROUPE_FEN}{i}", f"Bool|0|{cle_groupe(i)}") for i in range(5)]):   # v15
         return [f"variable de FM ({cj.SOURCE_VARIABLES}) : forme inattendue (introuvable)"]
+    # v20 : la langue du jeu, sur toute la fenêtre (sans clic : le porteur reçoit les clics à côté, comme avant)
+    porteur = cj.conteneur_langue(t, porteur, nom("langue"), cj.PLEIN)
     # v15 : le groupe du jeune, gardé pour la fiche (elle ne le connaît pas) : seul le groupe passé à la fenêtre a son
     # SIVisible, et son délai écrit vrai pour lui, faux pour les autres
     for i in range(5):
@@ -1574,21 +1599,23 @@ def ecran_fiche(t, src, k, x, parent, s, gauche, croix_ev, classes_contenu=()):
 
 
 def regles_fiche(t):
-    """v15 : les mouvements du cache (automatique : classe CL_GO, posée 0,05 s après l'arrivée ; manuel : CL_MANU et
-    les classes des crans, une propriété animée par couche)"""
+    """v15 : les mouvements du cache (automatique : classe CL_GO ; manuel : CL_MANU et les classes des crans, une
+    propriété animée par couche). v19 : CL_GO arrive PAUSE_ECRAN après le cache (un délai dans le cache) : la pause
+    n'est plus une attente de transition, et le mouvement part sans attendre (v15 à v18 : CL_GO posée au même instant
+    que le cache, qui naissait déjà parti : ni écran ni animation en automatique, vu par Kinito le 13/11)"""
     op = lambda v: (cj.ID_OPACITY, "", [(2, float(v))])   # noqa: E731
     gl = lambda x_: (cj.ID_TRANSLATE, "", [pc(x_), px(0)])   # noqa: E731
     g, m = CL_GO, CL_MANU
     courbe = "ease-in-out"
-    # automatique : l'écran reste PAUSE_ECRAN, puis part
-    R(t, [[(".", CL_EC_R)]], [gl(0)] + tr("translate", DUREE_PART, PAUSE_ECRAN, courbe))
+    # automatique : à l'arrivée de CL_GO (PAUSE_ECRAN après l'écran), le cache part en DUREE_PART
+    R(t, [[(".", CL_EC_R)]], [gl(0)] + tr("translate", DUREE_PART, 0, courbe))
     R(t, [[(".", g), (".", CL_EC_R)]], [gl(101)])
     for c_, sens in ((CL_EC_PG, -101), (CL_EC_PD, 101)):
-        R(t, [[(".", c_)]], [gl(0)] + tr("translate", DUREE_PART, PAUSE_ECRAN, courbe))
+        R(t, [[(".", c_)]], [gl(0)] + tr("translate", DUREE_PART, 0, courbe))
         R(t, [[(".", g), (".", c_)]], [gl(sens)])
-    R(t, [[(".", CL_EC_FC)]], [op(1)] + tr("opacity", DUREE_FONDU, PAUSE_ECRAN, courbe))
+    R(t, [[(".", CL_EC_FC)]], [op(1)] + tr("opacity", DUREE_FONDU, 0, courbe))
     R(t, [[(".", g), (".", CL_EC_FC)]], [op(0)])
-    R(t, [[(".", CL_EC_F)]], [op(1)] + tr("opacity", DUREE_FONDU, PAUSE_ECRAN + DUREE_FONDU, courbe))
+    R(t, [[(".", CL_EC_F)]], [op(1)] + tr("opacity", DUREE_FONDU, DUREE_FONDU, courbe))
     R(t, [[(".", g), (".", CL_EC_F)]], [op(0)])
     # manuel : des transitions courtes, sans attente (plus forte que la règle de base : deux classes)
     for c_, prop in ((CL_EC_R, "translate"), (CL_EC_PG, "translate"), (CL_EC_PD, "translate"),
@@ -1630,6 +1657,8 @@ def construire_fiche(t, src, mode="auto", x=None, curseur=None, k=None):
     if not cj.variables(t, src, porteur, variables):
         return [f"variable de FM ({cj.SOURCE_VARIABLES}) : forme inattendue (introuvable)"]
     cj.attacher_feuille(t, porteur)
+    # v20 : la langue du jeu, sur tout le cache (sans clic : la fiche de FM reste sous lui)
+    porteur = cj.conteneur_langue(t, porteur, f"{nom_rideau(mode)}-langue", cj.PLEIN)
     tvi, rvi = src["cat_visible"]
     sv, rv = x["comparer"]
     b = sv.sd(rv)["Binding"]
@@ -1651,10 +1680,7 @@ def construire_fiche(t, src, mode="auto", x=None, curseur=None, k=None):
     t.styles.style(t, v, cj.PLEIN)
     bloc(v, {**cj.PLEIN, "background-color": cj.rgba(FOND_RIDEAU)}, clic=True)   # les 0,05 premières secondes
     delai(t, src, v, DELAI_OUVERT, [cj.copier("const.True", V_MANUEL)])
-    va = cj.visible(t, tvi, rvi, v, V_MODE, inverse=True)   # automatique : le départ
-    cj.sans_clic(t, va)
-    t.styles.style(t, va, zero)
-    delai(t, src, va, DELAI_OUVERT, [cj.copier("const.True", V_RIDEAU_GO)])
+    # (v15 à v18 : ici, un 2e délai de 0,05 s posait aussi le départ automatique : en même temps que le cache)
     delai(t, src, v, FIN_SIGNAL, [cj.copier("const.False", V_RIDEAU)])
     # ---- le cache (local) : automatique et manuel ----
     c = cj.visible(t, tvi, rvi, porteur, V_MANUEL)
@@ -1674,9 +1700,12 @@ def construire_fiche(t, src, mode="auto", x=None, curseur=None, k=None):
         delai(t, src, si(cc, V_VAL, OP_INF_EGAL, seuil, css=zero), DELAI_CRAN,
               [cj.copier("const.True", f"{V_CRAN}{j}")])
         delai(t, src, si(cc, V_VAL, OP_SUP, seuil, css=zero), DELAI_CRAN, [cj.copier("const.False", f"{V_CRAN}{j}")])
-    fa = cj.visible(t, tvi, rvi, cc, V_MODE, inverse=True)   # automatique : la fin
+    fa = cj.visible(t, tvi, rvi, cc, V_MODE, inverse=True)   # automatique : le départ, puis la fin
     cj.sans_clic(t, fa)
     t.styles.style(t, fa, zero)
+    # v19 : le départ PAUSE_ECRAN après l'arrivée du cache (né avec lui, ce délai part avec lui) : l'écran récap reste,
+    # puis la classe arrive sur un cache déjà affiché, et la transition joue (DUREE_PART)
+    delai(t, src, fa, PAUSE_ECRAN, [cj.copier("const.True", V_RIDEAU_GO)])
     delai(t, src, fa, FIN_AUTO, [cj.copier("const.False", V_MANUEL), cj.copier("const.False", V_RIDEAU_GO)])
     vv = si(cc, V_VAL, OP_SUP, 0)   # tant que la fiche n'est pas découverte en entier (manuel)
     tr_, rr_ = src["remap"]
@@ -1882,68 +1911,53 @@ def regle_marquee(t, selecteurs, props):
 
 
 def poser_interrupteur(t, src, x, y, mode):
-    barre = first(t, lambda r: t.name(r) == f"{cj.NOM_ZONE}-barre")
-    tout = first(t, lambda r: t.name(r) == f"{cj.NOM_ZONE}-tout")
-    if barre is None or tout is None:
-        return ["zone de 26.19 : barre ou « Tout retourner » introuvable"]
+    """v19 (maquette C) : « Révélation » et « Dévoiler la fiche » dans la bande des réglages de 26.19 v32 (sur la 1re
+    rangée, repliée), chacun son étiquette au-dessus ; plus rien dans la barre de couleur (v9 à v18 : des pastilles à
+    côté de « Tout retourner », et la barre qui passait sous celle d'Alex en texte Normal : plus utile)"""
+    champs = first(t, lambda r: t.name(r) == f"{cj.NOM_ZONE}-reglages")
+    if champs is None:
+        return ["zone de 26.19 : bande des réglages introuvable"]
     tc, rc = src["composant"]
     # v9 : un ComponentElement de FM (porteur de nos deux variables rangées, comme la zone de 26.19)
-    pil = cj.seul(t, tc, rc, barre, nom_inter(mode), (), t.children(barre).index(tout))
-    t.styles.style(t, pil, {"flex-direction": "row", "align-self": "stretch", "align-items": "stretch",
-                            "margin-right": 6, "flex-shrink": 0})
+    pil = cj.seul(t, tc, rc, champs, nom_inter(mode))
+    t.styles.style(t, pil, {"flex-direction": "row", "flex-wrap": "wrap", "align-items": "flex-end",
+                            "flex-shrink": 0})
     if not cj.variables(t, src, pil, [(V_METHODE, f"Float|{METHODE_DEFAUT}|{CLE_METHODE}"),
                                       (V_MODE, f"{depart_mode(mode)}{CLE_MODE}")]):
         return [f"variable de FM ({cj.SOURCE_VARIABLES}) : forme inattendue (introuvable)"]
     tvi, rvi = src["cat_visible"]
-    sombre = (0.04, 0.06, 0.09, 0.32)
-    css_pastille = {"align-self": "stretch", "min-height": 0, "padding-left": 10, "padding-right": 10,
-                    "background-color": sombre, **cj.rayons(9), "flex-direction": "row", "align-items": "center",
-                    "justify-content": "center"}
-    # v18 : « Révélation : Élite ▾ », un menu de FM (comme « Style » et « Fiche ») qui écrit les groupes dans la
-    # variable rangée de la zone (cj.V_REV) ; la liste : Non, Élite, Élite et excellents, Tous les groupes
-    cj.poser_menu(t, src, y, pil, None, cj.V_REV, len(CHOIX_REV), CL_MENU_REV, TEXTE_REV, GUID_LIGNE, regle_marquee,
-                  None, [v for v, _n, _c in CHOIX_REV])
-    # sauf sur « Non » : « Fiche : <façon> ▾ » (le menu de FM de 26.19 v25, poser_menu ; v10 : son champ à la hauteur
-    # de la barre, vu en jeu en v9) et la bascule Auto | Manuel (v18 : une comparaison de FM sur le menu)
+    # v18 : la révélation, un menu de FM (comme le style et la fiche) qui écrit les groupes dans la variable rangée de
+    # la zone (cj.V_REV) ; v19 : nom entier, une phrase par choix dans la liste
+    cj.poser_menu(t, src, y, cj.champ_reglage(t, src, pil, TEXTE_CHAMP_REV), None, cj.V_REV, len(CHOIX_REV),
+                  CL_MENU_REV, None, GUID_LIGNE, regle_marquee, cj.CSS_MENU_BANDE, [v for v, _n, _c in CHOIX_REV])
+    # sauf sur « Aucune » : la façon de dévoiler la fiche (menu de FM) et le mode (une comparaison de FM sur le menu)
     sv, rvc = x["comparer"]
     va = ni.new_visible(t, sv, rvc, pil, None, "",
                         ni.make_binding(sv.sd(rvc)["Binding"], OP_SUP_EGAL, [cj.V_REV], cj.REV_ELITE))
     cj.sans_clic(t, va)
-    t.styles.style(t, va, {"flex-direction": "row", "align-self": "stretch"})
-    cj.poser_menu(t, src, y, va, None, V_METHODE, len(METHODES), CL_MENU, TEXTE_MENU, GUID_LIGNE, regle_marquee,
-                  {"margin-left": 6})
-    # la bascule Auto | Manuel : le mode choisi en plein (clair, texte sombre, gras), l'autre à cliquer
-    pmo = cj.boite(t, src, va, {"align-self": "stretch", "flex-direction": "row", "align-items": "stretch",
-                                "margin-left": 6, "padding-left": 2, "padding-right": 2, "padding-top": 2,
-                                "padding-bottom": 2, "background-color": sombre, **cj.rayons(9)}, clic=True)
-    css_seg = {"align-self": "stretch", "min-height": 0, "padding-left": 8, "padding-right": 8, **cj.rayons(7),
+    t.styles.style(t, va, {"flex-direction": "row", "align-items": "flex-end"})
+    ligne = cj.champ_reglage(t, src, va, TEXTE_CHAMP_FICHE)
+    cj.poser_menu(t, src, y, ligne, None, V_METHODE, len(METHODES), CL_MENU, None, GUID_LIGNE, regle_marquee,
+                  cj.CSS_MENU_BANDE)
+    # « Tout seul | À la main » : un champ sombre encadré ; le mode choisi en violet, l'autre à cliquer
+    pmo = cj.boite(t, src, ligne, {"align-self": "stretch", "flex-direction": "row", "align-items": "stretch",
+                                   "margin-left": 6, "padding-left": 2, "padding-right": 2, "padding-top": 2,
+                                   "padding-bottom": 2, "background-color": cj.rgba(cj.FOND_CHAMP),
+                                   **cj._cadre(cj.BORD_CHAMP, 1, 5)}, clic=True)
+    css_seg = {"align-self": "stretch", "min-height": 0, "padding-left": 9, "padding-right": 9, **cj.rayons(4),
                "flex-direction": "row", "align-items": "center", "justify-content": "center"}
     for manuel, s in ((False, TEXTE_AUTO), (True, TEXTE_MANU)):
         choisi = cj.visible(t, tvi, rvi, pmo, V_MODE, inverse=not manuel)
         t.styles.style(t, choisi, {"flex-direction": "row", "align-self": "stretch"})
-        seg = cj.boite(t, src, choisi, {**css_seg, "background-color": cj.rgba("#F3EEE2")})
-        texte_bouton(t, src, seg, s, "#10131A", 12)
+        seg = cj.boite(t, src, choisi, {**css_seg, "background-color": cj.rgba(VIOLET_CHOISI)})
+        texte_bouton(t, src, seg, s, "#FFFFFF", 12)
         autre = cj.visible(t, tvi, rvi, pmo, V_MODE, inverse=manuel)
         t.styles.style(t, autre, {"flex-direction": "row", "align-self": "stretch"})
         b = bouton(t, src, autre, [cj.copier("const.True" if manuel else "const.False", V_MODE)], css_seg)
-        texte_bouton(t, src, b, s, "#FFFFFF", 12)
-    # v16 (Kinito : « en normal en taille d'écriture, ça passe pas, les boutons dans la barre ») : avec un texte Normal
-    # ou plus grand, la barre quitte la barre d'Alex et se range en flux sous elle, à droite, sur un fond léger (la
-    # classe posée sur la zone de 26.19 par une boîte de style de FM : taille du texte >= SEUIL_DESSOUS ; v18 : quel
-    # que soit le menu, le booléen est le « vrai » de la zone, cj.V_VRAI ; en Petit, rien ne change)
-    if cj.boite_style(t, src, t.parent[barre], cj.V_VRAI, CL_DESSOUS, valeur=SEUIL_DESSOUS,
-                      nom=nom("barre-dessous")) is None:
-        return [f"boîte de style de FM ({cj.SOURCE_STYLE}) : forme inattendue (introuvable)"]
-    regle_marquee(t, [[(".", CL_DESSOUS), (".", cj.CL_BARRE)]],
-                  [P("position", "relative"), P("right", 6), P("bottom", 0), P("align-self", "flex-end"),
-                   P("margin-top", 2), P("margin-bottom", 8), P("padding-left", 4), P("padding-right", 4),
-                   P("background-color", (1.0, 1.0, 1.0, 0.07)), P("border-top-left-radius", 12),
-                   P("border-top-right-radius", 12), P("border-bottom-left-radius", 12),
-                   P("border-bottom-right-radius", 12)])
-    return [f"« {TEXTE_REV} {' / '.join(n for _v, n, _c in CHOIX_REV)} » (menu de FM) à côté de « Tout "
-            f"retourner » ; sauf Non : menu de FM « {TEXTE_MENU} "
-            f"{' / '.join(n for _k, _c, n in METHODES)} » (ligne = {MODELE_LIGNE}) et bascule « {TEXTE_AUTO} | "
-            f"{TEXTE_MANU} » (départ : {mode}) ; en texte Normal et plus, avec oui : la barre sous celle d'Alex"]
+        texte_bouton(t, src, b, s, "#BFC4DA", 12)
+    return [f"dans la bande des réglages : « {TEXTE_CHAMP_REV} » {' / '.join(n for _v, n, _c in CHOIX_REV)} (menu de "
+            f"FM) ; sauf Aucune : « {TEXTE_CHAMP_FICHE} » {' / '.join(n for _k, _c, n in METHODES)} (ligne = "
+            f"{MODELE_LIGNE}) et « {TEXTE_AUTO} | {TEXTE_MANU} » (départ : {mode})"]
 
 
 # ---------- v9 : le modèle de ligne du menu (AnimTransitionSpeedDropdownRow, cité par rien) ----------
@@ -2092,10 +2106,11 @@ def cmd_appliquer():
             return
         # v18 : la même ligne pour les deux menus du message (« Fiche » : 1 à 3 ; « Révélation » : 11 à 14), noms
         # courts dans le menu fermé (ceux de « Fiche » : les mêmes)
+        # v19 : dans la bande, le nom entier au menu fermé (plus de nom court) et une phrase par choix dans la liste
         msgs += [f"{MODELE_LIGNE} : {x}" for x in cj.construire_ligne_menu(
             w[3], y9, [n for _k, _c, n in METHODES] + [n for _v, n, _c in CHOIX_REV], NOM_LIGNE,
-            courts=[n for _k, _c, n in METHODES] + [c for _v, _n, c in CHOIX_REV],
-            valeurs=[k for k, _c, _n in METHODES] + [v for v, _n, _c in CHOIX_REV])]
+            valeurs=[k for k, _c, _n in METHODES] + [v for v, _n, _c in CHOIX_REV],
+            descs=list(DESC_METHODES) + list(DESC_REV))]
         travaux.append(w)
     tt_p = pan.read_typetree()
     pan_change = not panneau_a_jour(tt_p)
@@ -2128,6 +2143,7 @@ def cmd_appliquer():
         nb._dirty.add(PANNEAUX)
     if travaux or pan_change:
         nb.save_all()
+    cj.dire_langues()   # v20
     if not nb.DRY_RUN:
         with open(MARKER, "w", encoding="utf-8") as fm:
             json.dump({"actif": True, "version": VERSION, "groupes": code, "rideau_depart": mode}, fm)
