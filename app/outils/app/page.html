@@ -1010,6 +1010,9 @@ const TXT = {
   base: ["De base :", "Default:"],
   etat: ["État", "Status"],
   fonctionsDe: ["fonctions", "features"],
+  // 2026-11-14 : essai pas validé = FR seul (EN + 10 langues à la validation)
+  catJeuAvert: ["Ces fonctions modifient les fichiers du jeu lui-même (code de FM, données du moteur de match), pas seulement l'interface. Elles sont désactivées de base : à activer à tes risques. Après une mise à jour de FM, ou si le skin ne se réinstalle plus : ferme l'app, lance « Vérifier l'intégrité des fichiers du jeu » dans Steam, puis rouvre l'app et réinstalle le skin.",
+    "Ces fonctions modifient les fichiers du jeu lui-même (code de FM, données du moteur de match), pas seulement l'interface. Elles sont désactivées de base : à activer à tes risques. Après une mise à jour de FM, ou si le skin ne se réinstalle plus : ferme l'app, lance « Vérifier l'intégrité des fichiers du jeu » dans Steam, puis rouvre l'app et réinstalle le skin."],
   catSous: ["Chaque interrupteur pose ou retire une fonction dans les fichiers du jeu (FM fermé). Le choix 1 remet toutes celles qui sont activées.",
             "Each switch installs or removes one feature in the game files (FM closed). Choice 1 reinstalls all the enabled ones."],
   optionsSous: ["En plus du skin de base. Les options du skin, elles, sont sous chaque fonction, dans sa catégorie (le fond des pages : dans Couleurs).",
@@ -1432,6 +1435,7 @@ Object.assign(TXT, {
     "Ne lance JAMAIS FM pendant qu'une tâche tourne dans l'app. Attends la fin et le message de réussite.",
     "Ne ferme pas l'app, ne mets pas le PC en veille et ne l'éteins pas pendant une tâche : une installation coupée laisse des fichiers à moitié écrits.",
     "Ne lance pas en même temps une mise à jour ou une « vérification des fichiers » de Steam.",
+    "Steam dit que des fichiers sont corrompus pendant une « vérification des fichiers » ? Ferme l'app d'abord : elle peut parfois garder la main sur des fichiers du jeu. Puis relance la vérification.",
     "Un seul skin à la fois : pas d'autre skin ni de mod d'interface dans FM 27. Si tu en avais un, remets les fichiers d'origine (vérification Steam) AVANT d'installer celui-ci.",
     "Ne touche pas à la main aux fichiers du jeu ni au dossier de l'app (surtout « backups » : il garde les fichiers d'origine de FM). Ne déplace pas et ne renomme pas le dossier de l'app.",
     "N'ouvre l'app qu'une seule fois (une seule fenêtre).",
@@ -1441,6 +1445,7 @@ Object.assign(TXT, {
     "NEVER start FM while a task is running in the app. Wait for the end and the success message.",
     "Don't close the app, don't put the PC to sleep and don't shut it down during a task: an interrupted install leaves half-written files.",
     "Don't run a Steam update or « verify files » at the same time.",
+    "Steam says some files are corrupted during a « verify files »? Close the app first: it can sometimes keep hold of game files. Then run the verification again.",
     "One skin at a time: no other skin or UI mod in FM 27. If you had one, restore the original files (Steam verify) BEFORE installing this one.",
     "Don't touch the game files or the app folder by hand (especially « backups »: it keeps FM's original files). Don't move or rename the app folder.",
     "Open the app only once (a single window).",
@@ -1964,7 +1969,9 @@ const ORDRE_CATS = ["haut_du_jeu", "calendrier", "effectif", "joueur_entete", "j
 // rangées ailleurs dans l'app seulement : tout ce qui touche aux vues / colonnes des tableaux dans « tableaux »
 // (vues d'AlexJeuVideal comprises, avant sur la page Features additionnelles), offres / transferts dans Recrutement
 const CAT_APP = { colonnes_separateur: "tableaux", tactiques_forme_valeur: "tableaux", vues_alexjeuvideal: "tableaux",
-  club_infobulle_offres: "recrutement" };
+  club_infobulle_offres: "recrutement",
+  // 2026-11-14 (le joueur) : tout ce qui modifie le jeu lui-même (DLL, données du moteur de match) réuni, facultatif
+  match_camera_limites: "affichage", match_vitesses: "affichage" };
 const TITRES_CAT = {
   tableaux: ["Vues et colonnes des tableaux", "Table views and columns"],
   calendrier: ["Portail : calendrier", "Portal: calendar"],
@@ -2348,8 +2355,9 @@ function pageCategorie(c) {
   return [
     el("h1", {}, titreCat(c)),
     el("p", { class: "sous-titre" }, t("catSous")),
+    c === "affichage" ? el("section", { class: "carte verif" }, el("p", {}, t("catJeuAvert"))) : null,
     el("div", { class: "liste" }, fs.map(carteFonction)),
-  ];
+  ].filter(Boolean);
 }
 
 function carteFonction(f, avecKinito = false) {

@@ -35,8 +35,9 @@ CATEGORIES = [
     ("vues", "Vues de tableaux d'AlexJeuVideal", "AlexJeuVideal's table views"),
     # 2026-11-07 : à la fin pour ne pas décaler les numéros du menu (29)
     ("separateur", "Séparateurs (tableaux)", "Separators (tables)"),
-    # 2026-11-12 : patch du code de FM (GameAssembly.dll), pas des bundles (30)
-    ("affichage", "Affichage (taille de l'interface)", "Display (interface size)"),
+    # 2026-11-12 : patch du code de FM (GameAssembly.dll), pas des bundles (30). 2026-11-14 (le joueur) : app = toutes
+    # les fonctions qui touchent au jeu lui-même (DLL, données du moteur de match : CAT_APP de page.html), facultatives
+    ("affichage", "Modifications du jeu (code et données de FM)", "Game changes (FM's code and data)"),
 ]
 PREMIER_NUMERO = 11
 
@@ -326,13 +327,14 @@ FONCTIONS = {
                          fr="Photos des joueurs : terrain du match et barre du bas",
                          en="Player photos: match pitch and bottom bar"),
     # 2026-11-13, le joueur : Hauteur / Zoom de la caméra -20..20 (FM 0-10), molette comprise, Caméras TV débloquée
-    "match_camera_limites": dict(cat="match",   # de base le 2026-11-14 (le joueur)
+    # facultative le 2026-11-14 (le joueur : tout ce qui touche au jeu, pas de base ; app : catégorie « affichage »)
+    "match_camera_limites": dict(cat="match", facultatif=True,   # de base le 2026-11-14 (le joueur)
                                  fr="Caméra du match : Hauteur et Zoom de -60 à 60 (au lieu de 0 à 10, molette "
                                     "comprise), Hauteur aussi en Caméras TV",
                                  en="Match camera: Height and Zoom from -60 to 60 (instead of 0 to 10, mouse wheel "
                                     "included), Height in TV Cameras too"),
     # 2026-11-13, le joueur : x 1.4 entre 1.25 et 1.5 (liste dans les données de FM)
-    "match_vitesses": dict(cat="match",   # de base le 2026-11-14 (le joueur)
+    "match_vitesses": dict(cat="match", facultatif=True,   # de base puis facultative le 2026-11-14 (le joueur)
                            fr="Vitesse du match pendant les temps forts : cran x 1.4 ajouté (entre x 1.25 et x 1.5)",
                            en="Match speed during highlights: x 1.4 step added (between x 1.25 and x 1.5)"),
     # 2026-11-09 (le joueur) : validé en jeu (v5), pour la release v1.71

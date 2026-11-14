@@ -258,8 +258,9 @@ SITES = ("FigmaBaseSiteTemplate", "FigmaBaseSiteMultiGridTemplate",
 # derrière ; chez nous fond uni plein : le cadre plein écran FigmaFullscreenBlockTemplate recevait notre image FIXE
 # (toujours opaque) ; FM y lit game.BackgroundImage (rien au menu principal = transparent ; en partie = fond des pages,
 # déjà repeint) -> cadre de FM
-HORS_THEME = ("PressConferenceDynamicCard", "PressConferenceSingleQuestionDynamicCard", "GameWorldBackground",
-              "FigmaFullscreenBlockTemplate")
+# FigmaFullscreenBlockTemplate RETIRÉ (le même jour) : fausse piste (Préférences = règle report-container de
+# couleurs_interface) et c'est le cadre des pages Effectif / Recrutement / Club -> elles prenaient les couleurs du club
+HORS_THEME = ("PressConferenceDynamicCard", "PressConferenceSingleQuestionDynamicCard", "GameWorldBackground")
 # écrans de match : ils incluent un modèle de base partagé (FigmaBaseTool*) ; leur surcharge du cadre de ce modèle
 # (m_SerializedDataOverride, créée si absente) reçoit le cadre d'origine de FM, le reste du jeu garde notre fond
 CARTES_MATCH = {"MatchPreviewCard": "FigmaBaseToolTemplate",
@@ -574,10 +575,23 @@ def peindre_competitions(tex, exclus=()):
 
 
 # image des chargements (et derrière les Préférences en partie) : fond sombre + pointillé lumineux. Le joueur
-# (2026-11-14) : « dans la couleur du skin, pas trop forte, on la voit en majorité », « juste elle ». Dégradé de
-# luminosité : sombre = couleur du fond, pointillé = même teinte plus claire (CHARGEMENT_S / _V), dessin et halo gardés.
+# (2026-11-14) : « dans la couleur du skin, pas trop forte », « juste elle » ; v2 (le même soir) : « les bandes à la
+# couleur accent, le reste à la couleur principale, pour chaque thème ». Masque de luminosité : sous CHARGEMENT_SEUIL =
+# couleur du fond telle quelle ; au-dessus, vers l'accent (bandes + halo). Accent = clé « accent » de couleurs_interface
+# (son marqueur) ; sans accent : même teinte que le fond, plus claire (CHARGEMENT_S / _V).
 CHARGEMENT = "fm27-background-texture"
 CHARGEMENT_S, CHARGEMENT_V = 0.55, 0.72
+CHARGEMENT_SEUIL, CHARGEMENT_PLEIN = 50, 140   # luminosité (après étirement) : début du halo, bande pleine
+
+
+def accent_choisi():
+    """(r, g, b) de l'accent de couleurs_interface (marqueur), ou None"""
+    try:
+        with open(os.path.join(backup.BACKUP_DIR, "couleurs_interface.actif"), encoding="utf-8") as f:
+            c = json.load(f).get("accent")
+        return to_rgb(c) if c and c.lower() != "fm" else None
+    except (Exception, SystemExit):   # to_rgb sort par sys.exit sur une couleur pas comprise
+        return None
 
 
 def chargement(tex, rgb):
@@ -585,13 +599,17 @@ def chargement(tex, rgb):
     if t is None:
         print(f"{CHARGEMENT} : introuvable (le jeu a changé ?), image des chargements laissée")
         return
-    h = colorsys.rgb_to_hsv(*(c / 255 for c in rgb))[0]
-    clair = tuple(round(c * 255) for c in colorsys.hsv_to_rgb(h, CHARGEMENT_S, CHARGEMENT_V))
+    acc = accent_choisi()
+    if acc is None:
+        h = colorsys.rgb_to_hsv(*(c / 255 for c in rgb))[0]
+        acc = tuple(round(c * 255) for c in colorsys.hsv_to_rgb(h, CHARGEMENT_S, CHARGEMENT_V))
     lum = ImageOps.autocontrast(t.image.convert("L").resize((1920, 1080), Image.LANCZOS), cutoff=0.2)
-    im = ImageOps.colorize(lum, black=tuple(rgb), white=clair)
+    masque = lum.point(lambda v: 0 if v < CHARGEMENT_SEUIL
+                       else min(255, round((v - CHARGEMENT_SEUIL) * 255 / (CHARGEMENT_PLEIN - CHARGEMENT_SEUIL))))
+    im = Image.composite(Image.new("RGB", lum.size, tuple(acc)), Image.new("RGB", lum.size, tuple(rgb)), masque)
     t.set_image(im, target_format=TextureFormat.DXT1, mipmap_count=1)
     t.save()
-    print("image des chargements : à la couleur du fond")
+    print("image des chargements : fond " + "#%02X%02X%02X" % tuple(rgb) + ", bandes " + "#%02X%02X%02X" % tuple(acc))
 
 
 def peindre(tex, rgb):

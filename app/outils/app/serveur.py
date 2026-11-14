@@ -1599,16 +1599,17 @@ def action(d):
         vals.update({k: (d.get(k) or "").strip() for k in COULEURS_CONTINUER if k in d})   # (2026-11-11)
         if any(v and not couleur_ok(k, v) for k, v in vals.items()):
             return 400, {"message": T("Couleur pas comprise.", "Colour not understood.")}
-        if couleur:
-            if not re.fullmatch(COULEUR, couleur) or (infobulle and not re.fullmatch(COULEUR, infobulle)):
-                return 400, {"message": T("Couleur pas comprise.", "Colour not understood.")}
-            cmds.append(_python(lancer.chemin_script("theme_fond"), "appliquer", couleur,
-                                *([infobulle] if infobulle else []),
-                                *(["--lisse" if d["lisse"] else "--motifs"] if isinstance(d.get("lisse"), bool) else [])))
+        if couleur and (not re.fullmatch(COULEUR, couleur) or (infobulle and not re.fullmatch(COULEUR, infobulle))):
+            return 400, {"message": T("Couleur pas comprise.", "Colour not understood.")}
+        # 2026-11-14 : couleurs d'abord (leur marqueur porte l'accent, lu par theme_fond pour l'image des chargements)
         if any(vals.values()) or d.get("continuer") in CONTINUER[1:]:   # theme / club   # texte des barres auto, trait auto (caché)
             cmds.append(_python(lancer.chemin_script("couleurs_interface"), "appliquer",
                                 *(f"{k}={v or 'fm'}" for k, v in vals.items()), "texte=fm", "liseret=auto",
                                 *continuer_arg(d)))
+        if couleur:
+            cmds.append(_python(lancer.chemin_script("theme_fond"), "appliquer", couleur,
+                                *([infobulle] if infobulle else []),
+                                *(["--lisse" if d["lisse"] else "--motifs"] if isinstance(d.get("lisse"), bool) else [])))
         cmds.append(_python(lancer_py, "skin", lg))
         titre = T("Installation de tout le skin", "Installing the whole skin")
 
@@ -1755,12 +1756,16 @@ def action(d):
             return 400, {"message": T("Couleur pas comprise.", "Colour not understood.")}
         liseret = d.get("liseret") if d.get("liseret") in ("cache", "fm") else "auto"   # trait entre les deux barres
         script = lancer.chemin_script("couleurs_interface")   # auto = caché dès qu'une couleur est choisie
+        accent_avant = (couleurs() or {}).get("accent") or ""
         if (any(vals.values()) or liseret == "cache" or d.get("continuer") in CONTINUER
                 or ombrage_arg(d) not in ([], ["ombrage=fm"]) or polygone_arg(d) not in ([], ["polygone=fm"])):
             cmds = [_python(script, "appliquer", *(f"{k}={v or 'fm'}" for k, v in vals.items()), f"liseret={liseret}",
                             *continuer_arg(d), *touche_arg(d), *ombrage_arg(d), *polygone_arg(d))]
         else:
             cmds = [_python(script, "retirer")]
+        # 2026-11-14 : accent changé + fond en couleur -> l'image des chargements (bandes = accent) refaite
+        if (vals.get("accent") or "").lower() != accent_avant.lower() and lancer.actif("theme_fond"):
+            cmds.append(_python(lancer.chemin_script("theme_fond"), "si-actif"))
         titre = T("Couleurs de l'interface", "Interface colours")
     elif typ == "couleurs_retirer":
         script = lancer.chemin_script("couleurs_interface")
@@ -1787,12 +1792,13 @@ def action(d):
         fond_s = lancer.chemin_script("theme_fond")   # fond vide = fond de FM remis (thème « FM d'origine »)
         # fond lisse : celui du thème / de la case (2026-11-10) ; absent = celui déjà posé
         plat = ["--lisse" if d["lisse"] else "--motifs"] if isinstance(d.get("lisse"), bool) else []
-        cmds = [_python(fond_s, "appliquer", fond_c, *([info] if info else []), *plat) if fond_c
-                else _python(fond_s, "retirer"),
-                # toujours « appliquer » (verts des Tactiques compris) ; rien de choisi du tout -> le script retire
+        # 2026-11-14 : couleurs d'abord (leur marqueur porte l'accent, lu par theme_fond pour l'image des chargements)
+        cmds = [# toujours « appliquer » (verts des Tactiques compris) ; rien de choisi du tout -> le script retire
                 # de lui-même
                 _python(script, "appliquer", *(f"{k}={v or 'fm'}" for k, v in vals.items()), f"liseret={liseret}",
-                        *continuer_arg(d), *touche_arg(d), *ombrage_arg(d), *polygone_arg(d))]
+                        *continuer_arg(d), *touche_arg(d), *ombrage_arg(d), *polygone_arg(d)),
+                _python(fond_s, "appliquer", fond_c, *([info] if info else []), *plat) if fond_c
+                else _python(fond_s, "retirer")]
         titre = T("Thème : ", "Theme: ") + (d.get("titre") or "").strip()[:40]
     elif typ == "statut":
         cmds = [_python(os.path.join(COMMUN, "statut.py"))]

@@ -53,12 +53,19 @@ ALIGNER_SUR_SCORE = False
 # hauts avec -1 (« trop haut maintenant ») -> milieu : 1 ; puis encore ~1 px écran trop haut -> 1.5 ; « encore un
 # demi pixel » -> 2
 DECALAGES = {"barre": -2, "stats": -2, "lecture": 2}
+# 2026-11-14 (« toute la barre en haut à droite à la même hauteur que le scoreboard ») : sans la rangée v2, simple
+# décalage vers le bas (px FM, style top) de la barre (#TacticsClosed), du bouton stats et des 3 boutons
+# réglages / … / lecture. Les onglets Tactiques / Coups de pied arrêtés (#TacticsOpened) ne bougent PAS (c'étaient
+# eux qui ne prenaient plus le clic une fois descendus). Mesure capture : centres score 48 / barre 21 px écran
+# (~0,75 px écran par px FM) -> 36. 0 = coupé
+DESCENTE = 36
 # Bandeau Replay / But / Passer (ralenti, buts) : FM le met à 56 px du haut, par-dessus les 3 boutons réglages… ;
 # descendu juste dessous (mesuré sur capture : il commençait 12 px écran trop haut + écart de 6)
-BANNIERE_HAUT = 76
+# 2026-11-14 : 76 -> 84 (barre descendue de DESCENTE : Ralenti collé aux boutons, « on descend légèrement »)
+BANNIERE_HAUT = 84
 # Menu des « … » (MatchController : précédent / -10 s / Direct / +10 s…) : FM margin-top 46, il passait par-dessus la
 # barre -> même hauteur que le bandeau Ralenti (validé)
-CONTROLEUR_HAUT = 76
+CONTROLEUR_HAUT = 84   # 2026-11-14 : suit BANNIERE_HAUT
 # Mi-temps / fin de match : FM affiche un autre bandeau (ContinuePanel) où le score est recentré -> même place que
 # pendant le match : gauche = 16 (marge .match-header) + 64 - 8 (marge du bandeau) ; haut = 12 + 24 - 4 - 6
 SCORE_PAUSE = {"margin-left": 72, "top": 34}   # 2026-11-12 : 18 -> 34 (comme margin-top-32 pendant le match)
@@ -203,7 +210,30 @@ def decaler(t):
     return ["décalages fins : " + ", ".join(f"{k} {v:+g} px" for k, v in DECALAGES.items())]
 
 
-MARQUE_BANNIERE = "uipicker-match-banniere-v1"   # changer BANNIERE_HAUT -> augmenter le numéro
+MARQUE_DESCENTE = "uipicker-match-descente-v1"   # changer DESCENTE -> augmenter le numéro
+
+
+def descendre(t):
+    """barre Tactiques…, bouton stats et 3 boutons de droite descendus à la hauteur du score (DESCENTE)"""
+    p = parts(t)
+    if p is None or ALIGNER_SUR_SCORE or not DESCENTE:
+        return []
+    bug, _, bar, _, boite = p
+    cls = t.elem(bug).get("m_Classes") or []
+    if MARQUE_DESCENTE in cls:
+        return []
+    ferme = next((r for r in t.walk(bar) if t.name(r) == "TacticsClosed"), None)
+    stats = next((k for k in t.children(boite) if (t.elem(k).get("m_FullTypeName") or "").endswith("BindingSetter")), None)
+    lecture = next((k for k in t.children(boite) if t.name(k) == "MatchPlaybackControls"), None)
+    if None in (ferme, stats, lecture):
+        return ["barre / bouton stats / boutons de lecture introuvables (le jeu a changé ?), ignoré"]
+    for r in (ferme, stats, lecture):
+        t.styles.style(t, r, {"top": DESCENTE})
+    t.elem(bug)["m_Classes"] = [c for c in cls if not c.startswith("uipicker-match-descente-")] + [MARQUE_DESCENTE]
+    return [f"barre Tactiques…, stats et boutons de droite à la hauteur du score (+{DESCENTE} px ; onglets de la tactique ouverte inchangés)"]
+
+
+MARQUE_BANNIERE = "uipicker-match-banniere-v2"   # changer BANNIERE_HAUT -> augmenter le numéro
 
 
 def banniere(t):
@@ -221,7 +251,7 @@ def banniere(t):
 
 
 CONTROLEUR = "MatchController"
-MARQUE_CONTROLEUR = "uipicker-match-controleur-v1"   # changer CONTROLEUR_HAUT -> augmenter le numéro
+MARQUE_CONTROLEUR = "uipicker-match-controleur-v2"   # changer CONTROLEUR_HAUT -> augmenter le numéro
 
 
 def controleur(t):
@@ -296,6 +326,29 @@ def inverser(t):
     return ["Ajustements avant Consignes du banc (Shouts / Tweaks inversés)"]
 
 
+ANCRE_BAS = 4   # valeur « Anchor » des popups qui s'ouvrent dessous (bouton du banc du bandeau, en-têtes de blocs)
+
+
+def ancres(t):
+    """Ajustements / Consignes du banc : FM (Anchor 1) ouvre le popup au-dessus du bouton s'il y a la place ; barre
+    descendue (DESCENTE) -> il s'ouvrait écrasé dans les 46 px du haut. Forcé dessous (ANCRE_BAS)"""
+    if ALIGNER_SUR_SCORE or not DESCENTE:
+        return []
+    pops = [r for r in t.walk() if (t.elem(r).get("m_FullTypeName") or "").endswith("SIFloatingPopupWidget")
+            and "Anchor" in t.sd(r)]
+    if not pops:
+        return ["popups Ajustements / Consignes du banc introuvables (le jeu a changé ?), ignoré"]
+    faits = 0
+    for r in pops:
+        sd = t.sd(r)
+        if sd["Anchor"] != ANCRE_BAS:
+            sd["Anchor"] = ANCRE_BAS
+            if "Anchor_UxmlAttributeFlags" in sd:
+                sd["Anchor_UxmlAttributeFlags"] = 1
+            faits += 1
+    return [f"popups Ajustements / Consignes du banc ouverts sous le bouton ({faits})"] if faits else []
+
+
 def desaligner():
     """ALIGNER_SUR_SCORE coupé mais rangée présente : on repart de l'original (seul écrivain du bundle)"""
     if ALIGNER_SUR_SCORE:
@@ -326,7 +379,7 @@ def cmd_appliquer():
     t.styles = sm.Styles(bundle, tt)
     import score_disposition   # option score_licence : notre tableau de score aussi sur les compétitions sous licence
     msgs = reorder(t) + aligner(t)
-    msgs += decaler(t) + banniere(t) + score_disposition.licence(t)
+    msgs += decaler(t) + descendre(t) + banniere(t) + score_disposition.licence(t)
     for m in msgs or ["déjà appliqué"]:
         print(f"{MODELE} : {m}")
     if [m for m in msgs if "introuvable" not in m]:
@@ -339,7 +392,7 @@ def cmd_appliquer():
         print(f"{BARRE} : introuvable, ignoré")
     else:
         t2 = Tree(tt2)
-        m2 = inverser(t2)
+        m2 = inverser(t2) + ancres(t2)
         for m in m2 or ["déjà appliqué"]:
             print(f"{BARRE} : {m}")
         if [m for m in m2 if "introuvable" not in m]:
