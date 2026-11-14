@@ -248,7 +248,10 @@ SITES = ("FigmaBaseSiteTemplate", "FigmaBaseSiteMultiGridTemplate",
          "FigmaBaseToolTabbedHeaderTemplate", "FigmaBaseToolMultiGridTemplate", "FigmaBaseReportTabbedTemplate",
          "FigmaFullscreenBlockTemplate", "OnlineManagerAndGameStatus", "OnlineManagerAndGameStatusFullscreen",
          "ContractNegotiationToolTemplate", "PressConferenceDynamicCard", "PressConferenceSingleQuestionDynamicCard",
-         "GameWorldBackground")
+         "GameWorldBackground",
+         # 2026-11-15 (le joueur + un utilisateur de l'app : Recrutement / Club aux couleurs de l'équipe) : ces écrans
+         # ont LEUR cadre (Card-frame, fonction visuelle 3c361014… = couleurs du club, comme FigmaBaseSite*)
+         "RecruitmentScreen", "ClubScreen", "NationalPoolScreen", "NationScreen")
 # toujours le fond de FM, quelle que soit la couleur choisie (demande du joueur 2026-11-10 : conférences de presse =
 # image du stade / du club de FM). Restent dans SITES pour être remis d'origine sur un jeu déjà modifié.
 # 2026-11-14 (le joueur : « interview bord du terrain / presse ou autre : un fond uni, faut pas ») : GameWorldBackground

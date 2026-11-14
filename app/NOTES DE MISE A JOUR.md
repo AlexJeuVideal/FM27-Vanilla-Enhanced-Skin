@@ -6,6 +6,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v1.99 (15 novembre 2026)
+
+**Couleurs**
+- **Correction : Recrutement et Club aux couleurs de l'équipe** : avec un thème, toutes les sous-sections de Recrutement et de Club (et les écrans Nation / Sélection nationale) gardaient le fond aux couleurs de ton équipe. Elles prennent ta couleur. Réapplique ton thème dans l'app (FM fermé).
+
 ### v1.98 (14 novembre 2026)
 
 **Couleurs**
@@ -1130,6 +1135,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v1.99 (15 November 2026)
+
+**Colours**
+- **Fix: Recruitment and Club in your team's colours**: with a theme, every sub-section of Recruitment and Club (and the Nation / National Pool screens) kept a background in your team's colours. They now take your colour. Re-apply your theme in the app (FM closed).
 
 ### v1.98 (14 November 2026)
 
