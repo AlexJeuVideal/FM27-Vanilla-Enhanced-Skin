@@ -11,6 +11,9 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 **Couleurs**
 - **Correction : la couleur du thème sur la Vue d'ensemble du portail** : avec un fond en couleur, la Vue d'ensemble du portail affichait le fond officiel de FM (par exemple celui de la Premier League) au lieu de ta couleur. Elle prend maintenant la couleur de ton thème. La presse et les interviews gardent le décor de FM.
 
+**Vues**
+- **Vues d'AlexJeuVideal mises à jour** : Squad View, Tactic View VC, Recrutement BDD et Sélection reprennent les dernières versions d'Alex. Une vue que tu as modifiée toi-même n'est jamais écrasée.
+
 **Ajouts de Kinito**
 - **Sélections sauvegardées aussi sur l'écran Effectif** : les boutons de tes sélections d'équipe (les 10 premières) sont maintenant aussi à droite de « Sélect. rapide » dans Effectif et Effectif > Vue d'ensemble, en plus de Tactiques. Rien ne s'affiche pour une équipe sans tactique.
 - **Place des boutons sur Tactiques** (nouveau réglage, section Kinito) : en haut à droite de « Sélect. rapide » (de base), ou au-dessus du tableau, à gauche de « Filtre », là où Kinito les avait placés. Sur Effectif, ils restent toujours à droite de « Sélect. rapide ».
@@ -1113,6 +1116,9 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 **Colours**
 - **Fix: your theme colour on the portal Overview**: with a colour background, the portal Overview showed FM's official background (for example the Premier League one) instead of your colour. It now takes your theme colour. Press and interviews keep FM's scenery.
+
+**Views**
+- **AlexJeuVideal's views updated**: Squad View, Tactic View VC, Recruitment Database and Shortlist get Alex's latest versions. A view you changed yourself is never overwritten.
 
 **Kinito's additions**
 - **Saved selections on the Squad screen too**: the buttons for your team selections (the first 10) are now also right of "Quick Pick" in Squad and Squad > Overview, as well as in Tactics. Nothing shows for a team without a tactic.
