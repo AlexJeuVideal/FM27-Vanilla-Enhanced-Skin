@@ -6,6 +6,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v1.95 (14 novembre 2026)
+
+**Fiche joueur**
+- **Affichage Moyen : polygone ou Pour / Contre au choix** (nouveau réglage, page Fiche joueur, merci hunfair pour l'idée) : en affichage Moyen, tu peux inverser le polygone et les Pour / Contre. Au choix de base, rien ne change : polygone dans l'en-tête, Pour / Contre à droite d'Infos. Avec l'autre choix, les deux s'échangent ensemble : les Pour / Contre passent dans la carte de droite de l'en-tête, en pastilles colorées comme dans l'infobulle (cadres Pour et Contre, 12 pastilles max chacun, texte au survol), et le polygone se met à droite d'Infos, sans clignoter au chargement de la fiche. Seulement en affichage Moyen, avec l'en-tête en cartes (choix de base) ; en Grand et en Petit, rien ne change.
+
 ### v1.94 (14 novembre 2026)
 
 **Couleurs**
@@ -1094,6 +1099,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v1.95 (14 November 2026)
+
+**Player profile**
+- **Medium display: polygon or Pros / Cons, your choice** (new setting, Player profile page, thanks hunfair for the idea): in Medium display, you can swap the polygon and the Pros / Cons. With the default choice nothing changes: polygon in the header, Pros / Cons right of Info. With the other choice, both swap together: the Pros / Cons move into the header's right card, as coloured dots like in the tooltip (Pros and Cons frames, 12 dots max each, text on hover), and the polygon goes right of Info, without flickering when the profile loads. Medium display only, with the card header (default); nothing changes in Large and Small.
 
 ### v1.94 (14 November 2026)
 

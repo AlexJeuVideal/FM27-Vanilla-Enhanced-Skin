@@ -1062,7 +1062,7 @@ ECRIT = {"skin", "desinstaller", "appliquer", "reinstaller", "retirer", "option"
 JOUEUR_CATS = ("joueur_entete", "joueur_fiche", "joueur_infobulle", "joueur_progression")
 # (vue FM Guru et fiche Kinito 1080p : exclusives, restent dans Features additionnelles, pas ici — le joueur)
 JOUEUR_FONCTIONS = [n for n, f in cat.FONCTIONS.items() if f["cat"] in JOUEUR_CATS]
-JOUEUR_OPTIONS = ["entete_vue", "pour_contre_lignes", "fiche_large_colonne"]
+JOUEUR_OPTIONS = ["entete_vue", "pour_contre_lignes", "fiche_large_colonne", "fiche_medium_colonne"]
 # tuiles du bas de la fiche (noms de FM, = fiche_ordre_tuiles.ORDRE) : ordre au glisser-déposer (options.ordre_tuiles)
 TUILES_BAS = ["Happiness", "FItness", "PlayerSeasonStats", "CareerStats", "PlayerForm", "PlayerTrainingOverview"]
 SANS_OUTILS = {"langue_choisir", "python_installer", "jeu_enregistrer", "jeu_parcourir", "jeu_detecter", "lien",

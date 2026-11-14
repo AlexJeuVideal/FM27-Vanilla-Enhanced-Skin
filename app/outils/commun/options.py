@@ -205,6 +205,26 @@ OPTIONS = {
                  "• FM header: this setting decides. \"Polygon alone\": the polygon here, Pros / Cons as dots in the "
                  "header. \"Pros / Cons\": Pros / Cons here, a button to see the polygon."),
     },
+    # 2026-11-14 (le joueur, demande de hunfair) : lu par entete_fiche (entete_tuile : carte de droite de l'en-tête en
+    # Medium) et fiche_joueur_plus (colonne à droite d'Infos en Medium) ; les deux vont ensemble : polygone à droite
+    # d'Infos = Pour / Contre en haut, forcément. En-tête en cartes seulement (vue de FM / FM Guru : sans effet)
+    "fiche_medium_colonne": {
+        "titre": ("Fiche joueur, affichage Moyen seulement : polygone ou Pour / Contre",
+                  "Player profile, Medium display only: polygon or Pros / Cons"),
+        "valeurs": [("pour_contre", ("polygone dans l'en-tête, Pour / Contre à droite d'Infos",
+                                     "polygon in the header, Pros / Cons right of Info")),
+                    ("polygone", ("Pour / Contre en pastilles dans l'en-tête, polygone à droite d'Infos",
+                                  "Pros / Cons as dots in the header, polygon right of Info"))],
+        "script": "entete_fiche",
+        "aussi": ["fiche_joueur_plus", "kinito_entete_large"],
+        "aide": ("Affichage Moyen (Medium) seulement : en Large et en Petit, rien ne change. Avec l'en-tête en cartes "
+                 "(choix de base). Les deux s'échangent ensemble : "
+                 "quand le polygone est à droite d'Infos, les Pour / Contre passent en pastilles dans la carte de "
+                 "droite de l'en-tête (survol d'une pastille = son texte).",
+                 "Medium display only: nothing changes in Large and Small. With the card header (default). Both swap "
+                 "together: when the polygon is right of "
+                 "Info, the Pros / Cons move as dots into the header's right card (hover a dot to read it)."),
+    },
     # 2026-10-31 (le joueur) : lu par club_bandeau_installations (bandeau du club) et club_infobulle_offres (bulle
     # « i » du club) : « sans » = section Installations retirée des deux (ni notes ni étoiles) ; pages Installations
     # du club pas touchées (notes_installations)

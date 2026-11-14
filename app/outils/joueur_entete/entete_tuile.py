@@ -101,7 +101,14 @@ PROGRESSION = True
 # v29 (le joueur : la 2x1 « écrit juste une phrase ») : la 2x2 a la courbe (FMLineChart) + la tendance
 MODELE_PROGRESSION = "TrainingProgressReportTile_2x2"
 INTERIEUR = 2.0                             # graphique = cale × INTERIEUR (v22)
-NOM = f"{PREFIXE}-v{VERSION}"
+# 2026-11-14 (option fiche_medium_colonne, demande de hunfair) : en Medium, carte Pour / Contre en pastilles (comme
+# l'infobulle : cadres POUR | CONTRE) à la place du polygone, qui passe à droite d'Infos (fiche_joueur_plus)
+MEDIUM_PC = options.get("fiche_medium_colonne") == "polygone"
+PC_RAPPORT = "Person.PlayerReportForContextTeam"     # comme le bandeau de l'en-tête de FM (entete_fiche)
+PC_GUID_PASTILLE = "1d9ea6f83e853594c9a3339ba036281b"   # ProConRow = pastille de l'en-tête (entete_fiche, 28 px)
+PC_RANGEES = 3                                       # rangées de pastilles max par cadre (le reste est caché)
+PC_PAR_RANGEE = 4                                    # v2 (le joueur, v1 vue en jeu : « limite à 12 ») : 4 × 3 = 12 max
+NOM = f"{PREFIXE}-v{VERSION}" + ("-mpc4" if MEDIUM_PC else "")   # v3 : titres calés en haut ; v4 : pastilles centrées
 NOM_CACHE = PREFIXE + "Cache"          # SIVisible jamais vrai : bannière / photo de FM gardées, cachées
 NOM_PLACE = PREFIXE + "Place"          # conteneur [bannière cachée, tuile] = un seul enfant de l'aiguillage
 SOURCE = "report-player-banner-max"
@@ -672,8 +679,17 @@ def construire(t, parent, index, dims, src, p, txt, photo, haut_src, poly_src, r
                 m = habiller_progression(t, cpp, txt)
                 if m:
                     msgs.append(m)
-            zone = ni.new_visible(t, s_vis, vis, carte, None, "", ni.make_binding(bv, 0, [MODE], 2),
-                                  ["row-direction-normal"])
+            if MEDIUM_PC:   # Medium (mode == 1) : Pour / Contre ; polygone en Large seulement (mode == 0)
+                zpc = ni.new_visible(t, s_vis, vis, carte, None, "", ni.equal_binding(bv, MODE, 1),
+                                     ["row-direction-normal"])
+                t.styles.style(t, zpc, dict(zcss))
+                sep(zpc)
+                msgs += carte_pour_contre(t, zpc, habille)
+                zone = ni.new_visible(t, s_vis, vis, carte, None, "", ni.equal_binding(bv, MODE, 0),
+                                      ["row-direction-normal"])
+            else:
+                zone = ni.new_visible(t, s_vis, vis, carte, None, "", ni.make_binding(bv, 0, [MODE], 2),
+                                      ["row-direction-normal"])
             t.styles.style(t, zone, zcss)
         else:
             zone = boite(t, carte, zcss, ["row-direction-normal"])
@@ -714,6 +730,54 @@ def construire(t, parent, index, dims, src, p, txt, photo, haut_src, poly_src, r
                                      if x not in ("justify-content-end", "flex-grow-class", "align-self-stretch")]
         t.styles.style(t, poly, fixe(gw, gh))
     return msgs
+
+
+def carte_pour_contre(t, parent, habille):
+    """Medium (option fiche_medium_colonne = polygone) : carte à la place du polygone, comme l'infobulle du joueur
+    (pastilles_pour_contre.contenu) : cadres POUR | CONTRE côte à côte, titres traduits de FM, pastilles de l'en-tête
+    (ProConRow, couleur selon la note, texte au survol) ; rangées en trop cachées"""
+    import pastilles_pour_contre as ppc
+    from hierarchie_pyramide import path_arg
+    lst = ppc.src_tree(ppc.LISTE_SOURCE)
+    liste = lst and first(lst, lambda r: lst.name(r) == ppc.LISTE and typ(lst, r).endswith("WrappedObjectList"))
+    ttr = ppc.src_tree(ppc.TITRES_SOURCE)
+    titres = ttr and [first(ttr, lambda r, n=n: ttr.name(r) == n) for n, _ in ppc.LISTES]
+    if liste is None or not titres or None in titres:
+        return ["carte Pour / Contre (Medium) : liste ou titres de FM introuvables (le jeu a changé ?), ignorée"]
+    pas = ppc.PASTILLE_BANDEAU + 2   # pastille + marges 1 px
+    cp = boite(t, parent, habille({"flex-grow": 1, "flex-shrink": 1, "min-width": 0, "align-self": "stretch",
+                                   "overflow": "hidden", "padding-top": 6, "padding-bottom": 6, "padding-left": 6,
+                                   "padding-right": 6}, padding=False),
+               ["row-direction-normal", "align-items-stretch"])
+    for i, (titre_src, (_, chemin)) in enumerate(zip(titres, ppc.LISTES)):
+        cadre = boite(t, cp, {"flex-grow": 1, "flex-shrink": 1, "flex-basis": 0, "min-width": 0, "overflow": "hidden",
+                              "background-color": ppc.CADRE_FOND, "border-radius": ppc.CADRE_ARRONDI, "padding": 3,
+                              # v3 (le joueur) : titres toujours en haut, à la même hauteur (pas selon le nombre)
+                              "justify-content": "flex-start", "padding-top": 6, **({"margin-left": 6} if i else {})},
+                      ["column-direction-normal", "align-items-center"])
+        ti = t.clone(titre_src, cadre, src=ttr)
+        no_styles(t, ti)
+        t.sd(ti)["name"] = ""
+        t.elem(ti)["m_Classes"] = ["body-sm-strong", "global-text-primary"]
+        t.styles.style(t, ti, {"margin-bottom": 2, "flex-shrink": 0})
+        # v4 (le joueur) : pastilles centrées en hauteur dans la place sous le titre (titre, lui, reste en haut)
+        zone = boite(t, cadre, {"flex-grow": 1, "flex-shrink": 1, "flex-basis": 0, "min-height": 0,
+                                "overflow": "hidden", "align-self": "stretch", "justify-content": "center"},
+                     ["column-direction-normal", "align-items-center"])
+        w = t.clone(liste, zone, src=lst)
+        no_styles(t, w)
+        sd = t.sd(w)
+        sd["name"] = ""
+        sd["ItemTemplate"] = {"m_AssetGUID": PC_GUID_PASTILLE, "m_SubObjectName": "", "m_SubObjectType": ""}
+        sd["VisualFuncBinding"] = path_arg(sd["VisualFuncBinding"], PC_RAPPORT + chemin[len("report"):])
+        sd["ItemParamName"] = "procon"
+        sd["ItemUssClassName"] = "flex-no-shrink-class"   # sinon les pastilles rétrécissent et se chevauchent
+        t.elem(w)["m_Classes"] = []
+        t.styles.style(t, w, {"flex-direction": "row", "flex-wrap": "wrap", "justify-content": "center",
+                              "align-self": "center", "max-width": PC_PAR_RANGEE * pas,
+                              "min-height": pas, "max-height": PC_RANGEES * pas,
+                              "overflow": "hidden", "flex-shrink": 0})
+    return ["Medium : carte Pour / Contre en pastilles à la place du polygone (comme l'infobulle)"]
 
 
 # ---------- étoiles Niveau / Potentiel sous la note du rapport (joueur hors club) ----------

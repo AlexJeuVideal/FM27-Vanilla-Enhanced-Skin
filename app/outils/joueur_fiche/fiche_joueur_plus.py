@@ -35,7 +35,7 @@ from langue import texte as L, SUFFIXE  # noqa: E402
 import fiche_fmguru as guru  # noqa: E402  (réglages du polygone de la vue Guru, repris en Large)
 
 PROPRIETES.update({"height": (131087, 3), "max-height": (131094, 3), "width": (131105, 3)})
-for _k, _v in {"position": (131102, 7), "top": (131104, 3), "right": (131103, 3)}.items():
+for _k, _v in {"position": (131102, 7), "top": (131104, 3), "right": (131103, 3), "margin-left": (131091, 3)}.items():
     PROPRIETES.setdefault(_k, _v)
 
 # =====================================================================================================
@@ -104,7 +104,12 @@ LARGEUR_POSTES = 380                         # px max de la colonne des postes (
 LARGEUR_POSTES_LARGE = 360                   # ... en Large (polygone) : comme fiche_fmguru (v1.41)
 NOM_SEPARATEUR = "UIPickerTraitEntrainement"
 NOM_POUR_CONTRE = "UIPickerPourContre"
-VERSION_COLONNE = f"uipicker-colonne-v23{SUFFIXE}" # (langue : titre « Projets ») changer le numéro refait la colonne à la prochaine application
+# 2026-11-14 (option fiche_medium_colonne, en-tête en cartes) : Medium = polygone à droite d'Infos (Pour / Contre dans
+# l'en-tête, entete_tuile) ; le bouton est caché en Medium (bouton_large_seul) : polygone seul
+MEDIUM_POLYGONE = (options.get("fiche_medium_colonne") == "polygone" and options.get("entete_vue") == "tuile"
+                   and options.get("fiche_fmguru") != "guru")
+VERSION_COLONNE = f"uipicker-colonne-v23{SUFFIXE}" + ("-mpoly2" if MEDIUM_POLYGONE else "") # mpoly2 : cale anti-flash
+                                             # (langue : titre « Projets ») changer le numéro refait la colonne à la prochaine application
                                              # (v8 : bouton polygone / Pour-Contre ; v9 : variable avec portée ;
                                              # v10 : aiguillage de FM ; v11 : élément BindingVariables ; v12 :
                                              # inversion marquée posée, polygone plus petit ; v15 : Pour / Contre
@@ -415,11 +420,12 @@ def bascule_polygone(t, col, box, vis):
     sans = plain(t, vp, None, ["flex-grow-class", "align-self-stretch"])
     t.elem(sans)["m_RuleIndex"] = -1
     move(t, box, sans)
-    t.to_visible(sans, vis, POLYGONE_PC, True, "")
+    # MEDIUM_POLYGONE : inversé (polygone tant que la case n'est pas cochée ; bouton caché en Medium = polygone seul)
+    t.to_visible(sans, vis, POLYGONE_PC, not MEDIUM_POLYGONE, "")
     avec = plain(t, vp, None, ["flex-grow-class", "align-self-stretch", "align-items-center",
                                "justify-content-center"])
     t.elem(avec)["m_RuleIndex"] = -1
-    t.to_visible(avec, vis, POLYGONE_PC, False, "")
+    t.to_visible(avec, vis, POLYGONE_PC, MEDIUM_POLYGONE, "")
     # v11 en jeu : l'inversion ignorée (rien au départ, les deux après le clic) : drapeau « attribut posé » à 1,
     # comme Kinito le fait toujours
     for x in (sans, avec):
@@ -428,7 +434,10 @@ def bascule_polygone(t, col, box, vis):
         # construit dès l'ouverture et seulement caché, au lieu d'être refait à chaque bascule
         t.sd(x)["AlwaysInstantiate"], t.sd(x)["AlwaysInstantiate_UxmlAttributeFlags"] = 1, 1
         t.styles.style(t, x, {"min-width": 0, "overflow": "hidden"})   # largeur gardée (colonne plus « hidden »)
-    polygone(t, src, pcol, avec)
+    if MEDIUM_POLYGONE:
+        polygone_cale(t, src, pcol, avec)
+    else:
+        polygone(t, src, pcol, avec)
     if not FICHE_SMALL:
         return ["bouton en haut de la colonne Pour / Contre (Medium / Small) : polygone à leur place"]
     # Small (le joueur, 2026-11-12) : Pour / Contre passent sous les attributs, le polygone reste seul, sans bouton
@@ -572,6 +581,37 @@ def polygone(t, src, pcol, parent):
         for r in t.walk(c):               # plus petit : les étiquettes ne sont plus coupées sur les côtés
             if typ(t, r).endswith("FMSpiderChart"):
                 t.sd(r)["SpiderChartRadiusPercentage"] = float(RAYON_POLYGONE_PC)
+
+
+# 2026-11-14 (le joueur, MEDIUM_POLYGONE vu en jeu : « micro flash », un peu trop à gauche) : polygone sans flash comme
+# l'en-tête (technique.md : cale fixe SANS liaison qui coupe, graphique INTERIEUR fois plus grand centré dedans, rayon
+# en px, affiché une fois person.Age lu) ; décalé à droite (marge droite de FM gardée sur la colonne)
+POLY_MEDIUM_CALE = (360, 360)      # px (largeur, hauteur) de la cale (étiquettes : ~±176 px du centre)
+POLY_MEDIUM_RAYON_PX = 100.0       # px : rayon affiché (mesuré sur sa capture, ~le même qu'avant)
+POLY_MEDIUM_DECALAGE = 8           # px vers la droite
+POLY_MEDIUM_INTERIEUR = 2.0
+
+
+def polygone_cale(t, src, pcol, parent):
+    w, h = POLY_MEDIUM_CALE
+    gw, gh = round(w * POLY_MEDIUM_INTERIEUR), round(h * POLY_MEDIUM_INTERIEUR)
+    fixe = lambda a, b: {"width": a, "min-width": a, "max-width": a, "height": b, "min-height": b,  # noqa: E731
+                         "max-height": b, "flex-grow": 0, "flex-shrink": 0}
+    cale = plain(t, parent, None, ["column-direction-normal", "align-items-center", "justify-content-center"])
+    t.elem(cale)["m_RuleIndex"] = -1
+    t.styles.style(t, cale, {**fixe(w, h), "overflow": "hidden", "margin-left": 2 * POLY_MEDIUM_DECALAGE})
+    s, vis = ni.visible_model()
+    att = ni.new_visible(t, s, vis, cale, None, "", ni.make_binding(s.sd(vis)["Binding"], 4, ["person.Age"], 0),
+                         ["column-direction-normal", "align-items-center", "justify-content-center"])
+    t.elem(att)["m_RuleIndex"] = -1
+    t.styles.style(t, att, fixe(gw, gh))
+    polygone(t, src, pcol, att)
+    for r in t.walk(att):
+        if typ(t, r).endswith("FMSpiderChart"):
+            t.sd(r)["SpiderChartRadiusPercentage"] = round(POLY_MEDIUM_RAYON_PX * 100.0 / min(gw, gh), 2)
+            t.elem(r)["m_Classes"] = [k for k in t.elem(r)["m_Classes"]
+                                      if k not in ("justify-content-end", "flex-grow-class", "align-self-stretch")]
+            t.styles.style(t, r, fixe(gw, gh))
 
 
 def si_small(t, parent, index, small, classes):
