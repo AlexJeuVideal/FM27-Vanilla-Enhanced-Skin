@@ -6,6 +6,13 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.00 (15 novembre 2026)
+
+**Fiche joueur**
+- **Nouvelle option : polygone et Pour / Contre en affichage Large** : comme en Moyen, tu choisis dans l'app (page Fiche joueur) : le polygone dans l'en-tête et les Pour / Contre à droite d'Infos (choix de base), les Pour / Contre en pastilles dans l'en-tête et le polygone à droite d'Infos, ou plus rien à droite de l'en-tête avec le polygone puis les Pour / Contre en dessous, à droite d'Infos. Avec l'en-tête en cartes.
+- **Bouton Observer joueur dans la carte Pour / Contre de l'en-tête** : sans rapport sur le joueur, la carte affiche la phrase de FM et le bouton Observer joueur, comme la colonne Pour / Contre.
+- **En-tête mieux aligné** : Dispo. transfert et Dispo. prêt sont centrés dans leur carte (en Large, le titre tient sur une ligne : les deux cartes sont à la même hauteur), et les titres Niveau actuel / Potentiel sont centrés au-dessus des étoiles pour tes joueurs aussi.
+
 ### v1.99 (15 novembre 2026)
 
 **Couleurs**
@@ -1135,6 +1142,13 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.00 (15 November 2026)
+
+**Player profile**
+- **New option: polygon and Pros / Cons in Large display**: as in Medium, you choose in the app (Player profile page): the polygon in the header and Pros / Cons right of Info (default), Pros / Cons as dots in the header and the polygon right of Info, or nothing on the header's right with the polygon then Pros / Cons below it, right of Info. With the card header.
+- **Scout player button in the header's Pros / Cons card**: with no report on the player, the card shows FM's sentence and the Scout player button, like the Pros / Cons column.
+- **Better aligned header**: Transfer status and Loan status are centred in their card (in Large, the title fits on one line: both cards are at the same height), and the Current ability / Potential titles are centred above the stars for your own players too.
 
 ### v1.99 (15 November 2026)
 

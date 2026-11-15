@@ -108,6 +108,11 @@ NOM_POUR_CONTRE = "UIPickerPourContre"
 # l'en-tête, entete_tuile) ; le bouton est caché en Medium (bouton_large_seul) : polygone seul
 MEDIUM_POLYGONE = (options.get("fiche_medium_colonne") == "polygone" and options.get("entete_vue") == "tuile"
                    and options.get("fiche_fmguru") != "guru")
+# 2026-11-15 (le joueur : « on peut aussi le faire en large ? », option fiche_large_tuile) : Large = polygone à droite
+# d'Infos (chemin « polygone » de polygone_large, comme l'en-tête de FM) au lieu de Pour / Contre seuls ; « dessous » :
+# Pour / Contre sous le polygone (PC_DESSOUS)
+LARGE_TUILE = options.get("fiche_large_tuile") if options.get("entete_vue") == "tuile" else "entete"
+LARGE_POLYGONE = LARGE_TUILE in ("pastilles", "dessous")
 VERSION_COLONNE = f"uipicker-colonne-v23{SUFFIXE}" + ("-mpoly2" if MEDIUM_POLYGONE else "") # mpoly2 : cale anti-flash
                                              # (langue : titre « Projets ») changer le numéro refait la colonne à la prochaine application
                                              # (v8 : bouton polygone / Pour-Contre ; v9 : variable avec portée ;
@@ -225,7 +230,7 @@ CLASSE_GURU_TABLEAU = "uipicker-guru-tableau"         # tableau d'attributs reco
 CLASSE_GURU_TABLEAU_FM = "uipicker-guru-tableau-fm"   # conteneur du modèle inclus de FM (Medium / Small)
 NOM_LIGNE_LARGE = "UIPickerLignePolygone"    # Infos | polygone (mode Large)
 OPTION_LARGE = "fiche_large_colonne"         # option (2026-10-30, le joueur) : à droite d'Infos en Large, polygone
-LARGE_POUR_CONTRE = options.get(OPTION_LARGE) == "pour_contre"   # ou Pour / Contre + bouton (comme Medium)
+LARGE_POUR_CONTRE = options.get(OPTION_LARGE) == "pour_contre" and not LARGE_POLYGONE   # ou Pour / Contre + bouton
 # ... v2 (pc1 en jeu, le joueur : « trop zoomé ») : lignes Pour / Contre compactes = copie de la ligne de FM
 # (LISTE_PC, déjà en pastilles) dans un modèle de FM cité par rien, plus petite ; polygone réglé comme en mode polygone
 LISTE_PC = "data_display-string-list-item-pro-con"
@@ -238,8 +243,13 @@ POLYGONE_PC_DESSOUS = False  # 2026-11-05 (le joueur) : mode polygone, Pour / Co
                              # 2026-11-07 (le joueur) : retiré, polygone seul au milieu (Pour / Contre = pastilles du haut)
 # 2026-11-05 (le joueur) : avec l'en-tête en grande tuile (option entete_vue, le polygone est en haut), en Large :
 # Pour / Contre seuls, tout le temps (pas de bouton, pas de polygone) ; prend le pas sur fiche_large_colonne
-LARGE_PC_SEULS = options.get("entete_vue") == "tuile"
+LARGE_PC_SEULS = options.get("entete_vue") == "tuile" and not LARGE_POLYGONE
+# 2026-11-15 (le joueur : « en grand on peut virer la tuile en haut à droite ») : fiche_large_tuile = dessous :
+# polygone en haut, Pour puis Contre dessous (montage POLYGONE_PC_DESSOUS) ; plus rien à droite de l'en-tête en Large
+PC_DESSOUS = POLYGONE_PC_DESSOUS or LARGE_TUILE == "dessous"
 VERSION_POLYGONE_LARGE = "uipicker-polygone-large-v8" + (f"-pcseul1-{VERSION_COLONNE}" if LARGE_PC_SEULS else
+                                                         f"-lpcb1-{VERSION_COLONNE}" if PC_DESSOUS else
+                                                         "-lpoly1" if LARGE_POLYGONE else
                                                          f"-pc2-{VERSION_COLONNE}" if LARGE_POUR_CONTRE else
                                                          f"-pcb1-{VERSION_COLONNE}" if POLYGONE_PC_DESSOUS else "")   # v7 : polygone par taille de texte ; v8 : zone fixe,
                                                          # rayon qui rapetisse   # v3 : tailles prévues des colonnes comme Guru ; v4 :
@@ -313,19 +323,33 @@ def pros_cons(t):
     return msgs
 
 
-def aiguillage_adjoint(t, vis, parent, classes):
+def aiguillage_adjoint(t, vis, parent, classes, rapport="report"):
     """comme la tuile Rapport de FM (CoachScoutReportTile_4x4) : d'abord report.UseCoachReportLayout (rapport de
     l'adjoint : tes joueurs, jeunes du centre de formation, où HasScoutedInfo peut être faux), puis seulement
-    HasScoutedInfo ; renvoie (conteneur « adjoint », conteneur « sinon »)"""
-    adj = make_visible(t, vis, parent, None, "report.UseCoachReportLayout", "", list(classes))
-    autre = make_visible(t, vis, parent, None, "report.UseCoachReportLayout", "", list(classes))
+    HasScoutedInfo ; renvoie (conteneur « adjoint », conteneur « sinon ») ; rapport = chemin du rapport (en-tête :
+    entete_tuile.PC_RAPPORT)"""
+    adj = make_visible(t, vis, parent, None, rapport + ".UseCoachReportLayout", "", list(classes))
+    autre = make_visible(t, vis, parent, None, rapport + ".UseCoachReportLayout", "", list(classes))
     t.sd(autre)["InvertDirectBinding"], t.sd(autre)["InvertDirectBinding_UxmlAttributeFlags"] = 1, 1
     for r in (adj, autre):
         t.elem(r)["m_RuleIndex"] = -1
     return adj, autre
 
 
-def sans_rapport(t, parent, vis, classes=("flex-grow-class", "align-self-stretch")):
+def _chemins_rapport(o, rapport):
+    """chemins « report… » d'une donnée recopiée -> rapport… (en-tête : pas de « report » dans le contexte)"""
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k == "m_path" and isinstance(v, str) and (v == "report" or v.startswith("report.")):
+                o[k] = rapport + v[len("report"):]
+            else:
+                _chemins_rapport(v, rapport)
+    elif isinstance(o, list):
+        for v in o:
+            _chemins_rapport(v, rapport)
+
+
+def sans_rapport(t, parent, vis, classes=("flex-grow-class", "align-self-stretch"), rapport="report"):
     """bloc « pas encore de rapport » (le joueur, 2026-11-07), affiché seulement si report.HasScoutedInfo est faux
     (disparaît dès que le rapport est fait) : phrase de FM (report.NoScoutedInfoString, SIText de la tuile Rapport de
     supervision) + bouton « Observer joueur » de FM (PersonGradeOrScoutDescriptionCell : action ScoutPlayerSpeakTo
@@ -336,7 +360,7 @@ def sans_rapport(t, parent, vis, classes=("flex-grow-class", "align-self-stretch
     rm = sb and first(sb, lambda r: sb.name(r) == SANS_RAPPORT_BOUTON[1])
     if txt is None or rm is None:
         return ["bloc « pas de rapport » : phrase ou bouton de FM introuvable (le jeu a changé ?), ignoré"]
-    bloc = make_visible(t, vis, parent, None, "report.HasScoutedInfo", "",
+    bloc = make_visible(t, vis, parent, None, rapport + ".HasScoutedInfo", "",
                         list(classes) + ["column-direction-normal", "align-items-center", "justify-content-center"])
     t.sd(bloc)["InvertDirectBinding"], t.sd(bloc)["InvertDirectBinding_UxmlAttributeFlags"] = 1, 1
     t.elem(bloc)["m_RuleIndex"] = -1
@@ -346,6 +370,12 @@ def sans_rapport(t, parent, vis, classes=("flex-grow-class", "align-self-stretch
     t.sd(x)["name"], t.sd(x)["name_UxmlAttributeFlags"] = "", 0
     t.elem(x)["m_Classes"] = [c for c in t.elem(x).get("m_Classes") or [] if c != "sitext-hover-cursor"] \
         + ["margin-bottom-global-gap-regular"]
+    if rapport != "report":
+        for r in t.walk(x):
+            try:
+                _chemins_rapport(t.sd(r), rapport)
+            except (KeyError, TypeError):
+                pass
     b = t.clone(rm, bloc, src=sb)
     no_styles(t, b)
     t.sd(b)["name"], t.sd(b)["name_UxmlAttributeFlags"] = "", 0
@@ -1119,7 +1149,7 @@ def polygone_large(t):
     # mode polygone (2026-11-05, le joueur) : Pour / Contre (bloc de Medium, sans bouton) sous le polygone ;
     # grande tuile : ce même bloc seul, sur toute la hauteur
     pcb = None
-    if pc is None and (POLYGONE_PC_DESSOUS or LARGE_PC_SEULS):
+    if pc is None and (PC_DESSOUS or LARGE_PC_SEULS):
         pcol = first(t, lambda r: t.name(r) == "AttributeSpiderChartExpanded")
         pcb = pcol and next((r for r in t.walk(pcol) if t.name(r) == NOM_POUR_CONTRE), None)
         if pcb is None:
@@ -1795,6 +1825,49 @@ def infos_largeur(t):
 NOM_TAILLE_CACHEE = "UIPickerTailleCachee"
 
 
+# 2026-11-15 (le joueur, vidéo : en Large, molette dans le vide = toute la page sous l'en-tête bouge de 1-2 px) : la
+# grille de FM défile dès qu'un élément dépasse (boîte englobante du contenu, Unity) ; overflow hidden sur la racine du
+# gros bloc = ce qui dépasse ne compte plus (rien de visible ne sort du cadre)
+CLASSE_BLOC_COUPE = "uipicker-bloc-coupe-v1"
+
+
+# v2 (le joueur : « ça bouge toujours ») : aussi les tuiles du bas qui ne servent qu'en Large (étirées de 2 à 4 : 4x2 ;
+# Stats saison 8x2)
+TUILES_LARGE = ["PlayerHappinessTile_4x2", "PlayerFitnessTile_4x2", "PlayerFormTile_4x2", "TrainingOverviewTile_4x2",
+                "InjuryHistoryTile_4x2", "PlayerHomegrownStatusTile_4x2", "PlayerLoanReportTile_4x2",
+                "PlayerSeasonStatsTile_8x2"]
+
+
+# v3 (le joueur : « réduis de 1 px la grande tuile principale en hauteur ») : gros bloc 1 px plus bas (marge du bas ;
+# sa racine s'étire dans sa case)
+CLASSE_BLOC_MOINS = "uipicker-bloc-moins1-v1"
+
+
+def bloc_coupe(t, moins=0):
+    racine = next((r for r in t.children(t.tt["m_VisualTree"]["rid"])), None)
+    if racine is None:
+        return ["racine du gros bloc introuvable : pas de coupe du débordement"]
+    cl = t.elem(racine).get("m_Classes") or []
+    voulu = [CLASSE_BLOC_COUPE] + ([CLASSE_BLOC_MOINS] if moins else [])
+    if all(k in cl for k in voulu):
+        return []
+    t.elem(racine)["m_Classes"] = [k for k in cl if k not in voulu] + voulu
+    t.styles.style(t, racine, {"overflow": "hidden", **({"margin-bottom": moins} if moins else {})})
+    return ["ce qui dépasse est coupé (plus de petit défilement de la page en Large)"]
+
+
+def sans_coupe(t):
+    """2026-11-15 (le joueur : « abandonne, ça bouge toujours ») : essais v1-v3 défaits (classes retirées, overflow
+    visible et marge 0 = valeurs par défaut de FM) ; défilement d'1 px en Large MIS DE CÔTÉ"""
+    racine = next((r for r in t.children(t.tt["m_VisualTree"]["rid"])), None)
+    cl = (t.elem(racine).get("m_Classes") or []) if racine is not None else []
+    if not any(k in cl for k in (CLASSE_BLOC_COUPE, CLASSE_BLOC_MOINS)):
+        return []
+    t.elem(racine)["m_Classes"] = [k for k in cl if k not in (CLASSE_BLOC_COUPE, CLASSE_BLOC_MOINS)]
+    t.styles.style(t, racine, {"overflow": "visible", "margin-bottom": 0})
+    return ["essai contre le petit défilement en Large retiré"]
+
+
 def taille_infos(t):
     """2026-11-05 (le joueur) : avec l'en-tête en grande tuile (option entete_vue = tuile), la taille est sous le
     nom en haut -> « Taille » d'Infos cachée dans toutes les fiches (tous modes) ; remise si l'option revient à FM.
@@ -1838,13 +1911,15 @@ def jobs():
     if POUR_CONTRE_A_LA_PLACE_DU_POLYGONE and POLYGONE_POUR_CONTRE:
         big.append(bouton_large_seul)   # après la copie Large (qui garde le bouton)
     big.append(taille_infos)   # en dernier : aussi dans les copies d'Infos (option entete_vue, 2026-11-05)
+    big.append(sans_coupe)   # 2026-11-15 : essais contre le défilement d'1 px en Large défaits (mis de côté)
     # un seul passage par modèle : deux passages séparés repartiraient chacun de l'état d'origine
     return [(POSTES, bouton_comparer), (NOTE_ENTRAINEMENT, pastille_note), (LIGNE_TRAITS, ligne_traits),
             (LISTE_TRAITS, liste_traits)] \
         + ([(LIGNE_ATTRIBUT, ligne_attribut)] if POLYGONE_LARGE else []) \
         + ([(LIGNE_PC_LARGE, ligne_pc_large)]   # 2026-11-07 : aussi grande tuile (pcseul : lignes vides sans elle)
-           if POLYGONE_LARGE and (LARGE_POUR_CONTRE or POLYGONE_PC_DESSOUS or LARGE_PC_SEULS) else []) \
+           if POLYGONE_LARGE and (LARGE_POUR_CONTRE or PC_DESSOUS or LARGE_PC_SEULS) else []) \
         + ([(TABLEAU, large_training)] if ENTRAINEMENT_RAPIDE else []) \
+        + [(m, sans_coupe) for m in TUILES_LARGE] \
         + ([(GROS_BLOC, lambda t: [m for fn in big for m in fn(t)])] if big else [])
 
 

@@ -235,6 +235,27 @@ OPTIONS = {
                  "together: when the polygon is right of "
                  "Info, the Pros / Cons move as dots into the header's right card (hover a dot to read it)."),
     },
+    # 2026-11-15 (le joueur : « on peut aussi le faire en large ? », puis « les gens pourront choisir ») : pareil en
+    # Large, 3 choix ; lu par entete_fiche (entete_tuile : carte de droite de l'en-tête en Large) et fiche_joueur_plus
+    # (colonne à droite d'Infos en Large). En-tête en cartes seulement
+    "fiche_large_tuile": {
+        "titre": ("Fiche joueur, affichage Large seulement : polygone et Pour / Contre",
+                  "Player profile, Large display only: polygon and Pros / Cons"),
+        "valeurs": [("entete", ("polygone dans l'en-tête, Pour / Contre à droite d'Infos",
+                                "polygon in the header, Pros / Cons right of Info")),
+                    ("pastilles", ("Pour / Contre en pastilles dans l'en-tête, polygone à droite d'Infos",
+                                   "Pros / Cons as dots in the header, polygon right of Info")),
+                    ("dessous", ("rien à droite de l'en-tête, polygone puis Pour / Contre dessous, à droite d'Infos",
+                                 "nothing on the header's right, polygon then Pros / Cons below, right of Info"))],
+        "script": "entete_fiche",
+        "aussi": ["fiche_joueur_plus", "kinito_entete_large"],
+        "aide": ("Affichage Large seulement : en Moyen et en Petit, rien ne change. Avec l'en-tête en cartes "
+                 "(choix de base). Pastilles : survol d'une pastille = son texte. Sans rapport sur le joueur, "
+                 "les Pour / Contre laissent la place à la phrase de FM et au bouton Observer joueur.",
+                 "Large display only: nothing changes in Medium and Small. With the card header (default). Dots: "
+                 "hover a dot to read it. With no report on the player, Pros / Cons give way to FM's sentence and "
+                 "the Scout player button."),
+    },
     # 2026-10-31 (le joueur) : lu par club_bandeau_installations (bandeau du club) et club_infobulle_offres (bulle
     # « i » du club) : « sans » = section Installations retirée des deux (ni notes ni étoiles) ; pages Installations
     # du club pas touchées (notes_installations)

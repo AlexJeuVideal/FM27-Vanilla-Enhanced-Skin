@@ -2457,7 +2457,8 @@ const REGLAGES_J = [
     ["entete_fiche", "fiche", "entete", ["Retouches de l'en-tête", "Header tweaks"], ["2e nationalité, bouton Actions sous l'âge, nations en 3 lettres, Niveau / Potentiel serrés.", "2nd nationality, Actions button under the age, 3-letter nations, tighter Ability / Potential."]],
     ["o:fiche_large_colonne", "fiche", "colonne entete", ["À droite d'Infos", "Right of Info"], null],
     ["o:fiche_medium_colonne", "fiche", "colonne entete", ["Affichage Moyen seulement : polygone ou Pour / Contre", "Medium display only: polygon or Pros / Cons"], ["Seulement en affichage Moyen (Medium), rien ne change en Large / Petit. Les deux s'échangent ensemble (en-tête en cartes).", "Only in Medium display, nothing changes in Large / Small. Both swap together (card header)."]],
-    ["o:pour_contre_lignes", "fiche", "entete", ["Pastilles Pour / Contre de l'en-tête", "Pros / Cons dots in the header"], null],
+    ["o:fiche_large_tuile", "fiche", "colonne entete", ["Affichage Large seulement : polygone et Pour / Contre", "Large display only: polygon and Pros / Cons"], ["Seulement en affichage Large, rien ne change en Moyen / Petit (en-tête en cartes).", "Only in Large display, nothing changes in Medium / Small (card header)."]],
+    ["o:pour_contre_lignes", "fiche", "entete",["Pastilles Pour / Contre de l'en-tête", "Pros / Cons dots in the header"], null],
   ]],
   [["Fiche", "Profile"], [
     ["fiche_joueur_plus", "fiche", "colonne infos", ["Fiche joueur +", "Player profile +"], ["Polygone à droite d'Infos, Pour / Contre, bloc Entraînement (note, pouces, roue).", "Polygon right of Info, Pros / Cons, Training block (rating, thumbs, cog)."]],
@@ -2681,7 +2682,7 @@ function carteJ([nom, onglet, zones, titre, aide]) {
       onclick: () => jMettre(nom, v),
     }, el("span", { class: "coche" }), tr(lib), v === x.defaut ? el("span", { class: "de-base" }, t("deBase")) : null)));
     // fiche_medium_colonne (2026-11-14) : l'inverse, seulement avec l'en-tête en cartes (pas la vue FM Guru)
-    const sansEffetFM = n === "fiche_medium_colonne" && (jO("entete_vue") !== "tuile" || jGuru());
+    const sansEffetFM = (n === "fiche_medium_colonne" || n === "fiche_large_tuile") && (jO("entete_vue") !== "tuile" || jGuru());
     if (sansEffet) sous.push(el("span", { class: "badge gris" }, tr(["Sans effet avec l'en-tête en cartes", "No effect with the card header"])));
     if (sansEffetFM) sous.push(el("span", { class: "badge gris" }, tr(["Seulement avec l'en-tête en cartes", "Only with the card header"])));
     if (sansEffet || sansEffetFM) corps.style.opacity = ".55";
@@ -2760,9 +2761,11 @@ function mqEntete() {
     const nation = L ? `<div class="val">🇫🇷 FRA</div><div class="doux">${mqT("Aucune sélection jeunes", "No youth caps")}</div>`
       : `<div class="val">🇫🇷 France</div><div class="doux">${mqT("Aucune sélection · Aucune sélection jeunes", "No caps · No youth caps")}</div>`;
     // fiche_medium_colonne = polygone : en Medium, Pour / Contre en pastilles (cadres comme l'infobulle) à la place
-    const pcHaut = tailleJ === "medium" && jO("fiche_medium_colonne") === "polygone";
+    // fiche_large_tuile (Large) : pastilles = pareil ; dessous = plus de carte à droite
+    const pcHaut = (tailleJ === "medium" && jO("fiche_medium_colonne") === "polygone") || (L && jO("fiche_large_tuile") === "pastilles");
+    const rienHaut = L && jO("fiche_large_tuile") === "dessous";
     const cadrePC = (titre, c) => `<div style="flex:1;background:rgba(255,255,255,.06);border-radius:6px;padding:3px;text-align:center"><div class="titre">${titre}</div><div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center">${c.map(x => `<i style="width:12px;height:12px;border-radius:50%;background:${x}"></i>`).join("")}</div></div>`;
-    const fin = pcHaut ? mqCarte("", `<div class="rang" style="gap:4px;align-items:stretch">${cadrePC(mqT("Pour", "Pros"), ["#0A5A26", "#56A626", "#86A31E"])}${cadrePC(mqT("Contre", "Cons"), ["#B81F2E", "#D8452B", "#E0692C"])}</div>`, "entete pc", "flex:1.3")
+    const fin = rienHaut ? "" : pcHaut ? mqCarte("", `<div class="rang" style="gap:4px;align-items:stretch">${cadrePC(mqT("Pour", "Pros"), ["#0A5A26", "#56A626", "#86A31E"])}${cadrePC(mqT("Contre", "Cons"), ["#B81F2E", "#D8452B", "#E0692C"])}</div>`, "entete pc", "flex:1.3")
       : S ? mqCarte("Progression", `<div class="val" style="color:#35c07a">⌃ ${mqT("A beaucoup progressé", "Has improved a lot")}</div><svg viewBox="0 0 100 30" style="width:100%;height:34px"><polyline points="5,22 30,20 55,19 80,16 95,15" fill="none" stroke="#D99FF4" stroke-width="1.5"/></svg>`, "entete", "flex:1.3")
       : `<div class="bloc" style="flex:1.3;padding:2px">${mqPolygone(jV("couleurs_polygone"), true)}</div>`;
     return `<div class="rang entete-cartes" data-z="entete">
@@ -2830,6 +2833,8 @@ function mqFiche() {
   if (guru) droite = mqCarte("", mqPolygone(jV("couleurs_polygone")), "colonne", "flex:1.3");
   else if (plusF && S) droite = mqCarte("", `${mqPolygone(jV("couleurs_polygone"))}<div class="titre" style="margin-top:4px">${mqT("Projets", "Plans")}</div><div class="doux">${mqT("Court terme", "Short term")}</div>${mqT("Titulaire", "Starter")}<div class="doux" style="margin-top:3px">${mqT("Long terme", "Long term")}</div>${mqT("Aucun projet", "No plans")}`, "colonne", "flex:1.2");
   else if (plusF && tuile && M && jO("fiche_medium_colonne") === "polygone") droite = mqCarte("", mqPolygone(jV("couleurs_polygone")), "colonne", "flex:1.4");
+  else if (plusF && tuile && L && jO("fiche_large_tuile") === "pastilles") droite = mqCarte("", mqPolygone(jV("couleurs_polygone")), "colonne", "flex:1.4");
+  else if (plusF && tuile && L && jO("fiche_large_tuile") === "dessous") droite = mqCarte("", `${mqPolygone(jV("couleurs_polygone"))}<div style="margin-top:4px">${pcColonne}</div>`, "colonne pc", "flex:1.5");
   else if (plusF && (tuile || M || jO("fiche_large_colonne") === "pour_contre")) droite = mqCarte("", pcColonne + (tuile ? "" : btnPoly), "colonne pc", `flex:${M ? 1.6 : 1.5}`);
   else if (plusF) droite = mqCarte("", mqPolygone(jV("couleurs_polygone")), "colonne", "flex:1.4");
   else droite = mqCarte("", `${mqPolygone(jV("couleurs_polygone"))}<div class="doux" style="text-align:center">${mqT("polygone de FM", "FM's polygon")}</div>`, "colonne", "flex:1.4");

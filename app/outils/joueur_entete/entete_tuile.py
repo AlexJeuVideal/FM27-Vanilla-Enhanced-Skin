@@ -94,7 +94,9 @@ PREFIXE = "UIPickerEnteteTuile"
 # v34 (le joueur : « Indisponible » sur 2 lignes) : valeurs Dispo. sur une ligne, « … » + infobulle (Large)
 # v35 (Heyti, 2026-11-12 : sélections U20 affichées pour un jeune déjà sélectionné en A) : Large, ligne unique = A
 # aussi avant AGE_JEUNE ans dès que InternationalDebutNationalTeamContainer n'est pas nul
-VERSION = 35
+# v36 (2026-11-15, le joueur) : Dispo. transfert / prêt centrés dans leur carte (cadre de FM en align-items-start)
+# v37 : Large, titres Dispo. sur une ligne (body-xs) : les deux cartes à la même hauteur
+VERSION = 37
 CL_CARTE = "uipicker-entete-carte"     # classe fixe (sans version) : couleurs_interface.ENTETE_CARTE la vise
 COURBE_FOND = (0.0, 0.0, 0.0, 0.22)
 PROGRESSION = True
@@ -104,11 +106,18 @@ INTERIEUR = 2.0                             # graphique = cale × INTERIEUR (v22
 # 2026-11-14 (option fiche_medium_colonne, demande de hunfair) : en Medium, carte Pour / Contre en pastilles (comme
 # l'infobulle : cadres POUR | CONTRE) à la place du polygone, qui passe à droite d'Infos (fiche_joueur_plus)
 MEDIUM_PC = options.get("fiche_medium_colonne") == "polygone"
+# 2026-11-15 (option fiche_large_tuile) : en Large, entete = polygone (base) ; pastilles = carte Pour / Contre comme
+# Medium ; dessous = rien (polygone + Pour / Contre à droite d'Infos, fiche_joueur_plus)
+LARGE_TUILE = options.get("fiche_large_tuile")
+# carte de droite par mode (0 Large, 1 Medium) : "pc", "poly" ou None
+DROITE = {0: {"pastilles": "pc", "dessous": None}.get(LARGE_TUILE, "poly"), 1: "pc" if MEDIUM_PC else "poly"}
 PC_RAPPORT = "Person.PlayerReportForContextTeam"     # comme le bandeau de l'en-tête de FM (entete_fiche)
 PC_GUID_PASTILLE = "1d9ea6f83e853594c9a3339ba036281b"   # ProConRow = pastille de l'en-tête (entete_fiche, 28 px)
 PC_RANGEES = 3                                       # rangées de pastilles max par cadre (le reste est caché)
 PC_PAR_RANGEE = 4                                    # v2 (le joueur, v1 vue en jeu : « limite à 12 ») : 4 × 3 = 12 max
-NOM = f"{PREFIXE}-v{VERSION}" + ("-mpc4" if MEDIUM_PC else "")   # v3 : titres calés en haut ; v4 : pastilles centrées
+NOM = f"{PREFIXE}-v{VERSION}" + ("-mpc5" if MEDIUM_PC else "") \
+    + {"pastilles": "-lpc1", "dessous": "-lrien1"}.get(LARGE_TUILE, "")
+# mpc v3 : titres calés en haut ; v4 : pastilles centrées ; v5 : bouton Observer sans rapport
 NOM_CACHE = PREFIXE + "Cache"          # SIVisible jamais vrai : bannière / photo de FM gardées, cachées
 NOM_PLACE = PREFIXE + "Place"          # conteneur [bannière cachée, tuile] = un seul enfant de l'aiguillage
 SOURCE = "report-player-banner-max"
@@ -599,6 +608,10 @@ def construire(t, parent, index, dims, src, p, txt, photo, haut_src, poly_src, r
         rm = remapper(t, rm_model, h, {"player": ("person", JOUEUR)}, ["align-self-stretch"])
         c = st.clone(t, st.s.parent[titre_fm], rm)
         t.sd(c)["name"] = ""
+        # v36 (2026-11-15, le joueur : « dispo transfert mal aligné dans sa case ») : cadre de FM en align-items-start
+        # -> titre et valeur centrés dans la carte
+        t.elem(c)["m_Classes"] = ["column-direction-normal", "align-items-center", "justify-content-center"]
+        t.styles.style(t, c, {"margin-bottom": 0})   # FM : 8 px dessous (texte remonté)
         return c
 
     def statut_court(c):
@@ -633,6 +646,16 @@ def construire(t, parent, index, dims, src, p, txt, photo, haut_src, poly_src, r
             c = statut_cadre(hc, nom_titre)
             if c is not None:
                 statut_court(c)
+                # v37 (le joueur, Large : « Dispo. transfert » sur 2 lignes, plus haut que « Dispo. prêt ») : titre sur
+                # une ligne, un cran plus petit (body-xs), « … » + texte complet au survol s'il ne tient pas
+                for r in t.walk(c):
+                    if t.name(r) == nom_titre and typ(t, r).endswith("SIText"):
+                        t.elem(r)["m_Classes"] = ["body-xs" if k == "body-sm" else k
+                                                  for k in t.elem(r).get("m_Classes") or []]
+                        t.styles.style(t, r, {"white-space": "nowrap", "text-overflow": "ellipsis",
+                                              "max-width": {"unit": 2, "value": 100.0}, "overflow": "hidden"})
+                        for k in ("DisplayTooltipWhenElided", "displayTooltipWhenElided"):
+                            t.sd(r)[k], t.sd(r)[k + "_UxmlAttributeFlags"] = 1, 1
         nv = boite(t, col, {**habille({"flex-grow": 1.15, "flex-shrink": 1, "flex-basis": 0, "min-height": 0,
                                        "overflow": "hidden", "margin-top": e // 2}),
                             "padding-top": 2, "padding-bottom": 2},
@@ -679,14 +702,22 @@ def construire(t, parent, index, dims, src, p, txt, photo, haut_src, poly_src, r
                 m = habiller_progression(t, cpp, txt)
                 if m:
                     msgs.append(m)
-            if MEDIUM_PC:   # Medium (mode == 1) : Pour / Contre ; polygone en Large seulement (mode == 0)
-                zpc = ni.new_visible(t, s_vis, vis, carte, None, "", ni.equal_binding(bv, MODE, 1),
-                                     ["row-direction-normal"])
+            # options fiche_medium_colonne / fiche_large_tuile : Pour / Contre, polygone ou rien selon le mode
+            def selon(quoi):
+                modes = [m for m in (0, 1) if DROITE[m] == quoi]
+                if not modes:
+                    return None
+                b = ni.make_binding(bv, 0, [MODE], 2) if len(modes) == 2 else ni.equal_binding(bv, MODE, modes[0])
+                return ni.new_visible(t, s_vis, vis, carte, None, "", b, ["row-direction-normal"])
+            zpc = selon("pc")
+            if zpc is not None:
                 t.styles.style(t, zpc, dict(zcss))
                 sep(zpc)
                 msgs += carte_pour_contre(t, zpc, habille)
-                zone = ni.new_visible(t, s_vis, vis, carte, None, "", ni.equal_binding(bv, MODE, 0),
-                                      ["row-direction-normal"])
+            if DROITE != {0: "poly", 1: "poly"}:
+                zone = selon("poly")
+                if zone is None:
+                    return msgs
             else:
                 zone = ni.new_visible(t, s_vis, vis, carte, None, "", ni.make_binding(bv, 0, [MODE], 2),
                                       ["row-direction-normal"])
@@ -744,10 +775,28 @@ def carte_pour_contre(t, parent, habille):
     titres = ttr and [first(ttr, lambda r, n=n: ttr.name(r) == n) for n, _ in ppc.LISTES]
     if liste is None or not titres or None in titres:
         return ["carte Pour / Contre (Medium) : liste ou titres de FM introuvables (le jeu a changé ?), ignorée"]
+    # v5 (2026-11-15, le joueur : « un bouton Observer comme là où il y a tout l'espace ») : comme la colonne de la
+    # fiche (fiche_joueur_plus) : rapport de l'adjoint OU rapport fait = pastilles, sinon phrase de FM + Observer joueur
+    import fiche_joueur_plus as fjp
+    from arbre import make_visible
+    tour = boite(t, parent, habille({"flex-grow": 1, "flex-shrink": 1, "min-width": 0, "align-self": "stretch",
+                                     "overflow": "hidden"}, padding=False),
+                 ["column-direction-normal", "align-items-stretch"])
+    cl = ["flex-grow-class", "align-self-stretch"]
+    adj, autre = fjp.aiguillage_adjoint(t, parent, tour, cl, rapport=PC_RAPPORT)
+    oui = make_visible(t, parent, autre, None, PC_RAPPORT + ".HasScoutedInfo", "", list(cl))
+    t.elem(oui)["m_RuleIndex"] = -1
+    msgs = fjp.sans_rapport(t, autre, parent, rapport=PC_RAPPORT)
+    for cible in (adj, oui):
+        pastilles_pour_contre(t, cible, liste, lst, titres, ttr, ppc, path_arg)
+    return msgs + ["carte Pour / Contre en pastilles à la place du polygone, Observer sans rapport"]
+
+
+def pastilles_pour_contre(t, parent, liste, lst, titres, ttr, ppc, path_arg):
     pas = ppc.PASTILLE_BANDEAU + 2   # pastille + marges 1 px
-    cp = boite(t, parent, habille({"flex-grow": 1, "flex-shrink": 1, "min-width": 0, "align-self": "stretch",
-                                   "overflow": "hidden", "padding-top": 6, "padding-bottom": 6, "padding-left": 6,
-                                   "padding-right": 6}, padding=False),
+    cp = boite(t, parent, {"flex-grow": 1, "flex-shrink": 1, "min-width": 0, "align-self": "stretch",
+                           "overflow": "hidden", "padding-top": 6, "padding-bottom": 6, "padding-left": 6,
+                           "padding-right": 6},
                ["row-direction-normal", "align-items-stretch"])
     for i, (titre_src, (_, chemin)) in enumerate(zip(titres, ppc.LISTES)):
         cadre = boite(t, cp, {"flex-grow": 1, "flex-shrink": 1, "flex-basis": 0, "min-width": 0, "overflow": "hidden",
@@ -777,7 +826,6 @@ def carte_pour_contre(t, parent, habille):
                               "align-self": "center", "max-width": PC_PAR_RANGEE * pas,
                               "min-height": pas, "max-height": PC_RANGEES * pas,
                               "overflow": "hidden", "flex-shrink": 0})
-    return ["Medium : carte Pour / Contre en pastilles à la place du polygone (comme l'infobulle)"]
 
 
 # ---------- étoiles Niveau / Potentiel sous la note du rapport (joueur hors club) ----------
@@ -788,8 +836,10 @@ def carte_pour_contre(t, parent, habille):
 # étoiles centrées. Vue « tuile » seulement (cartes de hauteur fixe : ça tient ; la bannière de FM n'est pas touchée)
 MODELE_RAPPORT = "PlayerReportHeaderScoutSection"
 PREFIXE_ETOILES = PREFIXE + "Etoiles"
-NOM_ETOILES = f"{PREFIXE_ETOILES}-v4"   # v4 (2026-11-13, le joueur, capture Large : « Rapport de supervision » pas
+NOM_ETOILES = f"{PREFIXE_ETOILES}-v5"   # v4 (2026-11-13, le joueur, capture Large : « Rapport de supervision » pas
                                         # centré au-dessus de la note) : titre align-self-start de FM -> centré
+                                        # v5 (2026-11-15, le joueur : « Potentiel pas centré ») : aussi les titres
+                                        # Niveau / Potentiel du bloc d'étoiles de FM (tes joueurs : rapport adjoint)
 NOM_TITRE_RAPPORT = PREFIXE_ETOILES + "Titre"   # aiguillage du titre d'origine (Medium / Small) ; + « Large » : petit
 TITRE_RAPPORT_LARGE = 10                        # px, titre du rapport en Large (v3)
 ETOILES_ECART = 6   # px entre la note et les étoiles
@@ -817,10 +867,15 @@ def etoiles_rapport(t):
         elif "margin-right-global-gap-regular" not in cl:
             t.elem(frame)["m_Classes"] = cl + ["margin-right-global-gap-regular"]
     titre_fm = first(t, lambda r: t.name(r) == "ScoutReport" and typ(t, r).endswith("SIText"))
+    avant, apres = ("align-self-start", "align-self-center-class") if vue() == "tuile" else \
+        ("align-self-center-class", "align-self-start")
     if titre_fm is not None:   # v4 : centré en vue tuile, à gauche (FM) sinon
-        avant, apres = ("align-self-start", "align-self-center-class") if vue() == "tuile" else \
-            ("align-self-center-class", "align-self-start")
         t.elem(titre_fm)["m_Classes"] = [apres if c == avant else c for c in t.elem(titre_fm).get("m_Classes") or []]
+    # v5 : titres Niveau / Potentiel du bloc d'étoiles de FM (rapport de l'adjoint) : centrés en vue tuile
+    ab = first(t, lambda r: t.name(r) == "AbilityStarRange")
+    for r in (list(t.walk(ab)) if ab is not None else []):
+        if t.name(r) in ("CurrentAbilityText", "PotentialAbilityText"):
+            t.elem(r)["m_Classes"] = [apres if c == avant else c for c in t.elem(r).get("m_Classes") or []]
     has = first(t, lambda r: t.name(r) == "HasReport")
     kids = has is not None and t.children(has)
     if vue() != "tuile":
