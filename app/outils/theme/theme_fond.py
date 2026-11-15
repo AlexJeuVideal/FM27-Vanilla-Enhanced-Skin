@@ -622,6 +622,12 @@ def peindre(tex, rgb):
         sys.exit("images de fond introuvables (le jeu a changé ?)")
     _COMPET[:] = []
     t = tex[CIBLE]
+    # 2026-11-15 (le joueur : « fonds officiels » = « couleur de FM », comme le jeu de base partout) : le fond par
+    # défaut de FM (violet + logo) n'est plus repeint non plus ; seule l'image des chargements prend le thème
+    if PAGES_CLUB == "origine":
+        chargement(tex, rgb)
+        print("fonds officiels : tous les fonds des pages de FM gardés (fond par défaut compris)")
+        return
     if lisse():   # couleur unie : petite image non compressée (DXT1 décalait la couleur : #17181B -> 16,24,24)
         # RGBA32 : seul format non compressé du moteur Rust de l'app (RGB24 refusé)
         im, fmt = Image.new("RGBA", (64, 36), tuple(rgb) + (255,)), TextureFormat.RGBA32

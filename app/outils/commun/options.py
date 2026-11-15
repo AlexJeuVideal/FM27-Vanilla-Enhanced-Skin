@@ -45,8 +45,8 @@ OPTIONS = {
     "fond_pages": {
         "titre": ("Fond des pages (choix 30)", "Page background (choice 30)"),
         "valeurs": [("couleur", ("ta couleur partout", "your colour everywhere")),
-                    ("officiels", ("fonds officiels gardés, ta couleur sur les autres",
-                                   "official backgrounds kept, your colour on the others"))],
+                    ("officiels", ("fonds de FM partout, comme le jeu de base",
+                                   "FM's backgrounds everywhere, like the base game"))],
         "script": "theme_fond",
     },
     # 2026-11-05 (le joueur, v1.62) : « logo + 3 lettres » essayé en choix de base, vu en jeu : logo seul gardé

@@ -6,6 +6,12 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.01 (15 novembre 2026)
+
+**Couleurs**
+- **Fenêtre Traitement ombrée comme dans FM** : pendant le passage des jours, le jeu derrière la fenêtre Traitement est de nouveau assombri, comme dans FM de base. Les options du match et les Préférences gardent le fond vide.
+- **Option « fonds de FM partout »** (ancien « fonds officiels ») : tous les fonds des pages restent ceux de FM de base (club, compétitions, et maintenant aussi le fond par défaut). Ta couleur ne recouvre plus aucun fond. Le choix de base « ta couleur partout » ne change pas. Réapplique ton thème dans l'app (FM fermé).
+
 ### v2.00 (15 novembre 2026)
 
 **Fiche joueur**
@@ -1142,6 +1148,12 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.01 (15 November 2026)
+
+**Colours**
+- **Processing window shaded like in FM**: while days go by, the game behind the Processing window is darkened again, as in base FM. Match options and Preferences keep the empty background.
+- **"FM's backgrounds everywhere" option** (formerly "official backgrounds"): every page background stays FM's own (club, competitions, and now the default background too). Your colour no longer covers any background. The default "your colour everywhere" doesn't change. Reapply your theme in the app (FM closed).
 
 ### v2.00 (15 November 2026)
 

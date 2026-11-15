@@ -172,10 +172,12 @@ SURBRILLANCE_CONTRASTE = 2.5
 # essai 6 VU en match (le joueur) : plus d'ombre = normal -> v26 (OMBRAGE_BASE = 0)
 # essai 8 (2026-11-14, Préférences toujours pleines ; GameWorldBackground écarté) : fond des cartes (v20 opaque) en vert
 # essai 8 VU : rien de vert (ni le fond ni les cases) -> pas cette variable
+# essai 9 (2026-11-15, panneaux gris --layout-modules-tiles-background / --layout-ui-cards-*-background /
+# --colours-ui-soft) : malentendu, jamais demandé par le joueur -> retiré
 ESSAI_FENETRES = {}
 # (ancêtre ou None, classe, couleur, même élément ?) ; essai 4 (2026-11-14, menu principal, sans effet) retiré
 ESSAI_DESCENDANTS = []
-ESSAI_FENETRES_TEXTE = ("ESSAI 8 (Préférences) : vert = var --layout-surfaces-cards-surface (fond des cartes)")
+ESSAI_FENETRES_TEXTE = "ESSAI fenêtres : rien à essayer (ESSAI_FENETRES vide)"
 # ESSAI (2026-10-31, Kiliwick : terrain qui reste gris avec Ardoise quoi qu'on choisisse) : quel élément fait vraiment
 # la pelouse ? Commande essai-pelouse = styles seuls, chaque candidat dans une couleur vive (règle d'une seule classe ou
 # variable) ; retour normal : toute autre écriture des couleurs (si-actif, app, choix 1)
@@ -239,6 +241,14 @@ PANNEAUX_VOILES = ("report-container",)
 OMBRAGE_SELECTEUR = "sicard-container-large"
 OMBRAGE_RGB, OMBRAGE_FM = (0x0A, 0x0F, 0x1E), 65
 OMBRAGE_BASE = 0   # v26 : sans choix = fond vide (transparent)
+# v27 (2026-11-15, le joueur : « QUE traitement » à remettre ombré comme le jeu de base ; match / Préférences restent
+# vides) : même règle .sicard-container-large partout -> voile propre à la carte du Traitement (modèle ProcessingCard) :
+# élément plein écran (position absolue, très grand, clics ignorés) en 1er enfant de #ElementBindingRoot, donc sous la
+# carte, au sombre de FM à 65 %. Posé seulement si l'ombrage = fond vide de base (« Gérer l'opacité » = son % partout)
+TRAITEMENT_MODELE, TRAITEMENT_RACINE = "ProcessingCard", "ElementBindingRoot"
+TRAITEMENT_VOILE = "UIPickerOmbrageTraitement"
+MARQUE_TRAITEMENT = "uipicker-ombrage-traitement-v1"
+TRAITEMENT_DEBORD = 5000   # px de chaque côté de la carte (couvre tout l'écran où qu'elle soit)
 # v19 (2026-11-14, essais fenêtres 1 et 2, le joueur : « fonds secondaires toujours ombrés comme le passage entre les
 # jours », « branche tous les thèmes ») : en match, le fond plein écran restait clair (var(--midnight-alpha-65) pas
 # résolue là, supposé) -> ombrage toujours écrit en couleur (OMBRAGE_FM si pas choisi), dès que les couleurs sont
@@ -1404,6 +1414,57 @@ def barre_commentaire(cfg):
     print(f"{MODELE_COMMENTAIRE} (barre de commentaire) : {msg}")
 
 
+def ombrage_traitement(cfg):
+    """voile à 65 % (FM) sous la carte du Traitement quand l'ombrage est « fond vide » de base (v27) ; sinon modèle
+    d'origine remis (s'il avait été touché). Seul écrivain de ProcessingCard."""
+    voulu = cfg.get("ombrage") is None and OMBRAGE_BASE < OMBRAGE_FM
+    o = ouvrir(TRAITEMENT_MODELE)
+    if o is None:
+        print(f"{TRAITEMENT_MODELE} (Traitement) : introuvable (le jeu a changé ?)")
+        return
+    t = o[3]
+    pose = any(t.name(r) == TRAITEMENT_VOILE and MARQUE_TRAITEMENT in (t.elem(r).get("m_Classes") or [])
+               for r in t.walk())
+    if voulu == pose:
+        return   # déjà comme il faut
+    deja = any(t.name(r) == TRAITEMENT_VOILE for r in t.walk())
+    if not voulu and not deja:
+        return
+    bundle, obj, tt, t = ouvrir(TRAITEMENT_MODELE, depart_original=True)
+    if original(bundle, obj) is None and deja:
+        print(f"{TRAITEMENT_MODELE} : pas de sauvegarde d'origine, laissé tel quel")
+        return
+    if voulu:
+        racine = next((r for r in t.walk() if t.name(r) == TRAITEMENT_RACINE), None)
+        if racine is None:
+            print(f"{TRAITEMENT_MODELE} : #{TRAITEMENT_RACINE} introuvable (le jeu a changé ?), rien fait")
+            return
+        from elements import plain
+        v = plain(t, racine, 0, [MARQUE_TRAITEMENT], TRAITEMENT_VOILE)
+        t.sd(v)["name_UxmlAttributeFlags"] = 1
+        t.sd(v)["pickingMode"] = 1   # clics ignorés
+        if "pickingMode_UxmlAttributeFlags" in t.sd(v):
+            t.sd(v)["pickingMode_UxmlAttributeFlags"] = 1
+        t.elem(v)["m_RuleIndex"] = -1
+        d = TRAITEMENT_DEBORD
+        t.styles.style(t, v, {"position": "absolute", "left": -d, "top": -d, "width": 2 * d + 4000,
+                              "height": 2 * d + 4000,
+                              "background-color": tuple(c / 255 for c in OMBRAGE_RGB) + (OMBRAGE_FM / 100,)})
+        msg = f"voile {OMBRAGE_FM} % sous la carte (comme FM)"
+    else:
+        msg = "remis d'origine"
+    enregistrer_modele(bundle, obj, tt, t)
+    print(f"{TRAITEMENT_MODELE} (Traitement) : {msg}")
+
+
+def enregistrer_modele(bundle, obj, tt, t):
+    t.finish()
+    t.styles.save()
+    obj.save_typetree(tt)
+    nb._ecrits[(bundle, obj.path_id)] = tt
+    nb._dirty.add(bundle)
+
+
 # ---------- modèles ----------
 def _ve_source():
     t = ouvrir(SOURCE_VE)[3]
@@ -1587,6 +1648,7 @@ def modeles(cfg):
     bandeau_tactiques(cfg)
     tableau_score(cfg)
     barre_commentaire(cfg)
+    ombrage_traitement(cfg)
     mode, couleur = continuer_voulu(cfg)
     bouton_continuer.appliquer(mode, couleur, en_plus=continuer_en_plus(cfg))
     nb.save_all()
