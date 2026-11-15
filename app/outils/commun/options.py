@@ -45,6 +45,8 @@ OPTIONS = {
     "fond_pages": {
         "titre": ("Fond des pages (choix 30)", "Page background (choice 30)"),
         "valeurs": [("couleur", ("ta couleur partout", "your colour everywhere")),
+                    ("competitions", ("ta couleur, mais les compétitions sous licence avec leur fond (LDC, PL…)",
+                                      "your colour, but licensed competitions keep their background (UCL, PL…)")),
                     ("officiels", ("fonds de FM partout, comme le jeu de base",
                                    "FM's backgrounds everywhere, like the base game"))],
         "script": "theme_fond",

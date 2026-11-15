@@ -164,9 +164,10 @@ FONCTIONS = {
     "club_bandeau_installations": dict(cat="club", textes=True,
                                        fr="Bandeau du haut : installations + étoiles, réputation, finances...",
                                        en="Top banner: facilities + stars, reputation, finances..."),
-    "club_histoire": dict(cat="club", textes=True,   # 2026-11-05, liste du 04/11 point 5
-                          fr="Histoire du club : une grande tuile (profil, maillots, stade, honneurs, records...) (essai)",
-                          en="Club history: one big tile (profile, kits, stadium, honours, records...) (trial)"),
+    # 2026-11-05, liste du 04/11 point 5 ; 2026-11-15 (le joueur) : WIP, facultative (plus activée de base)
+    "club_histoire": dict(cat="club", textes=True, facultatif=True,
+                          fr="WIP Histoire du club : tout sur un écran (trophées, infos, records, onze, repères, entraîneurs)",
+                          en="WIP Club history: all on one screen (honours, info, records, XI, landmarks, managers)"),
     "club_page_bas": dict(cat="club", textes=True,
                           fr="Panneau du bas en 3 colonnes (photo du stade, maillots, budgets, légendes...)",
                           en="Bottom panel in 3 columns (stadium photo, kits, budgets, legends...)",

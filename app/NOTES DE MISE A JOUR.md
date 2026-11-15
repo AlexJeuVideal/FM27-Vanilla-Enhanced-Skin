@@ -6,6 +6,17 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.02 (15 novembre 2026)
+
+**Couleurs**
+- **Nouveau choix pour le fond des pages : « ta couleur, mais les compétitions sous licence avec leur fond »** (merci Noox) : ta couleur partout (plus de fond violet), sauf sur les compétitions sous licence (Ligue des champions, Europa League, Premier League…), qui gardent leur fond officiel. Dans l'app, page Couleurs > Fond, puis réapplique ton thème (FM fermé).
+
+**Club**
+- **Histoire du club en WIP** : la page Histoire du club sur un seul écran est encore en travaux. Elle n'est plus activée de base (si tu l'as déjà, elle reste ; tu peux la décocher dans l'app).
+
+**Vues de tableaux d'AlexJeuVideal**
+- **Vues mises à jour** : Recrutement BDD, Sélection et Tactique VC. Si tu as modifié une de ces vues dans FM, la tienne est gardée.
+
 ### v2.01 (15 novembre 2026)
 
 **Couleurs**
@@ -1148,6 +1159,17 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.02 (15 November 2026)
+
+**Colours**
+- **New page background choice: "your colour, but licensed competitions keep their background"** (thanks Noox): your colour everywhere (no more purple background), except on licensed competitions (Champions League, Europa League, Premier League...), which keep their official background. In the app, Colours page > Background, then reapply your theme (FM closed).
+
+**Club**
+- **Club History is WIP**: the one-screen Club History page is still a work in progress. It is no longer enabled by default (if you already have it, it stays; you can untick it in the app).
+
+**AlexJeuVideal's table views**
+- **Views updated**: Scouting database, Shortlist and Tactics VC. If you changed one of these views in FM, yours is kept.
 
 ### v2.01 (15 November 2026)
 

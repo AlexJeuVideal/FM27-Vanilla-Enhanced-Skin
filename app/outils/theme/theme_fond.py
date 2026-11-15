@@ -44,10 +44,16 @@ PAGES_CLUB = "portail"
 # Option « fond_pages » (page 500, outils\options.py) : "officiels" = cadres de FM gardés (fonds sous licence des
 # compétitions / clubs affichés quand FM en a), la couleur reste sur l'image par défaut (tout ce qui n'a pas de fond
 # officiel). "couleur" (défaut) = PAGES_CLUB ci-dessus.
+# "competitions" (2026-11-15, retour Discord : « ma couleur partout MAIS les écrans de compétition sous licence avec
+# leur fond ») = comme « officiels » avant v2.01 : cadres de FM (fond de la compétition quand elle en a un), fond par
+# défaut repeint à la couleur, fonds sous licence gardés ; les écrans à cadre propre (ECRANS_PROPRES) restent à la
+# couleur (sinon couleurs du club).
+COMPETITIONS = False
 try:
     import options as _options
-    if _options.get("fond_pages") == "officiels":
+    if _options.get("fond_pages") in ("officiels", "competitions"):
         PAGES_CLUB = "origine"
+        COMPETITIONS = _options.get("fond_pages") == "competitions"
 except Exception:   # options.py absent : réglage ci-dessus
     pass
 MIRE = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 255), (128, 128, 128), (255, 255, 0), (0, 255, 255), (255, 0, 255)]
@@ -252,6 +258,7 @@ SITES = ("FigmaBaseSiteTemplate", "FigmaBaseSiteMultiGridTemplate",
          # 2026-11-15 (le joueur + un utilisateur de l'app : Recrutement / Club aux couleurs de l'équipe) : ces écrans
          # ont LEUR cadre (Card-frame, fonction visuelle 3c361014… = couleurs du club, comme FigmaBaseSite*)
          "RecruitmentScreen", "ClubScreen", "NationalPoolScreen", "NationScreen")
+ECRANS_PROPRES = ("RecruitmentScreen", "ClubScreen", "NationalPoolScreen", "NationScreen")
 # toujours le fond de FM, quelle que soit la couleur choisie (demande du joueur 2026-11-10 : conférences de presse =
 # image du stade / du club de FM). Restent dans SITES pour être remis d'origine sur un jeu déjà modifié.
 # 2026-11-14 (le joueur : « interview bord du terrain / presse ou autre : un fond uni, faut pas ») : GameWorldBackground
@@ -517,6 +524,8 @@ def cadres(mode):
     mode_pages = mode if mode == "portail" else "origine"
     for model in SITES:
         mode = "origine" if model in HORS_THEME else mode_pages
+        if COMPETITIONS and mode == "origine" and model in ECRANS_PROPRES and model not in HORS_THEME:
+            mode = "portail"   # option « ta couleur, compétitions avec leur fond » : pas les couleurs du club
         texte = {"portail": "image fixe du portail", "origine": "fond d'origine de FM"}[mode]
         bundle, obj, tt = nb.find_vta(model)
         d = card_frame(tt) if tt is not None else None
@@ -624,7 +633,7 @@ def peindre(tex, rgb):
     t = tex[CIBLE]
     # 2026-11-15 (le joueur : « fonds officiels » = « couleur de FM », comme le jeu de base partout) : le fond par
     # défaut de FM (violet + logo) n'est plus repeint non plus ; seule l'image des chargements prend le thème
-    if PAGES_CLUB == "origine":
+    if PAGES_CLUB == "origine" and not COMPETITIONS:
         chargement(tex, rgb)
         print("fonds officiels : tous les fonds des pages de FM gardés (fond par défaut compris)")
         return
