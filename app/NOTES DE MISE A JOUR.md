@@ -6,6 +6,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.04 (17 novembre 2026)
+
+**Fiche joueur**
+- **Version FM Guru : étiquettes du polygone plus coupées** : en affichage Moyen, le polygone de la fiche FM Guru a retrouvé la bonne taille, toutes ses étiquettes s'affichent en entier (Jeu aérien, Vitesse, Vision du jeu...).
+
 ### v2.03 (17 novembre 2026)
 
 **Mise à jour de FM**
@@ -1168,6 +1173,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.04 (17 November 2026)
+
+**Player profile**
+- **FM Guru version: radar labels no longer cut off**: in Medium display, the radar of the FM Guru profile is back to the right size, so all its labels show in full (Aerial Ability, Speed, Vision...).
 
 ### v2.03 (17 November 2026)
 

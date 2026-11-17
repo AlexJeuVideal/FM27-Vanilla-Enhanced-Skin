@@ -73,7 +73,7 @@ CLASSE_SANS_MIN = "uipicker-guru-sans-min-attributs"         # colonne à qui on
 OPTION = "fiche_fmguru"
 MARKER = os.path.join(backup.BACKUP_DIR, "fiche_fmguru.actif")   # jamais écrit : l'option décide (si-actif)
 GROS_BLOC = "PlayerAttributesLargeBlock"
-VERSION = "uipicker-guru-v37" # v13 : script à part (avant : v1 à v12 dans fiche_joueur_plus) ; v14 :
+VERSION = "uipicker-guru-v38" # v13 : script à part (avant : v1 à v12 dans fiche_joueur_plus) ; v14 :
                                         # polygone plus petit, attributs plus larges, sans le bouton du polygone ;
                                         # v15 : attributs encore un peu plus larges ; v16 : bouton caché, pas
                                         # retiré (v15 sur v14 : conditions d'affichage perdues, tout en double) ;
@@ -283,7 +283,9 @@ def guru(t):
         if sc is not None:
             t.elem(cm)["m_Classes"] = list(src.elem(sc).get("m_Classes") or [])
             t.elem(cm)["m_RuleIndex"] = src.elem(sc).get("m_RuleIndex", -1)
-            t.sd(cm)["SpiderChartRadiusPercentage"] = src.sd(sc)["SpiderChartRadiusPercentage"]
+            # v38 (le joueur : étiquettes coupées « Jeu… », « Vi… » avec le rayon de FM 34,8 % dans la colonne de
+            # 385) : rayon v30 (23,4 %, taille validée) remis
+            t.sd(cm)["SpiderChartRadiusPercentage"] = float(RAYON_POLYGONE_MEDIUM)
     if cm is not None and False:
         pc = t.parent[cm]
         w, h = LARGEUR_POLYGONE_MEDIUM, HAUTEUR_POLYGONE_MEDIUM
