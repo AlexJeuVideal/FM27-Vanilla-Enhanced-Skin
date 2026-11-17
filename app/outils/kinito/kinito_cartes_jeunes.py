@@ -437,6 +437,9 @@ CONTRAT_SIGNE = "NewContractString"   # v5 : « Sous contrat jusqu'au… » (Has
 DELAI_SIGNE = 0.05                 # v5 : s, avant de noter « signé » (comme la v2, SIDelayEvent)
 TYPE_NATION = 1145176074           # v5 : type de « nation » (BindingExpect de NationFlag_Medium_Cell)
 SOURCE_DRAPEAU = "NationFlag_Medium_Cell"   # v5 : son image (SIImage NationFlag, nation-flag-medium-24px)
+# v35 : FM du 2026-11-17 n'a plus NationFlag_Medium_Cell : même SIImage (#NationFlag, nation-flag-medium-24px) ici ;
+# sa liaison (drapeau d'une ligue) n'est jamais gardée : la nôtre (liaison_drapeau) obligatoire
+SOURCE_DRAPEAU_FMMAJ = "ActiveLeagueCardRow"
 CL_DRAPEAU = "nation-flag-medium-24px"      # règle de FM : 24 x 15 px
 SOURCE_ROLE = "PlayerScoutedBestPositionAndRoleAndWidgetCell"   # v5 : texte du rôle (comme la vue d'Alex)
 ROLE_FM = "binding.ScoutedBestRole"   # v5 : repère du texte de rôle (sa fonction de texte sert aux balises du nom)
@@ -1589,9 +1592,14 @@ def sources():
     tde = arbre(SOURCE_DELAI)   # v5 : le délai revient (contrat signé)
     rde = tde and first(tde, lambda r: typ(tde, r).endswith("SIDelayEvent") and not tde.children(r))
     out["delai"] = (tde, rde) if rde is not None else None
-    tfl = arbre(SOURCE_DRAPEAU)   # v5 : l'image du drapeau (la 1re : branche « pas cliquable »)
-    rfl = tfl and first(tfl, lambda r: tfl.name(r) == "NationFlag" and typ(tfl, r).endswith("SIImage"))
+    rfl = None
+    for modele in (SOURCE_DRAPEAU, SOURCE_DRAPEAU_FMMAJ):   # v35 : FM du 2026-11-17 sans NationFlag_Medium_Cell
+        tfl = arbre(modele)   # v5 : l'image du drapeau (la 1re : branche « pas cliquable »)
+        rfl = tfl and first(tfl, lambda r: tfl.name(r) == "NationFlag" and typ(tfl, r).endswith("SIImage"))
+        if rfl is not None:
+            break
     out["drapeau"] = (tfl, rfl) if rfl is not None else None
+    out["drapeau_fmmaj"] = rfl is not None and modele == SOURCE_DRAPEAU_FMMAJ
     tro = arbre(SOURCE_ROLE)      # v5 : le texte du rôle (sa fonction cite binding.ScoutedBestRole)
 
     def est_role(r):

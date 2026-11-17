@@ -6,6 +6,15 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.03 (17 novembre 2026)
+
+**Mise à jour de FM**
+- **Skin adapté à la dernière mise à jour de FM27** : réinstalle le skin après la mise à jour du jeu (FM fermé).
+- **Option « Affichages Moyen et Petit en 1080p » retirée** : FM le permet maintenant lui-même, plus besoin du patch.
+
+**Calendrier**
+- **Rencontres** : FM affiche maintenant le programme en tableau. Les colonnes Stade / Spectateurs du skin sont retirées ; la version Kinito garde ses vues, ses colonnes au choix et son filtre, adaptés au nouveau tableau (les colonnes s'élargissent pour remplir la page). Une vue perso faite avant la mise à jour peut rester serrée : refais-la depuis « Programme des rencontres ».
+
 ### v2.02 (15 novembre 2026)
 
 **Couleurs**
@@ -1159,6 +1168,15 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.03 (17 November 2026)
+
+**FM update**
+- **Skin updated for the latest FM27 update**: reinstall the skin after the game update (FM closed).
+- **"Medium and Small displays at 1080p" option removed**: FM now allows it on its own, the patch is no longer needed.
+
+**Calendar**
+- **Fixtures**: FM now shows the schedule as a table. The skin's Stadium / Attendance columns are removed; the Kinito version keeps its views, columns of your choice and filter, adapted to the new table (columns stretch to fill the page). A custom view made before the update may stay narrow: make it again from "Fixture Schedule".
 
 ### v2.02 (15 November 2026)
 

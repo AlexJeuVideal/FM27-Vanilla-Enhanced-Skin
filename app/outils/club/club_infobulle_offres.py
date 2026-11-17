@@ -43,7 +43,7 @@ from notes_installations import (first, src_tree, text_static, text_direct, pali
 from notes_installations import (note_editeur, NOM_PALIER, decode_args, encode_args, _varint, _enc_varint,  # noqa: E402
                                  _texte_visible, SOURCE_TEXTE_EGAL, FN_TEXTE_EGAL)
 from club_bandeau_installations import original, fourchette, CONSTANTES, LISTE_EDITEUR  # noqa: E402
-from elements import move, copy_usings  # noqa: E402
+from elements import move, copy_usings, bulle_du_i  # noqa: E402
 import options  # noqa: E402
 
 # =====================================================================================================
@@ -114,7 +114,8 @@ SOURCE_INFO = "PlayerReportPreviewTooltip"
 SOURCE_TUILE = "ClubInfoTile_4x4"           # lignes, jauge, drapeau, logo de ligue, trait
 SOURCE_LOGO = "ClubIcon"
 SOURCE_ETOILES = "stats-star ratings"
-VERSION = f"30{SUFFIXE}"    # v30 : option etoiles_installations « sans » = pas de section Installations
+VERSION = f"31{SUFFIXE}"    # v31 : FM du 2026-11-17, bulle du « i » prise dans PlayerReportPreviewTooltipContent
+   # v30 : option etoiles_installations « sans » = pas de section Installations
    # v29 : option « sans étoiles » (remplacée)
    # v28 : installations seulement avec notes_installations (comme le bandeau v14)
    # v27 : note Entraînement en fourchette aussi sans éditeur (garde de note_editeur)
@@ -148,6 +149,7 @@ CLS_VALEUR = ["body-sm-strong", "global-text-primary", "content-no-wrap", "conte
 
 def typ(t, r):
     return (t.elem(r).get("m_FullTypeName") or "").split(".")[-1]
+
 
 
 def plain(t, model, parent, cls, index=None, name=""):
@@ -354,7 +356,9 @@ def poser(t, nom_club, texte, racine=None):
     t.styles.copy_from(Styles(s_bundle, s.tt), t, i)
     t.sd(i)["name"], t.sd(i)["name_UxmlAttributeFlags"] = NOM, 1
     t.elem(i)["m_Classes"] = list(t.elem(i)["m_Classes"]) + ["margin-right-global-gap-small"]
-    bulle = first(t, lambda r: typ(t, r) == "Tooltip", i)
+    bulle = bulle_du_i(t, i)
+    if bulle is None:
+        return ["bulle du « i » de FM introuvable, ignoré"]
     for c in t.children(bulle):
         t.remove(c)
     m = Morceaux(t)
@@ -527,7 +531,9 @@ class Morceaux:
         # v11 : sans la classe ni le style de la zone du « i » (taille d'icône fixe : nom court coupé en v10)
         no_styles(t, z)
         t.elem(z)["m_Classes"] = ["sitext-hover-cursor", "row-direction-normal", "align-items-center"]
-        bulle = first(t, lambda r: typ(t, r) == "Tooltip", z)
+        bulle = bulle_du_i(t, z)
+        if bulle is None:
+            return None, None
         for c in t.children(z):
             if c != bulle:
                 t.remove(c)
@@ -669,7 +675,9 @@ def construire_divisions(t):
     t.styles.copy_from(Styles(s_bundle, s.tt), t, i)
     t.sd(i)["name"], t.sd(i)["name_UxmlAttributeFlags"] = NOM, 1
     t.elem(i)["m_Classes"] = list(t.elem(i)["m_Classes"]) + ["margin-right-global-gap-small"]
-    bulle = first(t, lambda r: typ(t, r) == "Tooltip", i)
+    bulle = bulle_du_i(t, i)
+    if bulle is None:
+        return ["bulle du « i » de FM introuvable, ignoré"]
     for c in t.children(bulle):
         t.remove(c)
     m = Morceaux(t)

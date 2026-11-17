@@ -122,7 +122,7 @@ def cmd_appliquer():
 def cmd_retirer():
     if os.path.exists(MARKER) and not DRY_RUN:
         os.remove(MARKER)
-    changer(False)
+    changer(False, discret=True)   # 2026-11-17 : fonction retirée (ABANDONNES), DLL neuve = rien à faire
 
 
 def cmd_etat():

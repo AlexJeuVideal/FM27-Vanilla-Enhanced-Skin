@@ -35,6 +35,9 @@ import rencontres_version  # noqa: E402  (option « rencontres » : version Kini
 # =====================================================================================================
 #  RÉGLAGES (changer un réglage → augmenter VERSION)
 # =====================================================================================================
+# 2026-11-17 (le joueur) : MAJ de FM, Rencontres = vrai tableau de FM (colonnes au choix) : plus de colonnes posées,
+# « retirer » seulement (modèles CalendarFixtureRow_* absents = rien à faire). Reste porteur de l'option « rencontres »
+COLONNES = False
 STADE = True
 SPECTATEURS = True
 SPECTATEURS_SI_JOUE = True     # spectateurs seulement pour les matchs joués (sinon FM affiche 0)
@@ -191,18 +194,19 @@ def appliquer_modele(t, taille, ligne, joue):
 
 def run(retirer):
     joue = None
-    if not retirer and SPECTATEURS and SPECTATEURS_SI_JOUE:
+    if COLONNES and not retirer and SPECTATEURS and SPECTATEURS_SI_JOUE:
         s, _ = src_tree(SOURCE_VISIBLE[0])
         vis = next((r for r in s.walk() if s.name(r) == SOURCE_VISIBLE[1]), None) if s else None
         if vis is None:
             sys.exit(f"SIVisible {SOURCE_VISIBLE[1]} de {SOURCE_VISIBLE[0]} introuvable (le jeu a changé ?)")
         joue = (s, vis)
     changed = 0
-    for taille in LARGEURS:
+    for taille in (LARGEURS if COLONNES or retirer else []):
         for modele, ligne in ((LIGNE.format(taille), True), (ENTETE.format(taille), False)):
             bundle, obj, tt = nb.find_vta(modele)
             if tt is None:
-                print(f"{modele} : introuvable (renommé par une mise à jour ?), ignoré")
+                if COLONNES:
+                    print(f"{modele} : introuvable (renommé par une mise à jour ?), ignoré")
                 continue
             t = sm.Tree(tt)
             t.styles = sm.Styles(bundle, tt)

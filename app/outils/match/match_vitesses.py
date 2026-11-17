@@ -5,6 +5,8 @@ liste est remplacée par VITESSES_PENDANT, aux deux endroits où FM la range (do
 - liste du menu : `m_speedDuringHighlightsOptions` (MonoBehaviour de initscene-assets_assets_all.bundle) ;
 - liste du match : `m_matchDefaultPlaybackSettings[*].m_speedValues` (MonoBehaviour de la scène
   scenes_scenes_initscene.bundle), seulement les entrées qui ont la liste de FM.
+FM du 2026-11-17 : la liste du menu n'est plus dans initscene-assets (cherchée dans tous les bundles : seule la scène
+l'a) -> absente = rien à faire, sans message.
 Seul écrivain de ces deux bundles. Retirer remet la liste de FM.
 
 Usage (jeu fermé) : appliquer [--dry-run] | retirer | etat | si-actif
@@ -71,7 +73,7 @@ def regler(avec):
     msgs = []
     p, o, tt = _objet(*MENU)
     if tt is None:
-        msgs.append(f"{MENU[1]} introuvable (mise à jour du jeu ?)")
+        pass   # FM du 2026-11-17 : plus de liste du menu dans initscene-assets, seule celle de la scène reste
     elif not _egal(tt[MENU[1]], voulu):
         if not _egal(tt[MENU[1]], autre):
             msgs.append(f"menu : liste inattendue {tt[MENU[1]]}, laissée")

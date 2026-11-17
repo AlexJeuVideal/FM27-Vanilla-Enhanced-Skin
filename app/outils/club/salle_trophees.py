@@ -29,7 +29,7 @@ import sauvegarde_originaux as backup  # noqa: E402
 from langue import texte as L, SUFFIXE  # noqa: E402
 import arbre as sm  # noqa: E402
 from arbre import Tree, Styles, no_styles  # noqa: E402
-from elements import copy_usings  # noqa: E402
+from elements import copy_usings, bulle_du_i  # noqa: E402
 import notes_installations as ni  # noqa: E402
 from notes_installations import decode_args, encode_args, _enc_varint, text_direct, text_static  # noqa: E402
 import club_page_bas as cpb  # noqa: E402
@@ -64,7 +64,7 @@ SOURCE_SURVOL = "PlayerReportPreviewTooltip"           # « i » de FM : zone de
 TYPE_IMAGE = 11                                        # Continent : graphics/pictures/continent/<id>/logo
 MODE_AFFICHAGE = "settings.AdaptiveScalingLevelIndex"
 OP_EGAL, OP_SUPERIEUR, OP_DIFFERENT = 2, 4, 5
-VERSION = f"6{SUFFIXE}"   # -en : langue ; v2 : rangée jamais à la ligne, un SIVisible par mode (== 0 / 1 / 2) ;
+VERSION = f"7{SUFFIXE}"   # v7 : FM du 2026-11-17, bulle des années reprise du sous-modèle du « i » ; -en : langue ; v2 : rangée jamais à la ligne, un SIVisible par mode (== 0 / 1 / 2) ;
                           # v3 : pas d'image pour les compétitions 1-7 (logos de continents de FM)
                           # v4 / v5 : essais ratés du 2026-11-10 ; v6 = v3 (retour)
 ID_MAX_CONTINENT = 7      # ids 1-7 = continents (trophees_photos.CONTINENTS)
@@ -202,7 +202,7 @@ class Carte:
         t.styles.copy_from(st, t, z)
         no_styles(t, z)
         t.elem(z)["m_Classes"] = ["sitext-hover-cursor", "align-items-center"]
-        bulle = first(t, lambda r: typ(t, r) == "Tooltip", z)
+        bulle = bulle_du_i(t, z)   # FM du 2026-11-17 : bulle dans un sous-modèle
         for c in t.children(z):
             if c != bulle:
                 t.remove(c)

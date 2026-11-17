@@ -26,6 +26,8 @@ import sauvegarde_originaux as backup  # noqa: E402
 
 OPTION = "rencontres"
 SCRIPTS_KINITO = ["kinito_rencontres_boutons", "kinito_rencontres_vues"]   # ordre d'application (retrait : à l'envers)
+# 2026-11-17 : 26.9 retiré puis remis le jour même (le joueur : le tableau de FM n'a ni vues ni filtre ; v23 adaptée)
+RETIRES_KINITO = []
 PORTEUR = os.path.join(backup.BACKUP_DIR, "rencontres_stade_spectateurs.actif")
 EQUIPES = os.path.join(chemins.OUTILS, "entrainement", "entrainement_equipes.py")
 
@@ -46,6 +48,9 @@ def _kinito(nom):
 
 def accorder(dry_run=False):
     dr = ["--dry-run"] if dry_run else []
+    for nom in RETIRES_KINITO:
+        if os.path.exists(os.path.join(backup.BACKUP_DIR, nom + ".actif")):
+            _lancer(_kinito(nom), "retirer", *dr)
     if kinito():
         print("\nRencontres : version Kinito (option)")
         _lancer(EQUIPES, "si-actif", *dr)

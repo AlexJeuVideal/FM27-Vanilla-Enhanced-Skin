@@ -88,18 +88,19 @@ OPTIONS = {
     "rencontres": {
         "titre": ("Calendrier, onglet Rencontres", "Calendar, Fixtures tab"),
         # 2026-11-12 : version Kinito = choix de base (demande du joueur)
+        # 2026-11-17 : colonnes Stade / Spectateurs du skin retirées (tableau de FM maintenant) ; tableau Kinito gardé
         "valeurs": [("kinito", ("version Kinito (boutons dans le bandeau, programme en tableau avec vues et filtre)",
                                 "Kinito version (buttons in the header, schedule as a table with views and filter)")),
-                    ("skin", ("version du skin (boutons des équipes à droite, colonnes Stade / Spectateurs)",
-                              "skin version (team buttons on the right, Stadium / Attendance columns)"))],
+                    ("skin", ("version du skin (boutons des équipes à droite)",
+                              "skin version (team buttons on the right)"))],
         "script": "rencontres_stade_spectateurs",
         "kinito": True,   # app : dans la section Kinito de la page Options (pas sous sa fonction)
-        "aide":("Version Kinito : boutons des équipes juste après « Programme des rencontres », et le programme devient "
-                 "un vrai tableau FM (vues perso, colonnes au choix, filtre par compétition / domicile / extérieur). "
-                 "En petite fenêtre, la liste de FM reste.",
-                 "Kinito version: team buttons right after \"Fixture Schedule\", and the schedule becomes a real FM "
-                 "table (custom views, columns of your choice, filter by competition / home / away). In a small "
-                 "window, FM's list stays."),
+        "aide":("Version Kinito : boutons des équipes juste après « Programme des rencontres », et le programme a des "
+                 "vues perso, des colonnes au choix et un filtre par compétition / domicile / extérieur. En petite "
+                 "fenêtre, le tableau de FM reste.",
+                 "Kinito version: team buttons right after \"Fixture Schedule\", and the schedule gets custom views, "
+                 "columns of your choice and a filter by competition / home / away. In a small window, FM's table "
+                 "stays."),
     },
     "fenetre_but": {   # 26.18 v3 : la fenêtre de but des compétitions sous licence aussi ; v10 (Kinito, 2026-11-10) : les 9
         "titre": ("Match : fenêtre de but", "Match: goal pop-up"),

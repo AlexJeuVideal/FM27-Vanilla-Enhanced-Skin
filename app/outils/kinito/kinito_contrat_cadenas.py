@@ -74,7 +74,8 @@ BULLE_POUBELLE = (6819, "Delete")   # v27 : l'infobulle de la poubelle : le text
                         # sauvegardes), traduit par le jeu dans sa langue ; None : pas d'infobulle
 # =====================================================================================================
 
-VERSION = 27  # v27 : une infobulle sur la poubelle de chaque ligne (texte de l'interface de FM, dans la langue du jeu)
+VERSION = 28  # v28 : FM du 2026-11-17, poubelle sortie du cadre de la ligne
+# v27 : une infobulle sur la poubelle de chaque ligne (texte de l'interface de FM, dans la langue du jeu)
 # v26 : un seul cadenas par ligne, qui montre l'état en cours ; un clic passe à l'option suivante de la ligne
 # (ouvert -> semi-négociable -> non négociable -> ouvert ; sans semi-négociable : ouvert -> non négociable -> ouvert) ;
 # « Retirer et exclure » reste à part ; rangée à la largeur de son contenu (liste non virtualisée d'Alex)
@@ -788,6 +789,13 @@ def construire_ligne(t, src, fixe=False, sortie=None):
     # juste avant la poubelle (elle reste tout à droite) : copie du SIEnabled du cadenas (même grisé), vidée
     poubelle = next((i for i, k in enumerate(t.children(ligne))
                      if any(t.name(r) == "ui-concepts-delete_small" for r in t.walk(k))), None)
+    if poubelle is None:
+        # FM du 2026-11-17 (ContractNegotiationAddOnItem) : la poubelle (#remove-button-enabled) est sortie du cadre
+        # (#MainFrame) : groupe posé juste avant elle, dans son parent
+        b = first(t, lambda r: t.name(r) == "remove-button-enabled")
+        if b is not None and b in t.parent:
+            ligne = t.parent[b]
+            poubelle = t.children(ligne).index(b)
     if poubelle is None and not fixe:
         return ["poubelle de la ligne introuvable"]
     g = t.clone(cadenas, ligne, poubelle)

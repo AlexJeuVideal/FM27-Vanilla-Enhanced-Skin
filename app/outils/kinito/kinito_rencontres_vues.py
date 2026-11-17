@@ -152,9 +152,15 @@ CLASSE_MOIS = "heading-small-16px"   # v5 (Kinito : « augmenter la police des m
 LARGEURS = {"kinito-stade": (180, 90), "kinito-spectateurs": (90, 60)}   # px : largeur par défaut, minimum
 ECART_MENU = 8       # px entre le menu des vues et le bouton Filtre (v15 ; 8 = écart FM entre deux boutons)
 LARGEUR_MAX_MENU = 300   # px : largeur maximale du menu des vues (v16, choix de Kinito ; au-delà, le nom se coupe en « … »)
+# v24 (Alex, 17/11) : FM du 2026-11-17, chaque colonne d'une vue a une part de la place libre (m_growWeight, 0 = ne
+# grandit pas ; la vue du Portail : Club 1, le reste 0). Sans part, le tableau restait à sa largeur minimum (moitié du
+# bloc, dates sur 2 lignes). Part de chaque colonne de la vue « Programme des rencontres » (absente = 0)
+GRANDIT = {"club": 1.0, "kinito-stade": 1.0, "comp": 0.5, "kinito-date": 0.5}
 # =====================================================================================================
 
-VERSION = 22  # historique : voir la docstring ; v15 (Alex, 11/10) : menu des vues à gauche de Filtre, variables des
+VERSION = 24  # v24 (Alex, 17/11) : colonnes qui s'élargissent (GRANDIT, m_growWeight de FM) ;
+              # v23 (Alex, 17/11) : MAJ de FM, liste = tableau de FM (#FixturesTable) caché comme l'ancienne liste,
+              # titre du mois pris dans CalendarFixtureTableRowElement ; historique : voir la docstring ; v15 (Alex, 11/10) : menu des vues à gauche de Filtre, variables des
               # vues à la racine du bloc ; v16 (Kinito, 13/10) : le menu s'étend vers la gauche, plafonné ;
               # v17 (Alex, 20/10) : VisualElement nu cherché dans plusieurs modèles (MAJ de FM, SOURCES_ELEMENT) ;
               # v18 (Kinito, 13/11, essai) : « Compétitions nationales » dans le filtre (liste vide en jeu) ;
@@ -174,6 +180,7 @@ LIGNE = "BulletTextRow"                                # bundle gameworld, inuti
 GUID_LIGNE = "0a3d196bd3bbfb14bb0af4e91ffd3276"
 TYPE_ELEMENT = 1986679663   # type du paramètre « listelement » de CalendarFixtureRow (un élément de FixtureListElements)
 SOURCE_MOIS = ("CalendarFixtureRow", "ShowMonth", "Month")   # le titre du mois de la liste de FM
+SOURCE_MOIS_FMMAJ = "CalendarFixtureTableRowElement"   # v23 : FM du 2026-11-17, même #ShowMonth > #Month (fixture.FixtureDate)
 SOURCE_ELEMENT = ("CompetitionsLeagueTableStagesTile_Table_Row_Template", "list-layout-divider-solid-horizontal")
 # v17 (Alex, 20/10) : retiré de ce modèle par la MAJ de FM du 2026-11-12 -> autres VisualElement nus de FM, dans l'ordre
 # (classes et style remplacés à chaque copie : n'importe lequel convient)
@@ -611,11 +618,16 @@ class Sources:
         self.tj = ouvre(SOURCE_JOUE[0])
         self.joue = self.tj and first(self.tj, lambda r: self.tj.name(r) == SOURCE_JOUE[1] and typ(self.tj, r) == "SIVisible")
         # v4 : le titre du mois de la liste de FM (#ShowMonth > #Month), un VisualElement nu de FM
-        self.tr = ouvre(SOURCE_MOIS[0])
-        self.mois = self.tr and first(self.tr, lambda r: self.tr.name(r) == SOURCE_MOIS[1] and typ(self.tr, r) == "SIVisible")
-        texte = self.mois is not None and self.tr.children(self.mois)
-        if not (texte and len(texte) == 1 and self.tr.name(texte[0]) == SOURCE_MOIS[2] and typ(self.tr, texte[0]) == "SIText"):
-            self.mois = None
+        for modele in (SOURCE_MOIS[0], SOURCE_MOIS_FMMAJ):   # v23 : FM du 2026-11-17 sans CalendarFixtureRow
+            self.tr = ouvre(modele)
+            self.mois = self.tr and first(self.tr, lambda r: self.tr.name(r) == SOURCE_MOIS[1]
+                                          and typ(self.tr, r) == "SIVisible")
+            texte = self.mois is not None and self.tr.children(self.mois)
+            if not (texte and len(texte) == 1 and self.tr.name(texte[0]) == SOURCE_MOIS[2]
+                    and typ(self.tr, texte[0]) == "SIText"):
+                self.mois = None
+            if self.mois is not None:
+                break
         self.tl, self.element = None, None
         for modele, nom in SOURCES_ELEMENT:   # v17
             tl = ouvre(modele)
@@ -778,19 +790,25 @@ def _visible_fn(t, src, parent, termes, operateur, nom, index=None, toujours=0, 
 def construire_bloc(t, src):
     fixtures = first(t, lambda r: t.name(r) == "Fixtures" and typ(t, r) == "VisualElement")
     liste_fm = first(t, lambda r: t.name(r) == "FixturesList" and typ(t, r) == "StreamedObjectList")
+    if liste_fm is None:   # v23 : FM du 2026-11-17, la liste est devenue un tableau de FM (#FixturesTable), seul enfant
+        liste_fm = first(t, lambda r: t.name(r) == "FixturesTable" and typ(t, r) == "StreamedTable")
     if fixtures is None or liste_fm is None or t.parent.get(liste_fm) != fixtures:
-        return ["liste du programme (#Fixtures > #FixturesList) introuvable"]
+        return ["liste du programme (#Fixtures > #FixturesList / #FixturesTable) introuvable"]
     enfants = t.children(fixtures)
-    if len(enfants) != 2 or enfants[1] != liste_fm or typ(t, enfants[0]) != "BindableSwitchElement":
+    if enfants == [liste_fm]:
+        entete_fm = None   # v23 : le tableau de FM a son en-tête de colonnes
+    elif len(enfants) != 2 or enfants[1] != liste_fm or typ(t, enfants[0]) != "BindableSwitchElement":
         return ["contenu de #Fixtures inattendu (en-tête + liste attendus)"]
-    entete_fm = enfants[0]
+    else:
+        entete_fm = enfants[0]
     # 1. l'en-tête et la liste de FM, intacts : montrés quand NOS morceaux ne le sont pas : v13, en petit format (fiche
     # de club dans un match, petite fenêtre) ; v12 : aussi pour le programme d'un autre club ; v1 à v11 : toujours cachés
     cache = _visible_fn(t, src, fixtures, [(PETIT, 0)], 0, NOM_CACHE, index=0, classes=["base-template-grow"])
     if isinstance(cache, str):
         return [cache]
     t.styles.style(t, cache, {"flex-direction": "column"})
-    _deplacer(t, entete_fm, cache)
+    if entete_fm is not None:
+        _deplacer(t, entete_fm, cache)
     _deplacer(t, liste_fm, cache)
     # 2. nos morceaux : dans un SIVisible montré hors petit format (jamais instancié ailleurs) : v13, pour toute équipe
     # (Kinito : « appliquer notre tableau aux programmes des clubs IA ») ; v12 : équipe du club du joueur seulement ;
@@ -1183,8 +1201,18 @@ def construire_vue(tt, squelette, modele_colonne, colonnes):
         e["m_columnID"] = col
         e["m_columnMetadata"]["m_priority"] = 0
         e["m_columnMetadata"]["m_applicableBreakpoints"] = -1
+        if "m_growWeight" in e["m_columnMetadata"]:   # v24 : FM du 2026-11-17 (0 = la colonne ne s'élargit pas)
+            e["m_columnMetadata"]["m_growWeight"] = float(GRANDIT.get(col, 0.0))
         config.append(e)
     tt["m_tableView"]["m_tableConfig"] = config
+
+
+def vue_a_jour(tt):
+    """v24 : nos colonnes, et leur part de la place libre (m_growWeight) si FM l'a"""
+    cfg = (tt.get("m_tableView") or {}).get("m_tableConfig") or []
+    return vue_colonnes(tt) == COLONNES_VUE and all(
+        (c.get("m_columnMetadata") or {}).get("m_growWeight", GRANDIT.get(c["m_columnID"], 0.0))
+        == GRANDIT.get(c["m_columnID"], 0.0) for c in cfg)
 
 
 # ---------- le modèle de ligne (BulletTextRow, seul propriétaire, v4) ----------
@@ -1905,7 +1933,7 @@ def a_jour():
             and panneau_a_jour(o["panneau"][3]) and cellule_date_a_jour(o["date"][3])
             and cellule_ia_a_jour(o["cellule_ia"][3])
             and fabrique_a_jour(o["fab_tab"].read_typetree()) and collection_a_jour(o["col"].read_typetree())
-            and vue_colonnes(o["vue_rencontres"].read_typetree()) == COLONNES_VUE
+            and vue_a_jour(o["vue_rencontres"].read_typetree())
             and not _modifie_fm(o))
 
 
@@ -2144,7 +2172,7 @@ def cmd_etat():
          lambda x: fabrique_modifiee(x.read_typetree()), "notre fabrique")
     dire(COLLECTION, o["col"], lambda x: collection_a_jour(x.read_typetree()),
          lambda x: collection_modifiee(x.read_typetree()), f"vues des rencontres v{VERSION}")
-    dire(VUE_RENCONTRES, o["vue_rencontres"], lambda x: vue_colonnes(x.read_typetree()) == COLONNES_VUE, vue_modifiee,
+    dire(VUE_RENCONTRES, o["vue_rencontres"], lambda x: vue_a_jour(x.read_typetree()), vue_modifiee,
          "vue « Programme des rencontres »")
     o_vf = o["vue_filtre"]   # v20 : plus utilisée (la liste à cases est retirée), attendue d'origine
     print(f"{VUE_FILTRE} (plus utilisée depuis la v20) : " + ("introuvable" if o_vf is None else

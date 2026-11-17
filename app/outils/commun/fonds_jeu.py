@@ -23,7 +23,27 @@ BUNDLE = os.path.join(nb.AA, "ui-backgrounds_assets_.bundle")
 BUNDLES_EN_PLUS = [os.path.join(nb.AA, "ui-backgrounds_assets_common.bundle")]
 STADE_TEXTURE = "caraboa-cup-skin-test-min"
 STADE_IMAGE = os.path.join(chemins.OUTILS, "club", "images", "UIPickerStadeDefaut.png")
+# salle des trophées (essai_salle_honneurs) : texture « Trophy Cabinet » d'ui-backgrounds_assets_common, citée par
+# aucun écran (vérifié le 2026-11-15 : GUID absent de tous les ui-*) ; marqueur {"theme": Rouge|Blanche, "murs":
+# image|club} ; murs club = image à murs transparents (aplat couleur du club dessous, posé par l'essai)
+SALLE_TEXTURE = "Trophy Cabinet"
+SALLE_GUID = "31100a8c0c5895d48a039112d1cf9ae7"
+SALLE_MARKER = os.path.join(backup.BACKUP_DIR, "essai_salle_honneurs.actif")
 AUTO = object()
+
+
+def salle_image(salle):
+    """chemin de l'image de la salle pour {"theme", "murs"}"""
+    club = "Club.png" if salle.get("murs") == "club" else ".jpg"
+    return os.path.join(chemins.OUTILS, "club", "images", f"UIPickerSalle{salle.get('theme', 'Rouge')}{club}")
+
+
+def salle_auto():
+    try:
+        with open(SALLE_MARKER, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
 
 
 def theme_auto():
@@ -74,13 +94,31 @@ def _remettre(bundle, a_blanc):
         backup.restore(bundle)
 
 
-def ecrire(theme=AUTO, stade=AUTO, a_blanc=False):
-    """theme = (r, g, b) ou None ; stade = True / False ; AUTO = d'après les marqueurs"""
+def poser_salle(tex, salle):
+    """image de la salle des trophées dans la texture SALLE_TEXTURE de {nom: Texture2D} ; True si posée"""
+    from PIL import Image
+    from UnityPy.enums import TextureFormat
+    t = tex.get(SALLE_TEXTURE)
+    if t is None:
+        return False
+    im = Image.open(salle_image(salle))
+    if im.mode == "RGBA":   # DXT5 refusé par le moteur Rust de l'app : RGBA32, réduite (5,8 Mo au lieu de 8,3)
+        t.set_image(im.resize((1600, 900), Image.LANCZOS), target_format=TextureFormat.RGBA32, mipmap_count=1)
+    else:
+        t.set_image(im.convert("RGB"), target_format=TextureFormat.DXT1, mipmap_count=1)
+    t.save()
+    return True
+
+
+def ecrire(theme=AUTO, stade=AUTO, a_blanc=False, salle=AUTO):
+    """theme = (r, g, b) ou None ; stade = True / False ; salle = {"theme", "murs"} ou None ; AUTO = d'après les
+    marqueurs"""
     import UnityPy
     from PIL import Image
     from UnityPy.enums import TextureFormat
     theme = theme_auto() if theme is AUTO else theme
     stade = stade_auto() if stade is AUTO else stade
+    salle = salle_auto() if salle is AUTO else salle
     orig = backup.backup_path(BUNDLE)
     if theme is None and not stade:
         if a_blanc:
@@ -88,7 +126,10 @@ def ecrire(theme=AUTO, stade=AUTO, a_blanc=False):
         elif os.path.exists(orig):
             backup.restore(BUNDLE)
         for b in BUNDLES_EN_PLUS:
-            _remettre(b, a_blanc)
+            if salle:
+                _ecrire_en_plus(b, False, salle, a_blanc)
+            else:
+                _remettre(b, a_blanc)
         return
     env = UnityPy.load(orig if os.path.exists(orig) else BUNDLE)
     tex = _textures(env)
@@ -109,17 +150,33 @@ def ecrire(theme=AUTO, stade=AUTO, a_blanc=False):
             faits.append("stade générique")
     _ecrire_bundle(BUNDLE, env.file.save(packer="original"), faits, a_blanc)
     for b in BUNDLES_EN_PLUS:
-        if not os.path.exists(b):
-            continue
-        if not competitions:
-            _remettre(b, a_blanc)
-            continue
-        orig_c = backup.backup_path(b)
-        env_c = UnityPy.load(orig_c if os.path.exists(orig_c) else b)
-        n = theme_fond.peindre_competitions(_textures(env_c))
+        _ecrire_en_plus(b, competitions, salle, a_blanc)
+
+
+def _ecrire_en_plus(b, competitions, salle, a_blanc):
+    """ui-backgrounds_assets_common : fonds des compétitions (thème) et / ou salle des trophées, sinon d'origine"""
+    import UnityPy
+    if not os.path.exists(b):
+        return
+    if not competitions and not salle:
+        _remettre(b, a_blanc)
+        return
+    orig_c = backup.backup_path(b)
+    env_c = UnityPy.load(orig_c if os.path.exists(orig_c) else b)
+    tex = _textures(env_c)
+    faits = []
+    if competitions:
+        import theme_fond
+        n = theme_fond.peindre_competitions(tex)
         print(f"fonds des compétitions ({os.path.basename(b)}) : {n} à la couleur du fond")
         if n:
-            _ecrire_bundle(b, env_c.file.save(packer="original"), ["fonds des compétitions"], a_blanc)
+            faits.append("fonds des compétitions")
+    if salle and poser_salle(tex, salle):
+        faits.append(f"salle des trophées ({salle.get('theme')}, murs {salle.get('murs')})")
+    if faits:
+        _ecrire_bundle(b, env_c.file.save(packer="original"), faits, a_blanc)
+    else:
+        _remettre(b, a_blanc)
 
 
 # ESSAI (2026-11-14, le joueur : « un thème où tu repeins chaque image, pour savoir quoi fait quoi ») : chaque texture

@@ -94,6 +94,13 @@ def parts(t):
     return None if None in (score, bar, spacer) else (bug, score, bar, spacer, boite)
 
 
+def boutons_stats(t, boite):
+    """bouton stats (+ bulle du banc FMC) : avant le 2026-11-17 un BindingSetter qui les contenait ; FM d'après : deux
+    éléments à part (#stats-visible, #fmc-dugout-platform-visible)"""
+    return [k for k in t.children(boite) if (t.elem(k).get("m_FullTypeName") or "").endswith("BindingSetter")
+            or any(t.name(r) in ("stats-button", "fmc-dugout-button") for r in t.walk(k))]
+
+
 def reorder(t):
     p = parts(t)
     if p is None:
@@ -199,11 +206,11 @@ def decaler(t):
     cls = t.elem(boite).get("m_Classes") or []
     if MARQUE_DECALE in cls:
         return []
-    stats = next((k for k in t.children(boite) if (t.elem(k).get("m_FullTypeName") or "").endswith("BindingSetter")), None)
+    stats = boutons_stats(t, boite)
     lecture = next((k for k in t.children(boite) if t.name(k) == "MatchPlaybackControls"), None)
-    if stats is None or lecture is None:
+    if not stats or lecture is None:
         return ["bouton stats / boutons de lecture introuvables (le jeu a changé ?), ignoré"]
-    for r, cle in ((bar, "barre"), (stats, "stats"), (lecture, "lecture")):
+    for r, cle in [(bar, "barre"), *((s, "stats") for s in stats), (lecture, "lecture")]:
         if DECALAGES.get(cle):
             t.styles.style(t, r, {"top": DECALAGES[cle]})
     t.elem(boite)["m_Classes"] = [c for c in cls if not c.startswith("uipicker-match-decale-")] + [MARQUE_DECALE]
@@ -223,11 +230,11 @@ def descendre(t):
     if MARQUE_DESCENTE in cls:
         return []
     ferme = next((r for r in t.walk(bar) if t.name(r) == "TacticsClosed"), None)
-    stats = next((k for k in t.children(boite) if (t.elem(k).get("m_FullTypeName") or "").endswith("BindingSetter")), None)
+    stats = boutons_stats(t, boite)
     lecture = next((k for k in t.children(boite) if t.name(k) == "MatchPlaybackControls"), None)
-    if None in (ferme, stats, lecture):
+    if None in (ferme, lecture) or not stats:
         return ["barre / bouton stats / boutons de lecture introuvables (le jeu a changé ?), ignoré"]
-    for r in (ferme, stats, lecture):
+    for r in (ferme, *stats, lecture):
         t.styles.style(t, r, {"top": DESCENTE})
     t.elem(bug)["m_Classes"] = [c for c in cls if not c.startswith("uipicker-match-descente-")] + [MARQUE_DESCENTE]
     return [f"barre Tactiques…, stats et boutons de droite à la hauteur du score (+{DESCENTE} px ; onglets de la tactique ouverte inchangés)"]

@@ -47,6 +47,35 @@ def first(t, pred):
     return next((r for r in t.walk() if pred(r)), None)
 
 
+# MAJ de FM du 2026-11-17 : la bulle (SI.Bindable.Tooltip) du « i » (PlayerReportPreviewTooltip) est passée dans le
+# sous-modèle PlayerReportPreviewTooltipContent
+SOURCE_INFO_BULLE = "PlayerReportPreviewTooltipContent"
+
+
+def bulle_du_i(t, i):
+    """Tooltip du « i » de FM recopié sous i ; sinon (FM d'après le 2026-11-17) le sous-modèle est retiré de i et un
+    Tooltip vide de PlayerReportPreviewTooltipContent posé à sa place. None si introuvable"""
+    est_bulle = lambda tr, r: (tr.elem(r).get("m_FullTypeName") or "").endswith(".Tooltip")  # noqa: E731
+    bulle = next((r for r in t.walk(i) if est_bulle(t, r)), None)
+    if bulle is not None:
+        return bulle
+    for c in list(t.children(i)):
+        if t.elem(c).get("m_TemplateAlias"):
+            t.remove(c)
+    bundle, _, tt = nb.find_vta(SOURCE_INFO_BULLE)
+    if tt is None:
+        return None
+    s = Tree(tt)
+    tip = next((r for r in s.walk() if est_bulle(s, r)), None)
+    if tip is None:
+        return None
+    bulle = t.clone(tip, i, src=s)
+    for c in list(t.children(bulle)):
+        t.remove(c)
+    t.styles.copy_from(Styles(bundle, s.tt), t, bulle)
+    return bulle
+
+
 def typ(t, r):
     return t.elem(r).get("m_FullTypeName") or ""
 
