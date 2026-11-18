@@ -81,11 +81,21 @@ def voulu_banc(tt_orig, retirer):
     return tt["<Configurations>k__BackingField"]
 
 
-def voulu_place(comp_orig, ref_defaut, retirer):
+def voulu_place(comp_orig, ref_defaut, confs_defaut, retirer):
+    """v2 (chez FM Guru, Grand ET Moyen, v1 vue : carrousel à points avec seulement Carte de passes + Banc) : place
+    à PLUSIEURS descriptions = carrousel limité à elles (une disposition gardée par FM peut le masquer) ; une seule
+    = ⌄ avec tous les choix.
+    -> une seule description (Carte de passes), avec sa propre config à la taille de celle du banc ; Banc de touche
+    reste au ⌄ (Type 0)"""
     descs = [dict(d) for d in comp_orig["m_configDescriptions"]]
     confs = json.loads(json.dumps(comp_orig["m_gridElementConfigs"]))
     if not retirer:
-        descs = [dict(ref_defaut)] + [d for d in descs if d != ref_defaut]
+        descs = [dict(ref_defaut)]
+        # taille de la place d'abord (comme Événements / xG à côté), sinon celle de la config du banc
+        tailles = [{"x": comp_orig["m_location"]["width"], "y": comp_orig["m_location"]["height"]}] \
+            + [c["Size"] for c in confs]
+        choix = next((c for t in tailles for c in confs_defaut if c["Size"] == t), confs_defaut[0])
+        confs = [json.loads(json.dumps(choix))]
     return descs, confs
 
 
@@ -109,6 +119,7 @@ def run(retirer):
         print("Banc de touche : " + ("déjà d'origine" if retirer else "déjà tuile à choix"))
     # 2. place du banc : carte de passes domicile d'office
     ref = {"m_FileID": 0, "m_PathID": noms[DEFAUT].path_id}
+    confs_defaut = noms_o[DEFAUT].read_typetree()["<Configurations>k__BackingField"]
     actuelles, orig = compositions(env, noms), compositions(env_o, noms_o)
     if not actuelles:
         print("compositions de l'écran de match introuvables (le jeu a changé ?), ignoré")
@@ -122,7 +133,7 @@ def run(retirer):
         for c in tt["m_gridComponents"]:
             if c["m_elementID"] != PLACE:
                 continue
-            descs, confs = voulu_place(comp_o[PLACE], ref, retirer)
+            descs, confs = voulu_place(comp_o[PLACE], ref, confs_defaut, retirer)
             if (c["m_configDescriptions"], c["m_gridElementConfigs"]) != (descs, confs):
                 c["m_configDescriptions"], c["m_gridElementConfigs"] = descs, confs
                 c_o.save_typetree(tt)

@@ -8,6 +8,9 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ### v2.06 (18 novembre 2026)
 
+**Match en direct**
+- **Tuile à la place du Banc de touche : plus de carrousel** : la Carte de passes qui remplace le Banc de touche s'affichait parfois en carrousel (petits points en haut), avec seulement la Carte de passes et le Banc de touche au choix. Elle a maintenant le menu ⌄ avec tous les choix, comme les autres tuiles, dans tous les affichages. Changement pas visible ? Une disposition gardée par FM passe avant le skin : réinitialise les dispositions dans les Préférences de FM. Aussi dans la version FM Guru.
+
 **Fiche joueur**
 - **Tentative de correction : fiche qui tremble** : chez certains joueurs, en affichage Moyen et Petit, la fiche joueur tremblait dans tous les sens (textes en double). L'en-tête en cartes reprend exactement la hauteur prévue par FM dans les 3 affichages, ce qui devrait régler le problème. Si ça tremble encore chez toi, dis-le sur le Discord.
 
@@ -1191,6 +1194,9 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ## English
 
 ### v2.06 (18 November 2026)
+
+**Live match**
+- **Tile in place of the Touchline: no more carousel**: the Pass Map that replaces the Touchline was sometimes shown as a carousel (small dots at the top), with only the Pass Map and the Touchline to choose from. It now has the ⌄ menu with all the choices, like the other tiles, in every display. Change not showing? A layout kept by FM takes priority over the skin: reset the layouts in FM's Preferences. Also in the FM Guru version.
 
 **Player profile**
 - **Attempted fix: shaking profile**: for some players, in Medium and Small display, the player profile was shaking in every direction (doubled text). The card header now uses exactly the height FM expects in all 3 displays, which should fix it. If it still shakes for you, let us know on the Discord.
