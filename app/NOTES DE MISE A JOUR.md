@@ -6,6 +6,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.06 (18 novembre 2026)
+
+**Fiche joueur**
+- **Tentative de correction : fiche qui tremble** : chez certains joueurs, en affichage Moyen et Petit, la fiche joueur tremblait dans tous les sens (textes en double). L'en-tête en cartes reprend exactement la hauteur prévue par FM dans les 3 affichages, ce qui devrait régler le problème. Si ça tremble encore chez toi, dis-le sur le Discord.
+
+**Version FM Guru**
+- **Nouveautés FM Guru installées par la mise à jour** : en v2.05, le Banc de touche en tuile à choix n'était pas posé par la mise à jour en version FM Guru. Si tu ne l'as pas, coche « Match en direct : Banc de touche en tuile à choix » dans l'app, puis applique (FM fermé). À partir de la prochaine version, les nouveautés FM Guru s'installeront toutes seules.
+
 ### v2.05 (18 novembre 2026)
 
 **Match en direct**
@@ -1181,6 +1189,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.06 (18 November 2026)
+
+**Player profile**
+- **Attempted fix: shaking profile**: for some players, in Medium and Small display, the player profile was shaking in every direction (doubled text). The card header now uses exactly the height FM expects in all 3 displays, which should fix it. If it still shakes for you, let us know on the Discord.
+
+**FM Guru version**
+- **FM Guru new features installed by the update**: in v2.05, the Touchline as a selectable tile was not installed by the update in the FM Guru version. If you don't have it, tick "Live match: Touchline as a selectable tile" in the app, then apply (FM closed). From the next version on, FM Guru new features will install on their own.
 
 ### v2.05 (18 November 2026)
 

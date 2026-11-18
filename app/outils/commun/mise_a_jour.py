@@ -263,6 +263,17 @@ def installer():
         return 1
     import catalogue   # fonctions de la version actuelle : les nouvelles reçoivent leur marqueur (choix de base)
     connues = set(catalogue.FONCTIONS)
+    # 2026-11-18 (chez FM Guru : match_tuile_banc pas posé) : liste AVEC_GURU de la NOUVELLE version (l'actuelle ne
+    # connaît pas les fonctions nouvelles qui y sont ajoutées)
+    avec_guru = set(catalogue.AVEC_GURU)
+    try:
+        import ast
+        src = open(os.path.join(NOUVELLE, "outils", "commun", "catalogue.py"), encoding="utf-8").read()
+        for n in ast.parse(src).body:
+            if isinstance(n, ast.Assign) and any(getattr(t, "id", "") == "AVEC_GURU" for t in n.targets):
+                avec_guru = set(ast.literal_eval(n.value))
+    except Exception:
+        pass
     # 2026-11-10 (le joueur, chez FM Guru : salle des trophées, vue du club posées) : mode FM Guru = seulement la
     # fiche joueur ; une fonction nouvelle n'y reçoit son marqueur que si elle va avec la vue (AVEC_GURU)
     try:
@@ -280,7 +291,7 @@ def installer():
             if parties[0] == "backups":   # marqueur .actif : seulement pour une fonction nouvelle
                 if parties[-1][:-len(".actif")] in connues:
                     continue
-                if guru and parties[-1][:-len(".actif")] not in catalogue.AVEC_GURU:
+                if guru and parties[-1][:-len(".actif")] not in avec_guru:
                     continue
                 dest = os.path.join(backup.BACKUP_DIR, parties[-1])
             else:

@@ -101,7 +101,9 @@ PREFIXE = "UIPickerEnteteTuile"
 # en auto (style intégré) -> il suit la tuile et pousse la fiche
 # v39 (le joueur, v38 vue : Medium OK ; Large poussé = bas de la fiche qui défile) : tuile Large ramenée à 180 px
 # (haut 172, marges 4) -> ne pousse plus rien en Large ; hauteur auto gardée (Medium 192)
-VERSION = 39
+# v40 : Medium aussi à 180 px (172 + 2 x 4) : la fiche tremblait (barre de défilement en boucle)
+# v41 : Small aussi à 180 px (152 + 2 x 14) : les 3 tailles = hauteur de FM
+VERSION = 41
 CONTENEUR = "report-player-full-header-max"   # élément de FM qui porte la classe à hauteur fixe
 AUTO = (1, 2)                                  # mot-clé Auto (style intégré)
 CL_CARTE = "uipicker-entete-carte"     # classe fixe (sans version) : couleurs_interface.ENTETE_CARTE la vise
@@ -139,9 +141,13 @@ TAILLES = {
     "report-player-banner-max": dict(poly=(256, 202), haut=172, marge_haut=4, ecart=12, rayon_px=50.0,
                                      # v32 : statut + niveau en une colonne, le reste à l'identité (nom)
                                      poids=dict(statut_niveau=1.75, ident=2.65)),
-    "report-player-banner-mid": dict(poly=(246, 184), haut=180, ecart=10, rayon_px=43.0),
+    # v40 (ami du joueur : fiche qui tremble en Medium / Small) : 180 + 2 x 6 = 192 > 180 de FM -> poussait la fiche,
+    # barre de défilement qui apparaît / disparaît à chaque image ; 172 + 2 x 4 = 180 comme le Large
+    "report-player-banner-mid": dict(poly=(246, 184), haut=172, marge_haut=4, ecart=10, rayon_px=43.0),
     # v24 : polygone aussi ici (le joueur) ; rayon à la même marge d'étiquettes que le Large (~28 px haut / bas)
-    "report-player-banner-min": dict(poly=(224, 150), haut=152, ecart=8, rayon_px=35.0),
+    # v41 (ami du joueur : tremble aussi en Small) : 152 + 2 x 6 = 164 -> conteneur auto rétréci sous les 180 de FM ;
+    # 152 + 2 x 14 = 180 : même hauteur que FM, tuile inchangée
+    "report-player-banner-min": dict(poly=(224, 150), haut=152, marge_haut=14, ecart=8, rayon_px=35.0),
 }
 # v24 : cartes (maquette B) : fond / bord d'une carte, coins ; v25 : un peu plus discrètes, plus de bord vert
 CARTE_FOND, CARTE_BORD = (1.0, 1.0, 1.0, 0.03), (1.0, 1.0, 1.0, 0.07)
