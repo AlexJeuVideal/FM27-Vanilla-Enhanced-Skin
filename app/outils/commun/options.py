@@ -294,10 +294,11 @@ OPTIONS = {
         "fmguru": True,   # app : dans la section FM Guru de la page Features additionnelles
         "aide": ("Version FM Guru : seulement la fiche joueur (en-tête de FM avec Pour / Contre en pastilles, "
                  "polygone des attributs à côté des Infos, Efficacité tactique à la place d'Entraînement en bas) et "
-                 "l'infobulle du joueur du skin, le reste du jeu reste celui de FM.",
+                 "l'infobulle du joueur du skin, plus le Banc de touche en tuile à choix en match ; le reste du jeu "
+                 "reste celui de FM.",
                  "FM Guru version: only the player profile (FM header with Pros / Cons dots, attribute polygon next "
                  "to Info, Tactical effectiveness instead of Training at the bottom) and the skin's player tooltip, "
-                 "the rest of the game stays FM's."),
+                 "plus the Touchline as a selectable tile in matches; the rest of the game stays FM's."),
     },
     # 2026-11-10 (le joueur) : essai, pas validé en jeu (score_disposition.licence, lu par match_haut) ; en dernier
     # (menu 500 : les numéros des autres options ne bougent pas)

@@ -6,6 +6,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.05 (18 novembre 2026)
+
+**Match en direct**
+- **Banc de touche en tuile à choix** : le Banc de touche n'est plus bloqué à sa place. Il a maintenant le menu ⌄ comme les autres tuiles de l'écran (mêmes choix), et il est proposé dans le ⌄ des autres tuiles. À sa place, la Carte de passes de l'équipe à domicile s'affiche de base. Changement pas visible ? Une disposition gardée par FM passe avant le skin : réinitialise les dispositions dans les Préférences de FM. Aussi dans la version FM Guru.
+
+**Fiche joueur**
+- **En-tête en cartes : bas plus coupé** : depuis la dernière mise à jour de FM, le bas des cartes de l'en-tête (photo, salaire, valeur, progression) était coupé. L'en-tête reprend sa taille en entier, en affichage Grand comme Moyen, sans faire défiler la fiche.
+
 ### v2.04 (17 novembre 2026)
 
 **Fiche joueur**
@@ -1173,6 +1181,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.05 (18 November 2026)
+
+**Live match**
+- **Touchline as a selectable tile**: the Touchline tile is no longer stuck in place. It now has the ⌄ menu like the other tiles on the screen (same choices), and it is offered in the ⌄ of the other tiles. In its place, the home team Pass Map is shown by default. Change not showing? A layout kept by FM takes priority over the skin: reset the layouts in FM's Preferences. Also in the FM Guru version.
+
+**Player profile**
+- **Card header no longer cut off**: since the latest FM update, the bottom of the header cards (photo, wage, value, progress) was cut off. The header is shown in full again, in both Large and Medium display, without making the profile scroll.
 
 ### v2.04 (17 November 2026)
 

@@ -2074,5 +2074,17 @@
 "Tempérament à droite de Personnalité (Medium / Small : titre + logo + nom ; Large : logo collé au texte, nom au survol)": "Mindset next to Personality (Medium / Small: title + icon + name; Large: icon next to the text, name on hover)",
 "logo du tempérament à droite de Personnalité (nom au survol)": "mindset icon right of Personality (name on hover)",
 "logo / nom du tempérament ou infobulle de FM introuvables, ignoré": "mindset icon / name or FM tooltip not found, skipped",
-"logo du tempérament à droite de Personnalité": "mindset icon right of Personality"
+"logo du tempérament à droite de Personnalité": "mindset icon right of Personality",
+"Banc de touche / carte de passes introuvables dans les tuiles du match (le jeu a changé ?), ignoré": "Touchline / pass map not found in the match tiles (has the game changed?), skipped",
+"Banc de touche :": "Touchline:",
+"Banc de touche : {}": "Touchline: {}",
+"Banc de touche d'office": "Touchline by default",
+"Banc de touche introuvable (le jeu a changé ?)": "Touchline not found (has the game changed?)",
+"Carte de passes domicile d'office (Banc de touche au ⌄)": "Home team pass map by default (Touchline in the ⌄)",
+"bloc d'origine (sans choix)": "original block (no choice)",
+"compositions de l'écran de match introuvables (le jeu a changé ?), ignoré": "match screen layouts not found (has the game changed?), skipped",
+"déjà tuile à choix": "already a selectable tile",
+"tuile Banc de touche à choix : non activée, rien à faire": "selectable Touchline tile: not enabled, nothing to do",
+"tuile à choix": "selectable tile",
+"tuile à choix (⌄)": "selectable tile (⌄)"
 }

@@ -542,6 +542,8 @@
 "1542": "Scheda giocatore, solo visualizzazione Grande: poligono e Pro / Contro",
 "1545": "niente a destra dell'intestazione, poligono e sotto Pro / Contro, a destra di Info",
 "155": "Cartella del gioco",
+"1550": "Partita in diretta: Panchina come riquadro selezionabile (⌄ come gli altri riquadri), Mappa dei passaggi della squadra di casa predefinita al suo posto",
+"1554": "Versione FM Guru: solo la scheda del giocatore (intestazione di FM con punti Pro / Contro, poligono degli attributi accanto a Info, Efficacia tattica al posto di Allenamento in basso) e il tooltip del giocatore della skin; il resto del gioco resta quello di FM. In più: la Panchina come riquadro selezionabile nelle partite.",
 "156": "Cartella del gioco salvata.",
 "157": "Vai in vacanza fino a questa data",
 "158": "Tornare a « versione della skin » rimette la skin predefinita. Cambiare questa scelta rimette i file originali e poi rifà la skin (FM chiuso, circa un minuto).",

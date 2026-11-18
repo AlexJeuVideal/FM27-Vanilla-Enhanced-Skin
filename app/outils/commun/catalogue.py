@@ -350,6 +350,12 @@ FONCTIONS = {
                               "calendrier, résumé du match)",
                            en="WIP Goalscorers: player tooltip when hovering their name (other matches of the day, "
                               "results, calendar, match summary)"),
+    # 2026-11-18 (le joueur) : Banc de touche coincé à sa place -> tuile à choix ; VALIDÉ en jeu 2026-11-18
+    "match_tuile_banc": dict(cat="match", aide=RESET_DISPOSITIONS,
+                             fr="Match en direct : Banc de touche en tuile à choix (⌄ comme les autres tuiles), "
+                                "Carte de passes domicile d'office à sa place",
+                             en="Live match: Touchline as a selectable tile (⌄ like the other tiles), home team "
+                                "Pass Map shown by default in its place"),
     # --- Calendrier ---
     "rencontres_stade_spectateurs": dict(cat="calendrier",
                                          # 2026-11-17 : colonnes du skin retirées (tableau de FM) ; boutons + tableau
@@ -590,6 +596,7 @@ OU = {
     "match_cartons_buts": ("Match en direct (formations)", "Live match (formations)"),
     "match_camera_limites": ("Match en direct > Caméra", "Live match > Camera"),
     "match_vitesses": ("Match en direct > Temps forts", "Live match > Highlights"),
+    "match_tuile_banc": ("Match en direct (tuiles)", "Live match (tiles)"),
     "buteurs_survol": ("Autres matchs du jour, résultats d'une compétition, calendrier, résumé du match",
                        "Other matches of the day, competition results, calendar, match summary"),
     "rencontres_stade_spectateurs": ("Calendrier > Rencontres", "Calendar > Fixtures"),
@@ -651,6 +658,7 @@ ORDRE_SKIN = [
     "finances_tuile_unique", "graphes_finances",
     "graphes_attributs",
     "hierarchie_pyramide", "photos_tactiques", "photos_match", "match_cartons_buts", "match_camera_limites", "match_vitesses",
+    "match_tuile_banc",   # seul sur DugoutTileDescription + compositions MatchExperience* (ui-tileslayouts)
     "buteurs_survol",   # seul sur ses 5 modèles (repart de l'original)
     "attributs_tout_cocher", "nation_drapeau_seul", "suspensions_noms_courts",
     "tuile_forme", "fiche_ordre_tuiles", "tuile_carriere", "fiche_contexte_equipe",
@@ -771,7 +779,8 @@ BLOQUES_GURU = {
 # (+ infobulle du joueur au survol, 2026-11-12, le joueur : celle du skin de base)
 # (+ tuiles du bas de la fiche, 2026-11-07, le joueur : ordre, État d'esprit / Condition, Stats carrière)
 AVEC_GURU = ["entete_fiche", "style_mediatique", "hors_defaut", "listes_pour_contre", "infobulle_pieds",
-             "infobulle_pour_contre", "fiche_ordre_tuiles", "tuile_forme", "tuile_carriere"]
+             "infobulle_pour_contre", "fiche_ordre_tuiles", "tuile_forme", "tuile_carriere",
+             "match_tuile_banc"]   # 2026-11-18, demande du joueur : Banc de touche à choix aussi en vue Guru
 # (temperament_infos : jamais en vue Guru, ni fiche ni infobulle, le joueur 2026-11-13)
 
 # zones d'essai : jamais dans le choix 1, retirées au début du choix 1

@@ -96,7 +96,14 @@ PREFIXE = "UIPickerEnteteTuile"
 # aussi avant AGE_JEUNE ans dès que InternationalDebutNationalTeamContainer n'est pas nul
 # v36 (2026-11-15, le joueur) : Dispo. transfert / prêt centrés dans leur carte (cadre de FM en align-items-start)
 # v37 : Large, titres Dispo. sur une ligne (body-xs) : les deux cartes à la même hauteur
-VERSION = 37
+# v38 (2026-11-18, le joueur : bas de l'en-tête mangé depuis FM du 2026-11-17) : FM fixe la hauteur du conteneur
+# (.report-player-full-header-max-type-player, height 180 px) < notre tuile (Large 188 + 2 x 6) : hauteur du conteneur
+# en auto (style intégré) -> il suit la tuile et pousse la fiche
+# v39 (le joueur, v38 vue : Medium OK ; Large poussé = bas de la fiche qui défile) : tuile Large ramenée à 180 px
+# (haut 172, marges 4) -> ne pousse plus rien en Large ; hauteur auto gardée (Medium 192)
+VERSION = 39
+CONTENEUR = "report-player-full-header-max"   # élément de FM qui porte la classe à hauteur fixe
+AUTO = (1, 2)                                  # mot-clé Auto (style intégré)
 CL_CARTE = "uipicker-entete-carte"     # classe fixe (sans version) : couleurs_interface.ENTETE_CARTE la vise
 COURBE_FOND = (0.0, 0.0, 0.0, 0.22)
 PROGRESSION = True
@@ -128,7 +135,8 @@ JOUEUR, EQUIPE = 1145176065, 1145176088
 # tuile, écart de part et d'autre des traits
 TAILLES = {
     # v25 : rayons -10 % (le joueur : « que ça respire un poil plus » ; plus petit = plus de marge, pas de flash)
-    "report-player-banner-max": dict(poly=(256, 202), haut=188, ecart=12, rayon_px=50.0,
+    # v39 (le joueur : en Large, v38 poussait la fiche = bas qui défile) : 172 + 2 x 4 = 180 = hauteur de FM
+    "report-player-banner-max": dict(poly=(256, 202), haut=172, marge_haut=4, ecart=12, rayon_px=50.0,
                                      # v32 : statut + niveau en une colonne, le reste à l'identité (nom)
                                      poids=dict(statut_niveau=1.75, ident=2.65)),
     "report-player-banner-mid": dict(poly=(246, 184), haut=180, ecart=10, rayon_px=43.0),
@@ -449,7 +457,8 @@ def construire(t, parent, index, dims, src, p, txt, photo, haut_src, poly_src, r
         "max-height": dims["haut"], "flex-shrink": 0, "flex-grow": 1, "overflow": "hidden",
         "border-bottom-width": 1, "border-bottom-color": BORD,
         "padding-top": v, "padding-bottom": v, "padding-left": h, "padding-right": h,
-        "margin-top": MARGE_HAUT, "margin-bottom": MARGE_HAUT, "margin-left": MARGE_COTES,
+        "margin-top": dims.get("marge_haut", MARGE_HAUT), "margin-bottom": dims.get("marge_haut", MARGE_HAUT),
+        "margin-left": MARGE_COTES,
         "margin-right": MARGE_COTES},
         ["align-self-stretch"])
     # touche de couleur du club (le joueur : « pas une couleur entière », « du haut vers le bas, comme la tuile de
@@ -923,8 +932,24 @@ def etoiles_rapport(t):
     return msgs
 
 
+def hauteur_auto(t, oui):
+    """v38 : hauteur du conteneur de FM en auto (oui) ou rendue à la règle de FM (non)"""
+    c = first(t, lambda r: t.name(r) == CONTENEUR)
+    if c is None:
+        return False
+    e = t.elem(c)
+    old = t.styles.values(e["m_RuleIndex"]) if e.get("m_RuleIndex", -1) >= 0 else []
+    reste = [p for p in old if not (p[0] == 131087 and p[2] == [AUTO])]
+    if oui:
+        e["m_RuleIndex"] = t.styles.add_rule(reste + [(131087, "", [AUTO])])
+    elif len(reste) != len(old):
+        e["m_RuleIndex"] = t.styles.add_rule(reste) if reste else -1
+    return True
+
+
 def remettre_fm(t):
     """nos tuiles retirées, bannières / photo de FM remises à leur place"""
+    hauteur_auto(t, False)
     for c in [r for r in t.walk() if t.name(r) == NOM_CACHE]:
         par = t.parent[c]
         i = t.children(par).index(c)
@@ -1000,5 +1025,7 @@ def job(t):
                            (fa, haut) if haut is not None else None, (fa, chart) if chart is not None else None,
                            rm_model, s_vis, vis, degrade)
     cacher(photo)
+    if not hauteur_auto(t, True):
+        msgs.append(f"en-tête grande tuile : {CONTENEUR} introuvable, hauteur de FM gardée (bas coupé)")
     # pas de photo de FM recopiée en double : les tuiles ont la leur
     return list(dict.fromkeys(msgs)) + [f"en-tête en grande tuile ({len(bannieres)} tailles de fenêtre)"]

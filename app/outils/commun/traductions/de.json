@@ -542,6 +542,8 @@
 "1542": "Spielerprofil, nur Anzeige Groß: Polygon und Pro / Contra",
 "1545": "nichts rechts im Kopf, Polygon und darunter Pro / Contra, rechts von Infos",
 "155": "Spielordner",
+"1550": "Live-Spiel: Seitenlinie als auswählbare Kachel (⌄ wie die anderen Kacheln), Passkarte der Heimmannschaft standardmäßig an ihrer Stelle",
+"1554": "FM-Guru-Version: nur das Spielerprofil (FM-Kopfzeile mit Pro-/Contra-Punkten, Attribut-Polygon neben Infos, Taktische Effektivität statt Training unten) und der Spieler-Tooltip des Skins, der Rest des Spiels bleibt wie in FM. Dazu: die Seitenlinie als auswählbare Kachel im Spiel.",
 "156": "Spielordner gespeichert.",
 "157": "Bis zu diesem Datum in den Urlaub gehen",
 "158": "Zurück zu « Skin-Version » bringt den Standard-Skin zurück. Diese Wahl zu ändern setzt die Originaldateien zurück und baut den Skin neu auf (FM geschlossen, etwa eine Minute).",
