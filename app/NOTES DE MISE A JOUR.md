@@ -6,6 +6,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.08 (19 novembre 2026)
+
+**Fiche joueur**
+- **Joueur libre : les 2 tuiles du haut à droite s'affichent** (Recrutement et Attentes, comme pour un joueur d'un autre club) : elles restaient vides.
+
+**Ajouts de Kinito**
+- **La fiche joueur de Kinito remplit l'écran en Moyen et Petit** : la bande du haut est plus haute, la fiche descend et le vide en bas disparaît. Grand inchangé.
+
 ### v2.07 (19 novembre 2026)
 
 **La nouvelle fiche joueur du skin**
@@ -1219,6 +1227,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.08 (19 November 2026)
+
+**Player profile**
+- **Free agents: the 2 top-right tiles now show** (Recruitment and Expectations, as for a player from another club): they used to stay empty.
+
+**Kinito's additions**
+- **Kinito's player profile fills the screen in Medium and Small**: the top band is taller, the profile moves down and the empty space at the bottom is gone. Large unchanged.
 
 ### v2.07 (19 November 2026)
 

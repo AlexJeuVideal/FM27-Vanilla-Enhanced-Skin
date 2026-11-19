@@ -263,7 +263,7 @@ NUMERO = {"report-player-banner-max": dict(police=88, nom=24),
           "report-player-banner-mid": dict(police=80, nom=22),
           "report-player-banner-min": dict(police=66, nom=21)}   # nom de FM : 20 px (fm-universe-20px)
 NOM = f"{PREFIXE}-v{VERSION}" + ("-mpc7" if MEDIUM_PC else "") \
-    + {"pastilles": "-lpc3", "dessous": "-lrien1"}.get(LARGE_TUILE, "") + ("-num4" if STYLE_NUMERO else "") + ("-gom69pc4" if STYLE_GOMEZ else "") \
+    + {"pastilles": "-lpc3", "dessous": "-lrien1"}.get(LARGE_TUILE, "") + ("-num4" if STYLE_NUMERO else "") + ("-gom70pc4" if STYLE_GOMEZ else "") \
     + (f"-hmode{ENTETE_PLUS}m{ENTETE_PLUS + 30}" if ENTETE_PLUS else "") \
     + ("" if COULEUR_CLUB else "-sanscoul2")   # + N px Small, N + 30 Medium ; option entete_couleur_club
 # num2 : cases fondues (dégradé du club au fond), plus de traits ; num3 : halo (HALO), numéro à côté de la photo
@@ -671,6 +671,24 @@ def si_club(t, s_vis, vis, bv, parent, club, chemin=None):
     """gom32 : conteneur affiché seulement pour un joueur de ton club (club=True, person.Team.IsHuman, comme
     hors_defaut) ou seulement pour les autres (club=False : inversé ; sans club = autres) ; chemin : autre condition"""
     import notes_installations as ni
+    css = {"flex-grow": 1, "flex-shrink": 1, "min-height": 0, "min-width": 0, "overflow": "hidden",
+           "align-self": "stretch"}
+    if chemin is None:
+        # gom70 (le joueur : joueur LIBRE = 2 cartes de droite vides) : person.Team nul -> SIVisible sur
+        # person.Team.IsHuman caché dans les 2 sens. Comme fiche_contexte_equipe v5 : BindingSetter de FM (variable
+        # Bool, défaut faux) « équipes du club du manager contient person.Team » : sans club = faux = hors club
+        import entrainement_equipes as ee
+        r = ee.visible_equipe_geree(t, parent, len(t.children(parent)), PREFIXE + "ClubCalcul",
+                                    ["column-direction-normal", "align-items-stretch"],
+                                    liste="game.GameCurrentManager.Club.Teams", equipe="person.Team")
+        if r is not None:
+            haut, v = r
+            t.elem(haut)["m_Classes"] = ["column-direction-normal", "align-items-stretch"]
+            t.styles.style(t, haut, dict(css))
+            t.sd(v)["InvertDirectBinding"], t.sd(v)["InvertDirectBinding_UxmlAttributeFlags"] = (0 if club else 1), 1
+            t.elem(v)["m_RuleIndex"] = -1
+            t.styles.style(t, v, dict(css))
+            return v
     b = copy.deepcopy(bv)
     b["m_kind"] = 1
     b["m_direct"] = {"Path": {"m_path": chemin or CHEMIN_CLUB}, "Nullable": 0}

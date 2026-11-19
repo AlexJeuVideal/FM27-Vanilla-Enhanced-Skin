@@ -259,7 +259,10 @@ GRILLE_TYPE = "ScalableBindableGridLayoutElement"
 PREFIXE = "UIPickerKinitoEnteteLarge"
 NOM_PLACE = f"{PREFIXE}Place"              # notre conteneur, enfant 0 de l'aiguillage UseStandard (place 1080p)
 NOM_AUTRES = f"{PREFIXE}Autres"            # SIVisible « mode > 0 » : ce qui était à cette place, tel quel
-NOM_LARGE = f"{PREFIXE}-v{VERSION}{SUFFIXE}"   # SIVisible « mode == 0 » : notre bande
+# (modif d'Alex, 2026-11-19, le joueur : « que ça remplisse en bas, comme chez moi ») : bande plus haute en Moyen (1)
+# et Petit (2), Grand (0) inchangé ; {} = comme Kinito l'a livrée. Marque « -alexh1 » dans le nom (refait une fois)
+BANDE_PLUS = {1: 70, 2: 40}
+NOM_LARGE = f"{PREFIXE}-v{VERSION}{'-alexh1' if BANDE_PLUS else ''}{SUFFIXE}"   # SIVisible « mode == 0 » : notre bande
 NOM_PHOTO = f"{PREFIXE}Photo"              # autour de la photo de FM, quand rien d'autre ne la cache
 NOM_PHOTO_FM = f"{PREFIXE}PhotoFM"         # SIVisible « mode > 0 » qui garde la photo de FM
 ANCIENNE_RACINE = "UIPickerEnteteTuile-v"  # v1-v4 : nos morceaux étaient sous la racine de la tuile d'Alex
@@ -2963,11 +2966,22 @@ def construire_47(t, parent, k, taille="normal"):
     est une ligne SANS fond, de la même place que la carte d'avant (HAUT_BANDE de haut, mêmes marges extérieures) ;
     dedans, des tuiles (_tuile47) : celles des chiffres, le polygone, le bout"""
     msgs = []
+    # (modif d'Alex, 2026-11-19, BANDE_PLUS) : hauteur auto entre HAUT_BANDE (Grand, inchangé) et HAUT_BANDE + le plus
+    # grand ajout ; une cale sans largeur par affichage (Moyen +70, Petit +40) fait grandir la bande : la fiche descend
+    # et remplit le vide du bas (comme l'en-tête d'Alex, entete_tuile ENTETE_PLUS_MODE)
+    haut_css = ({"min-height": HAUT_BANDE, "max-height": HAUT_BANDE + max(BANDE_PLUS.values())} if BANDE_PLUS
+                else {"height": HAUT_BANDE, "min-height": HAUT_BANDE, "max-height": HAUT_BANDE})
     carte = boite(t, parent, {
-        "flex-direction": "row", "align-items": "stretch", "height": HAUT_BANDE, "min-height": HAUT_BANDE,
-        "max-height": HAUT_BANDE, "flex-shrink": 0, "flex-grow": 1, "overflow": "hidden",
+        "flex-direction": "row", "align-items": "stretch", **haut_css, "flex-shrink": 0, "flex-grow": 1,
+        "overflow": "hidden",
         "margin-top": MARGE_HAUT, "margin-bottom": 0, "margin-left": MARGE_COTES,
         "margin-right": MARGE_COTES}, ["align-self-stretch"])
+    b = k.s_vis.sd(k.vis)["Binding"]
+    for mode, plus in BANDE_PLUS.items():
+        h = HAUT_BANDE + plus
+        visible(t, k, carte, None, "", ni.make_binding(b, OP_EGAL, [MODE], mode),
+                {"width": 0, "min-width": 0, "max-width": 0, "align-self": "flex-start", "height": h,
+                 "min-height": h, "max-height": h})
     msgs += chiffres47(t, k, carte)
     msgs += avis47(t, k, carte, taille)
     msgs += stats_en_plus47(t, k, carte, taille)   # v19 : Moyen, tes joueurs
@@ -4517,6 +4531,12 @@ def appliquer_entete():
     retirer_regles(t, retirer_tout(t))   # une ancienne version d'abord (v1-v4 : dans la tuile d'Alex)
     base = len(t.styles.sh["m_Rules"])
     msgs = poser(t, k, place_1080p(t)) + poser_photo(t, k)
+    if BANDE_PLUS:
+        # (modif d'Alex, 2026-11-19) : le conteneur de FM (180 px fixes depuis FM du 17/11) en hauteur auto, sinon la
+        # bande plus haute serait coupée (même règle qu'entete_tuile v38 ; déjà là avec la vue tuile d'Alex)
+        import entete_tuile
+        if not entete_tuile.hauteur_auto(t, True):
+            msgs.append(f"{entete_tuile.CONTENEUR} absent : hauteur de FM gardée (bande Moyen / Petit coupée)")
     # style() d'Alex crée toujours une NOUVELLE règle (l'ancienne reste, orpheline) : nos orphelines (après base)
     # enlevées tout de suite, pour qu'au retrait toutes nos règles partent avec nos références (v1 : 36 restaient)
     retirer_regles(t, range(base, len(t.styles.sh["m_Rules"])))
