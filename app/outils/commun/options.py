@@ -179,6 +179,21 @@ OPTIONS = {
         # taille cachée dans Infos avec la grande tuile (elle est dans l'en-tête) ; Kinito 26.20 refaite (si-actif)
         "aussi": ["fiche_joueur_plus", "kinito_entete_large"],
     },
+    # 2026-11-19 (le joueur, maquette « A ») : lu par entete_fiche (entete_tuile) ; « numero » = grand numéro du maillot
+    # derrière la photo, nom plus gros, trait doré à gauche, cartes sans fond ni bord (« que l'en-tête se fonde dans le
+    # skin ») ; « gomez » validé en jeu 2026-11-19 (fiche du skin de base)
+    "entete_style": {
+        "titre": ("Style de l'en-tête en cartes", "Card header style"),
+        "valeurs": [("cartes", ("cartes (fond et bord)", "cards (background and border)")),
+                    ("numero", ("grand numéro, cases fondues aux couleurs du club",
+                                "big number, boxes blended into the club colours")),
+                    ("gomez", ("3 tuiles qui regroupent : identité, club, statut",
+                               "3 grouped tiles: identity, club, status"))],
+        "script": "entete_fiche",
+        # fiche_joueur_plus : taille d'Infos remise avec « gomez » (l'en-tête ne la montre plus)
+        "aussi": ["kinito_entete_large", "fiche_joueur_plus"],
+        "sans_effet": ("entete_vue", "fm"),
+    },
     # 2026-11-12 (le joueur) : lu par entete_fiche (bandeau Pour / Contre, mode Large) ; « 2 » de base
     "pour_contre_lignes": {
         "titre": ("Pastilles Pour / Contre de l'en-tête", "Pros / Cons dots in the header"),
@@ -329,6 +344,35 @@ OPTIONS = {
                  "PLAYER search, Potential and Current ability can no longer go above 100 (picking 200 goes back to "
                  "100); the + / - move 5 at a time and can leave 1-20."),
     },
+    # --- 2026-11-19 : à la fin (menu 500 : les numéros des autres options ne bougent pas) ---
+    # (le joueur : « la couleur derrière les tuiles en haut, désactivable dans l'app ») : lu par entete_fiche
+    # (entete_tuile : dégradé du club de l'en-tête de FM, caché si « non ») ; « oui » de base (comme avant) ; un thème
+    # de l'app la met sur « non » (« FM d'origine » : « oui »)
+    "entete_couleur_club": {
+        "titre": ("Couleur du club derrière l'en-tête", "Club colour behind the header"),
+        "valeurs": [("oui", ("oui (dégradé aux couleurs du club, comme FM)", "yes (club colour gradient, like FM)")),
+                    ("non", ("non (fond du skin seul)", "no (skin background only)"))],
+        "script": "entete_fiche",
+        "aussi": ["kinito_entete_large"],
+        "sans_effet": ("entete_vue", "fm"),
+    },
+    # (le joueur, v2.07) : la fiche du skin de base (FICHE_BASE : en-tête en 3 tuiles, Pour / Contre en haut en Moyen /
+    # Large, polygone + Projets à droite d'Infos) ; « oui » de base et forcé une fois (FORCES) ; « non » = les réglages
+    # du joueur (gardés, jamais écrasés) reprennent. Sans effet avec la vue FM Guru ou la fiche Kinito (26.20)
+    "fiche_skin_base": {
+        "titre": ("Fiche du skin de base", "Skin's default profile"),
+        "valeurs": [("oui", ("oui (la fiche joueur du skin, réglages ci-dessous sans effet)",
+                             "yes (the skin's player profile, settings below have no effect)")),
+                    ("non", ("non (tes réglages ci-dessous)", "no (your settings below)"))],
+        "script": "entete_fiche",
+        "aussi": ["fiche_joueur_plus", "kinito_entete_large"],
+        "aide": ("La fiche joueur du skin : en-tête en 3 tuiles (identité, club, Pour / Contre), polygone et Projets à "
+                 "droite d'Infos. Tes réglages de la fiche restent gardés en dessous : mets « non » puis Appliquer "
+                 "pour les retrouver. Sans effet avec la vue FM Guru ou la fiche de Kinito.",
+                 "The skin's player profile: header in 3 tiles (identity, club, Pros / Cons), polygon and Plans right "
+                 "of Info. Your profile settings stay kept below: pick « no » then Apply to get them back. No effect "
+                 "with the FM Guru view or Kinito's profile."),
+    },
 }
 
 
@@ -349,7 +393,13 @@ def defaut(nom):
 # la réinstallation après la MAJ) : fait au début du choix 1, noté dans « _forces » d'options.json ; un choix fait
 # ensuite (app, menu 500) est gardé, on ne repasse plus dessus
 # staff_recherche (v1.78, le joueur) : menu de FM forcé une fois (Potentiel / Niveau actuel jusqu'à 200)
-FORCES = {"entete_vue": "tuile", "staff_recherche": "fm"}
+FORCES = {"entete_vue": "tuile", "staff_recherche": "fm",
+          # 2026-11-19 (le joueur, v2.07) : fiche du skin de base une fois pour tous (réglages gardés, un bouton pour
+          # revenir aux leurs)
+          "fiche_skin_base": "oui"}
+# 2026-11-19 (le joueur) : « Fiche du skin de base » = ces valeurs tant qu'elle est active (fiche_base_active)
+FICHE_BASE = {"entete_vue": "tuile", "entete_style": "gomez", "fiche_medium_colonne": "polygone",
+              "fiche_large_tuile": "pastilles"}
 CLE_FORCES = "_forces"
 
 
@@ -376,11 +426,32 @@ def _lire():
         return {}
 
 
-def get(nom):
-    """valeur choisie de l'option nom (la 1re valeur si rien n'est choisi ou si la valeur n'existe plus)"""
+def _choisie(nom):
+    """valeur enregistrée (ou forcée par le .bat) de l'option nom, sans la fiche du skin de base"""
     valeurs = [v for v, _ in OPTIONS[nom]["valeurs"]]
+    # 2026-11-19 : tests du .bat (124) : UIPICKER_OPTION_<nom> force une valeur sans toucher aux réglages du joueur
+    v = os.environ.get("UIPICKER_OPTION_" + nom)
+    if v in valeurs:
+        return v
     v = _lire().get(nom)
     return v if v in valeurs else valeurs[0]
+
+
+def fiche_base_active():
+    """« Fiche du skin de base » (option fiche_skin_base = oui) et ni vue FM Guru ni fiche Kinito (26.20, qui
+    remplace la fiche du skin) : les options de FICHE_BASE prennent ses valeurs (réglages du joueur gardés)"""
+    if _choisie("fiche_skin_base") != "oui" or _choisie("fiche_fmguru") == "guru":
+        return False
+    return not os.path.exists(os.path.join(backup.BACKUP_DIR, "kinito_entete_large.actif"))
+
+
+def get(nom):
+    """valeur de l'option nom (la 1re valeur si rien n'est choisi ou si la valeur n'existe plus) ; options de la fiche
+    joueur : celles de FICHE_BASE tant que la fiche du skin de base est active (pas un choix forcé du .bat)"""
+    if (nom in FICHE_BASE and not os.environ.get("UIPICKER_OPTION_" + nom)
+            and fiche_base_active()):
+        return FICHE_BASE[nom]
+    return _choisie(nom)
 
 
 def liste():

@@ -708,7 +708,8 @@ def etat():
                           "avecGuru": nom in cat.AVEC_GURU and options.get("fiche_fmguru") == "guru",
                           "reinstaller": skin and actif and not bloque_guru(nom)
                           and versions_posees.a_reinstaller(nom, posees)})
-    opts = [{"nom": o, "titre": d["titre"], "aide": d.get("aide"), "valeurs": d["valeurs"], "actuelle": options.get(o),
+    # actuelle = choix du joueur (sous la fiche du skin de base, ses réglages restent affichés ; l'app calcule l'effet)
+    opts = [{"nom": o, "titre": d["titre"], "aide": d.get("aide"), "valeurs": d["valeurs"], "actuelle": options._choisie(o),
              "defaut": options.defaut(o), "script": d["script"], "kinito": bool(d.get("kinito")),
              "fmguru": bool(d.get("fmguru")), "bloque": d.get("bloque"),
              # sans effet tant qu'une autre option a telle valeur (grande tuile de l'en-tête) : note grise dans l'app
@@ -745,6 +746,7 @@ def etat():
         "options": opts,
         # section Joueur (2026-11-11) : ce qu'elle règle, et ce que la vue FM Guru garde
         "joueur": {"fonctions": JOUEUR_FONCTIONS, "options": JOUEUR_OPTIONS, "avec_guru": cat.AVEC_GURU,
+                   "fiche_base": options.FICHE_BASE, "kinito_fiche": lancer.actif("kinito_entete_large"),
                    "ordre_tuiles": options.ordre_tuiles() if sorted(options.ordre_tuiles() or []) == sorted(TUILES_BAS) else None},
         "fond": fond(),
         "couleurs": couleurs(),
@@ -1062,8 +1064,8 @@ ECRIT = {"skin", "desinstaller", "appliquer", "reinstaller", "retirer", "option"
 JOUEUR_CATS = ("joueur_entete", "joueur_fiche", "joueur_infobulle", "joueur_progression")
 # (vue FM Guru et fiche Kinito 1080p : exclusives, restent dans Features additionnelles, pas ici — le joueur)
 JOUEUR_FONCTIONS = [n for n, f in cat.FONCTIONS.items() if f["cat"] in JOUEUR_CATS]
-JOUEUR_OPTIONS = ["entete_vue", "pour_contre_lignes", "fiche_large_colonne", "fiche_medium_colonne",
-                  "fiche_large_tuile"]
+JOUEUR_OPTIONS = ["fiche_skin_base", "entete_vue", "entete_style", "entete_couleur_club", "pour_contre_lignes", "fiche_large_colonne",
+                  "fiche_medium_colonne", "fiche_large_tuile"]
 # tuiles du bas de la fiche (noms de FM, = fiche_ordre_tuiles.ORDRE) : ordre au glisser-déposer (options.ordre_tuiles)
 TUILES_BAS = ["Happiness", "FItness", "PlayerSeasonStats", "CareerStats", "PlayerForm", "PlayerTrainingOverview"]
 SANS_OUTILS = {"langue_choisir", "python_installer", "jeu_enregistrer", "jeu_parcourir", "jeu_detecter", "lien",
@@ -1800,6 +1802,12 @@ def action(d):
                         *continuer_arg(d), *touche_arg(d), *ombrage_arg(d), *polygone_arg(d)),
                 _python(fond_s, "appliquer", fond_c, *([info] if info else []), *plat) if fond_c
                 else _python(fond_s, "retirer")]
+        # 2026-11-19 (le joueur : « branche tous les thèmes sans ce réglage activé ») : un thème = plus de couleur du
+        # club derrière l'en-tête (option entete_couleur_club « non ») ; « FM d'origine » (pas de fond) = remise
+        coul = "non" if fond_c else "oui"
+        coul_change = options.get("entete_couleur_club") != coul
+        if coul_change:
+            cmds.append(_python(os.path.join(COMMUN, "options.py"), "choisir", "entete_couleur_club", coul))
         titre = T("Thème : ", "Theme: ") + (d.get("titre") or "").strip()[:40]
     elif typ == "statut":
         cmds = [_python(os.path.join(COMMUN, "statut.py"))]
@@ -1816,6 +1824,9 @@ def action(d):
         def apres(code):
             if not code:
                 versions_posees.noter([n for n in ("theme_fond", "couleurs_interface") if lancer.actif(n)])
+                # thème : option entete_couleur_club changée -> entete_fiche réappliqué par options.py
+                if typ == "theme" and coul_change and lancer.actif("entete_fiche"):
+                    versions_posees.noter(["entete_fiche"] + suivants_poses("entete_fiche"))
     if typ in ECRIT or typ == "sauvegarde":   # place sur le disque, droits d'écriture (v1.30)
         probleme = probleme_ecriture(jeu(), T)
         if probleme:

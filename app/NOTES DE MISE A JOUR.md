@@ -6,6 +6,33 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.07 (19 novembre 2026)
+
+**La nouvelle fiche joueur du skin**
+- **Une fiche joueur du skin, prête de base** : dans l'app, un grand interrupteur en haut de Fiche joueur. Activé (de base) : la fiche du skin, réglages en dessous verrouillés. Désactivé : ta fiche à toi, tes anciens réglages sont gardés.
+- **L'en-tête en 3 tuiles** : identité (numéro sur le maillot aux couleurs du club, photo, nom, poste, âge, nation, temps de jeu, sélections, salaire, valeur), club (club, dispos, niveau et potentiel) et Pour / Contre en haut à droite en Moyen et Grand. Le polygone et les Projets passent à droite d'Infos.
+- **En Moyen et Petit, l'en-tête plus haut** : la fiche descend et remplit le vide du bas. Pastilles Pour / Contre plus grandes, 5 par rangée.
+- **En Petit, l'efficacité tactique du joueur** à droite de Progression (ses rôles et leur efficacité).
+- **Joueur d'un autre club : la carte Recrutement** : l'agent du joueur et 3 boutons-icônes, interroger l'agent, faire une offre, ajouter à la shortlist (nom au survol). Un bouton indisponible reste affiché, grisé et pas cliquable. En Grand, une tuile de l'agent en bas à droite, avec les mêmes boutons. L'Éligibilité prend la place de l'État d'esprit, Blessures reste en bas à droite.
+- **Les lignes de l'en-tête dans un nouvel ordre** : à gauche nom, poste, âge, puis nation et sélections ; à droite Actions, la description des médias (même police que « Joueur important »), temps de jeu, salaire, valeur. En Grand, nation et sélections sur la même ligne.
+- **Textes de l'en-tête alignés et plus jamais coupés en bas** en Moyen et Petit : la place est répartie à parts égales entre les lignes. Le statut du joueur est centré sur son nom.
+- **Efficacité tactique (Petit)** : la tactique, la jauge et les postes joués dans le même rectangle que les 4 lignes de droite.
+- **Plus de trait sous l'en-tête** de la fiche.
+- **Tuile État d'esprit : les logos Hiérarchie et Groupe social** s'affichent de nouveau (ils restaient vides).
+
+**Match**
+- **La barre de droite (Tactiques, Consignes, Ajustements, stats, pause) sur la même ligne que le score**, en Grand, Moyen et Petit.
+
+**Ajouts de Kinito**
+- **La fiche joueur de Kinito dans les trois affichages, Grand, Moyen et Petit** : la fiche (bande du haut, carte du joueur, notes, Infos, Pour / Contre) n'est plus réservée à l'affichage Grand. Toujours à activer dans l'app.
+- **La bande du haut en tuiles** : contrat, valeur et dispos, boutons d'action, polygone des attributs, polygone de stats et entraînement, chacun dans sa tuile. En Moyen, tes joueurs ont aussi le polygone de stats. En Moyen et Petit, le menu « Actions » est en tête de la tuile des boutons.
+- **Le temps de jeu en évidence** : le statut du contrat (par exemple « Gardien titulaire ») en tête de la tuile du contrat, en or et en plus grand, au-dessus de « Salaire ».
+- **Niveau et potentiel au-dessus de Pour / Contre, dans les trois affichages** : le niveau au-dessus de Pour, le potentiel au-dessus de Contre, chacun avec le commentaire du préparateur (en entier au survol). Plus de titre « Rapport du préparateur ».
+- **En Moyen et Petit, la carte et le rapport repensés** : le rapport plus haut, avec sa barre de défilement ; les suspensions sous les pieds, dans une case qui va jusqu'en bas ; « Rep » à gauche du nom ; la carte aérée, avec une photo plus grande. En Moyen, l'écart entre la bande du haut et le bloc est le même qu'entre le bloc et les tuiles du bas.
+- **Arrivée des jeunes : les réglages valent pour tout le message** : changer le style des cartes ou la révélation change toutes les catégories tout de suite (avant : seulement la première, jusqu'à ce qu'on quitte le message).
+- **Arrivée des jeunes : toutes les nationalités du jeune** sur l'écran de sa fiche et dans son dossier, chacune avec son drapeau.
+- **Arrivée des jeunes : le drapeau du dos des cartes « Dossier du recruteur »** est net (il était dessiné penché, en escalier).
+
 ### v2.06 (18 novembre 2026)
 
 **Match en direct**
@@ -1192,6 +1219,33 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.07 (19 November 2026)
+
+**The skin's new player profile**
+- **A skin player profile, ready by default**: in the app, a big switch at the top of Player profile. On (default): the skin's profile, settings below locked. Off: your own profile, your previous settings are kept.
+- **The header in 3 tiles**: identity (number on a shirt in the club colours, photo, name, position, age, nation, playing time, caps, wage, value), club (club, availability, ability and potential) and Pros / Cons at the top right in Medium and Large. The polygon and Plans move right of Info.
+- **In Medium and Small, a taller header**: the profile moves down and fills the empty space at the bottom. Bigger Pros / Cons dots, 5 per row.
+- **In Small, the player's tactical effectiveness** right of Progression (their roles and how effective they are).
+- **Player from another club: the Recruitment card**: the player's agent and 3 icon buttons, ask the agent, make an offer, add to shortlist (name on hover). An unavailable button stays visible, greyed out and not clickable. In Large, an agent tile at the bottom right with the same buttons. Eligibility takes the place of Happiness, Injuries stays at the bottom right.
+- **Header lines in a new order**: on the left name, position, age, then nation and caps; on the right Actions, the media description (same font as "Important Player"), playing time, wage, value. In Large, nation and caps on the same line.
+- **Header text aligned and never cut at the bottom** in Medium and Small: the space is shared evenly between the lines. The player's status is centred on their name.
+- **Tactical effectiveness (Small)**: the tactic, the gauge and the positions played fit the same rectangle as the 4 lines on the right.
+- **No more line under the profile header.**
+- **Happiness tile: the Hierarchy and Social group logos** show again (they stayed empty).
+
+**Match**
+- **The right-hand bar (Tactics, Instructions, Tweaks, stats, pause) on the same line as the score**, in Large, Medium and Small.
+
+**Kinito's additions**
+- **Kinito's player profile in all three displays, Large, Medium and Small**: the profile (top band, player card, attributes, Info, Pros / Cons) is no longer limited to the Large display. Still to be enabled in the app.
+- **The top band in tiles**: contract, value and availability, action buttons, attribute polygon, stats polygon and training, each in its own tile. In Medium, your own players also get the stats polygon. In Medium and Small, the "Actions" menu sits at the top of the buttons tile.
+- **Playing time highlighted**: the contract's playing time status at the top of the contract tile, in gold and bigger, above the wage.
+- **Current and potential ability above Pros / Cons, in all three displays**: ability above Pros, potential above Cons, each with the coach's comment (in full on hover). No more report title above them.
+- **In Medium and Small, the card and the report reworked**: the report sits higher, with its scroll bar; suspensions under the feet, in a box that reaches the bottom; "Rep" left of the name; a roomier card with a bigger photo. In Medium, the gap between the top band and the block is the same as between the block and the bottom tiles.
+- **Youth intake: the settings apply to the whole message**: changing the card style or the reveal changes every category at once (before: only the first one, until you left the message).
+- **Youth intake: all of the youngster's nationalities** on their profile screen and in their file, each with its flag.
+- **Youth intake: the flag on the back of the "Scout's file" cards** is sharp (it was drawn tilted, in steps).
 
 ### v2.06 (18 November 2026)
 

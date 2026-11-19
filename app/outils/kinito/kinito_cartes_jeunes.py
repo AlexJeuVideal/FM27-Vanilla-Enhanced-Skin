@@ -252,7 +252,29 @@ def L(fr, en):
     return m
 
 
-VERSION = 33  # v33 (13/11, Kinito : « est-ce que cette feature est traduite dans toutes les langues du jeu ? », puis
+VERSION = 38  # v38 (19/11, Kinito, capture de l'écran de la fiche : « on ne voit pas sa seconde nationalité ») : les
+#               deux chemins de « élément n d'une liste » (nationalites) étaient écrits par chaine() (longueur +
+#               texte : un texte), sans l'octet 1 qui ouvre un chemin de FM (BindingPath : 1, longueur, texte ;
+#               celui de TransferBlockMainFrame, de 26.20 et des projets de 26.22) : FM lisait un chemin illisible,
+#               et aucune autre nationalité ne venait. Écrits par chemin_arg(). Rien d'autre ne change.
+# v37 (19/11, Kinito : « lorsque je change le style, ça ne change que le style de "candidat élite" ;
+#               si je passe sur un autre message et que je reviens, tout passe dans le style sélectionné ; pareil pour
+#               "élite seulement" ») : depuis la v32, la bande des réglages n'est que sur la 1re rangée, mais CHAQUE
+#               catégorie déclarait SA variable rangée du style et des groupes de la révélation : la rangée qui écrit
+#               changeait seule, les autres ne relisaient la valeur rangée qu'à leur construction. Ces deux variables
+#               sont maintenant déclarées UNE fois, à la racine du bloc du message (SquadYouthCandidatesTableBlock, le
+#               porteur de variables de FM, comme 26.13 v33 avec OptionalsDefaulter, vu en jeu), mêmes clés rangées (le
+#               choix déjà fait est gardé), et attendues par la catégorie (comme son « isMessage », qui vient du même
+#               bloc) ; la zone ne les déclare plus. Choix de Kinito : « dans son bloc » (le bloc d'Alex, refait depuis
+#               l'original par jeunes_candidats_fm24 : la relance du catalogue nous repose après lui)
+# v36 (19/11, Kinito sur sa capture : « pourquoi les drapeaux sont affreux sur les cartes cachées mais bien
+#               sur celles retournées ? ») : au dos du style J, le drapeau est sur la FEUILLE penchée de -2,5° ; une
+#               image de 20 px penchée se dessine en escalier (0,87 px de pente : marche au milieu, bandes baveuses),
+#               le texte non. Le drapeau seul est donc tourné de +2,5° (contre-rotation : dessiné à plat, au même
+#               endroit), le reste du dos garde la pente ; aucun autre style ni aucune face ne change (leur drapeau
+#               est à plat). Numéro 36 : celui d'après la « v35 » d'Alex (même code que sa v2.06, VERSION restée 33)
+# v35 (Alex, MAJ de FM du 17/11) : voir SOURCE_DRAPEAU_FMMAJ
+# v33 (13/11, Kinito : « est-ce que cette feature est traduite dans toutes les langues du jeu ? », puis
 #               « oui, comme les consignes ») : nos textes suivent la LANGUE DU JEU, en direct, dans les 20 langues de
 #               FM 27 (voir « v33 : la langue du jeu » plus bas) ; rien d'autre ne change
 # v32 (13/11, Kinito : maquette C, « le bouton paramètres à droite du Tout retourner ») : les choix
@@ -356,6 +378,8 @@ PHOTO_FACE = (84, 78)      # v3 : anneau et photo de la face du style A (px ; v2
 
 MODELE_CAT = "YouthCandidatesCategoryTable"       # global ; propriétaire : jeunes_candidats_fm24 d'Alex
 MODELE_CARTE = "PlayerPortraitNameDescription"    # global, cité par RIEN (05/11) : réécrit, seul propriétaire
+MODELE_BLOC = "SquadYouthCandidatesTableBlock"    # v37 : le bloc du message ; propriétaire : jeunes_candidats_fm24 d'Alex
+#                                                   (nous : deux variables ajoutées à son porteur de FM, par leur nom)
 GUID_CARTE = "fdade584611ec2f408d9cb877f9d08b4"
 MARQUE_ALEX = "uipickercouleurcategorie"          # repères d'Alex : <i> vrai dans la seule catégorie i
 NOMS_MESSAGES = ("MessagesToolScalableGridLayout", "MessagesToolMultiGridLayout")   # les deux lecteurs de messages
@@ -592,6 +616,12 @@ def chaine(s):
     b = s.encode("utf-8")
     assert len(b) < 128
     return bytes([len(b)]) + b
+
+
+def chemin_arg(s):
+    """v38 : un chemin de FM (BindingPath) tel que rangé dans les octets d'arguments : 1, longueur, texte (comme FM,
+    26.20 _chemin_arg et 26.23 chaine) ; chaine() seule écrit un texte, pas un chemin"""
+    return bytes([1]) + chaine(s)
 
 
 def texte_arg(s):
@@ -1896,18 +1926,21 @@ def regle_survol(t, parent, enfant, props):
     return idx
 
 
-def nation(k, parent, couleur, css=None):
+def nation(k, parent, couleur, css=None, contre=0.0, chemin=None):
     """v9 (Kinito : « il faut absolument le drapeau ») : le DRAPEAU et le code à trois lettres (« FRA »), AU-DESSUS du
     nom. Mesuré dans le code du jeu : toutes les images de nation de FM demandent nation_logo_<n°> (l'écusson de la
     fédé : vu en jeu en v5 à v8, cellule de la fiche joueur comprise) ; le drapeau, nation_flag_<n°>, n'est demandé par
     aucun écran. L'image de FM (NationFlag_Medium_Cell ; v14 : 20 x 12,5) est donc liée à NOTRE fonction (une fonction de FM
     inutilisée, réécrite : « nation_flag_ » + nation.UniqueId), comme le drapeau de l'en-tête 26.20, vu en jeu. Si la
-    fonction n'a pas pu être posée : la liaison de FM (le logo). Le code : notre texte, taille fixe (ne dépasse pas)"""
+    fonction n'a pas pu être posée : la liaison de FM (le logo). Le code : notre texte, taille fixe (ne dépasse pas).
+    v36 : contre = l'angle qui redresse l'image quand le parent est penché (dos du style J) ; 0 = rien de changé.
+    v37 : chemin = la nation à montrer (une autre nationalité, nationalites()) ; rien = celle du jeune (person.nation)"""
     t, src = k.t, k.src
+    chemin = chemin or f"{PARAM}.nation"
     ligne = boite(t, src, parent, {"flex-direction": "row", "align-items": "center", "justify-content": "center",
                                    "height": 18, "flex-shrink": 0, **(css or {})}, [CL_NATION])
     tp, rp = src["remap"]
-    r = remap(t, tp, rp, ligne, [("nation", f"{PARAM}.nation", TYPE_NATION)], {"flex-shrink": 0,
+    r = remap(t, tp, rp, ligne, [("nation", chemin, TYPE_NATION)], {"flex-shrink": 0,
                                                                                 "width": DRAPEAU[0],
                                                                                 "height": DRAPEAU[1]})
     td, rd = src["drapeau"]
@@ -1916,9 +1949,10 @@ def nation(k, parent, couleur, css=None):
     if src.get("liaison_drapeau"):
         sd["Binding"], sd["Binding_UxmlAttributeFlags"] = copy.deepcopy(src["liaison_drapeau"]), 1
     sd["PlaceholderImagePath"], sd["PlaceholderImagePath_UxmlAttributeFlags"] = "", 1
-    t.styles.style(t, d, {"position": "absolute", "left": 0, "top": 0, "width": DRAPEAU[0], "height": DRAPEAU[1]})
+    t.styles.style(t, d, {"position": "absolute", "left": 0, "top": 0, "width": DRAPEAU[0], "height": DRAPEAU[1],
+                          **(tourne(contre) if contre else {})})
     sans_clic(t, d)
-    code = texte_lie(t, k.s0, k.texte, ligne, f"{PARAM}.nation.{CODE_NATION}", ["body-sm-strong"],
+    code = texte_lie(t, k.s0, k.texte, ligne, f"{chemin}.{CODE_NATION}", ["body-sm-strong"],
                      {"color": rgba(couleur), "font-size": 11, "white-space": "nowrap", "margin-left": 4,
                       "flex-shrink": 0})
     sans_clic(t, code)
@@ -1926,6 +1960,97 @@ def nation(k, parent, couleur, css=None):
     # styles, mesuré dans la capture de Kinito (J : « FRA » blanc sur papier blanc)
     sd = t.sd(code)
     sd["IgnoreEmbeddedDataStyling"], sd["IgnoreEmbeddedDataStyling_UxmlAttributeFlags"] = 1, 1
+    return ligne
+
+
+# ---------- v37 : toutes les nationalités (26.22 : l'en-tête du dossier de la fenêtre et de l'écran de la fiche) ----------
+# Kinito (19/11, capture de l'écran de la fiche) : « il faut ajouter la nationalité du joueur, toutes ses nationalités
+# d'ailleurs s'il en a plusieurs ». Mesuré (19/11) : la tuile de FM PlayerNationalitiesTile_2x1 montre Player.Nation,
+# puis BindNItemsFromList(Player.SecondaryNationalityList, 1) (une seule de plus, « +N » au-delà) avec la cellule
+# NationCellShortNoBorder (l'écusson de la fédé, pas le drapeau) ; « player » y est du même type que notre « person »
+# (1145176065). Ici : la nation du jeune, puis chacune des N_AUTRES_NAT suivantes, avec NOTRE drapeau et « FRA », comme
+# la carte. Les autres : « élément n d'une liste, s'il existe » (BindListItemUsingIndexToDestinationIfNotNull, comme
+# 26.18 v12, vu en jeu) dans des références nulles au départ, chacune montrée sous un SIVisible (rien si elle est nulle,
+# comme le panneau d'Alex sur club.YouthCandidatesPreview)
+SOURCE_SETTER_NAT = ("GlobalSearchCard", "SearchBindingsSetter")   # gameworld : une BindingSetter de FM (comme 26.18)
+SOURCE_ELEMENT_NAT = "TransferBlockMainFrame"                      # la fonction « élément n d'une liste » (26.13, 26.18)
+FONCTION_ELEMENT_NAT = "21ee6b430323a494099e32901c5497cb"          # BindListItemUsingIndexToDestination
+FONCTION_ELEMENT_SI_NAT = "1f968d66d61c9a443ae9625b7a6ef5e3"       # … IfNotNull (rien si le rang manque)
+LISTE_NAT = "SecondaryNationalityList"
+N_AUTRES_NAT = 4
+V_NAT = "kinitonat"                  # kinitonat0… : les autres nationalités (références sans type, nulles au départ)
+_NAT = {}
+
+
+def fonction_fm(modele, guid):
+    """une copie de la première fonction de FM (BindFunction) de ce GUID dans ce modèle d'origine, lue dans toutes ses
+    références (comme 26.18 fonction_de_fm), ou None"""
+    o = ouvrir(modele, depart_original=True)
+    tt = o[3] if o else None
+    for ref in (((tt.tt.get("references") or {}).get("RefIds") or []) if tt else []):
+        fs = (ref.get("data") or {}).get("BindFunction")
+        for f in fs if isinstance(fs, list) else []:
+            if isinstance(f, dict) and (f.get("m_target") or {}).get("m_guid") == guid:
+                return copy.deepcopy(f)
+    return None
+
+
+def sources_nat():
+    """(arbre, BindingSetter de FM, fonction « élément n ») ou None ; lus une fois"""
+    if "x" not in _NAT:
+        o = ouvrir(SOURCE_SETTER_NAT[0], depart_original=True)
+        ts = o[3] if o else None
+        rs = ts and first(ts, lambda r: ts.name(r) == SOURCE_SETTER_NAT[1] and typ(ts, r).endswith("BindingSetter"))
+        f = fonction_fm(SOURCE_ELEMENT_NAT, FONCTION_ELEMENT_NAT)
+        ok = rs is not None and f is not None
+        if ok:
+            a = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+            ok = (sum(1 for x in a if bytes(x[0]).endswith(b"[SI.Bindable.BindingPath]")) == 2
+                  and sum(1 for x in a if bytes(x[0]).endswith(b"Int32VisualArg")) == 1)
+        _NAT["x"] = (ts, rs, f) if ok else None
+    return _NAT["x"]
+
+
+def fn_element_nat(f0, source, destination, rang):
+    """« élément n d'une liste, s'il existe » : source[rang] -> destination, rien si le rang manque (comme 26.18)"""
+    f = copy.deepcopy(f0)
+    f["m_target"]["m_guid"] = FONCTION_ELEMENT_SI_NAT
+    a = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+    chemins = [x for x in a if bytes(x[0]).endswith(b"[SI.Bindable.BindingPath]")]
+    entiers = [x for x in a if bytes(x[0]).endswith(b"Int32VisualArg")]
+    chemins[0][1], chemins[1][1] = chemin_arg(source), chemin_arg(destination)   # v38 : chemins, pas textes
+    entiers[0][1] = struct.pack("<i", rang)
+    f["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(a)
+    return f
+
+
+def nationalites(k, parent, couleur, css=None, nom=None):
+    """la nation du jeune puis ses autres nationalités, chacune son drapeau et son code (« FRA »), sur une ligne qui
+    passe à la suivante si la place manque ; sans les morceaux de FM : la nation du jeune seule. Rend la ligne"""
+    t, src = k.t, k.src
+    ligne = boite(t, src, parent, {"flex-direction": "row", "align-items": "center", "flex-wrap": "wrap",
+                                   "flex-shrink": 0, **(css or {})})
+    nation(k, ligne, couleur, {"justify-content": "flex-start"})
+    sn = sources_nat()
+    if sn is None or not src.get("cat_visible"):
+        return ligne
+    ts, rs, f0 = sn
+    sel = seul(t, ts, rs, ligne, nom)
+    t.elem(sel)["m_Classes"], t.elem(sel)["m_RuleIndex"] = [], -1
+    sd = t.sd(sel)
+    sd["ValueVariables"], sd["ValueVariables_UxmlAttributeFlags"] = [], 1
+    sd["ReferenceVariables"] = [{"m_type": {"id": 0}, "m_initToNull": 1, "m_name": f"{V_NAT}{i}"}
+                                for i in range(N_AUTRES_NAT)]
+    sd["ReferenceVariables_UxmlAttributeFlags"] = 1
+    sd["BindFunction"] = [fn_element_nat(f0, f"{PARAM}.{LISTE_NAT}", f"{V_NAT}{i}", i) for i in range(N_AUTRES_NAT)]
+    sd["BindFunction_UxmlAttributeFlags"] = 1
+    t.styles.style(t, sel, {"flex-direction": "row", "align-items": "center", "flex-wrap": "wrap", "flex-shrink": 0})
+    tvi, rvi = src["cat_visible"]
+    for i in range(N_AUTRES_NAT):
+        v = visible(t, tvi, rvi, sel, f"{V_NAT}{i}")
+        t.sd(v)["Binding"]["m_direct"]["Nullable"] = 1   # une référence nulle : rien, sans erreur (comme 26.18)
+        t.styles.style(t, v, {"flex-direction": "row", "align-items": "center", "flex-shrink": 0})
+        nation(k, v, couleur, {"justify-content": "flex-start", "margin-left": 10}, chemin=f"{V_NAT}{i}")
     return ligne
 
 
@@ -2047,12 +2172,13 @@ def centrer_entre(bas_vu_dessus, haut_vu_dessous, vu):
     return demi_px((bas_vu_dessus + haut_vu_dessous) / 2 - (vu[0] + vu[1]) / 2)
 
 
-def identite_dos(k, dos, haut, couleur, couleur2, ecart=2):
+def identite_dos(k, dos, haut, couleur, couleur2, ecart=2, contre=0.0):
     """v6 : sur la carte cachée, à la place de « Arrivées jeunes » : le drapeau et « FRA », le prénom et le nom sur deux
-    lignes ; boîte pleine largeur à partir de <haut>, mêmes écarts que la face (v11 : plus de profil, Kinito)"""
+    lignes ; boîte pleine largeur à partir de <haut>, mêmes écarts que la face (v11 : plus de profil, Kinito) ;
+    v36 : contre = l'angle qui redresse le drapeau quand <dos> est penché (passé à nation)"""
     t, src = k.t, k.src
     bloc = boite(t, src, dos, ab(left=6, right=6, top=haut, **{"flex-direction": "column", "align-items": "center"}))
-    nation(k, bloc, couleur2)
+    nation(k, bloc, couleur2, contre=contre)
     noms(k, bloc, couleur, {"margin-top": ecart})   # v12 : l'écart du rythme (2 avant)
     return bloc
 
@@ -2437,7 +2563,8 @@ def dos_j(k, dos, pal):
                                         "flex-shrink": 0, "opacity": 0.9, **tourne(T["angle"])})
         texte(k, tampon, g["mot"], {"color": rgba(g["couleur"]), "font-size": T["taille"], "-unity-font-style": "bold"})
         etoiles_dos(k, v, g, 11, {"top": y_etoiles})
-    identite_dos(k, feuille, y_nation, J["encre"], J["gris"], y_noms - y_nation - HAUTEUR_NATION)
+    # v36 : la feuille est penchée de F["angle"] ; le drapeau est redressé (une image penchée se dessine en escalier)
+    identite_dos(k, feuille, y_nation, J["encre"], J["gris"], y_noms - y_nation - HAUTEUR_NATION, contre=-F["angle"])
     return []
 
 
@@ -3296,16 +3423,99 @@ def nos_elements(t):
 
 
 def cat_a_jour(t, style=None):
-    """v25 : avec <style>, le style de départ déclaré par la zone doit aussi être le bon (l'option de l'app a pu
-    changer)"""
+    """v25 : avec <style>, le style de départ déclaré par la zone devait aussi être le bon ; v37 : la zone ne déclare
+    plus le style (le bloc le fait : bloc_a_jour) ; ici, la zone de cette version et les deux paramètres attendus"""
     zone = first(t, lambda r: t.name(r) == NOM_ZONE)
-    if zone is None:
+    return zone is not None and all(n in noms_attendus(t) for n in VARS_BLOC)
+
+
+# ---------- v37 : le style et les groupes de la révélation, déclarés UNE fois pour les 5 catégories ----------
+VARS_BLOC = (V_STYLE, V_REV)
+
+
+def decl_bloc(style):
+    """les deux variables rangées, mêmes clés qu'avant (v25 / v31) : le choix déjà fait en jeu est gardé"""
+    return [(V_STYLE, f"Float|{numero_style(style)}|{CLE_STYLE}"), (V_REV, f"Float|{REV_DEPART}|{CLE_REV}")]
+
+
+def porteur_bloc(t):
+    """la donnée du porteur de variables de FM à la racine du bloc (BindingSetterComponent : NoIntakeState,
+    EndedState… ; mesuré le 19/11), ou None si la forme a changé"""
+    racines = t.children(t.tt["m_VisualTree"]["rid"])
+    if not racines or not typ(t, racines[0]).endswith("ComponentElement"):
+        return None
+    for c in t.sd(racines[0]).get("m_components") or []:
+        d = (t.refs.get(c["rid"]) or {}).get("data") or {}
+        if isinstance(d.get("ValueVariables"), list) and d["ValueVariables"] and "NoIntakeState" in [
+                v.get("m_name") for v in d["ValueVariables"]]:
+            return d
+    return None
+
+
+def bloc_a_jour(t, style):
+    d = porteur_bloc(t)
+    if d is None:
         return False
-    if style is None:
+    vus = {v.get("m_name"): v["m_scopeValue"]["m_serializedData"] for v in d["ValueVariables"]}
+    return all(vus.get(n) == val for n, val in decl_bloc(style))
+
+
+def bloc_poser(t, style):
+    """nos deux variables à la suite de celles de FM (comme 26.13 v33 : « kinitoindiv24 » à la suite de
+    « selectedtab » dans OptionalsDefaulter, vu en jeu) ; seule la donnée change (comme 26.13)"""
+    d = porteur_bloc(t)
+    if d is None:
+        return [f"{MODELE_BLOC} : porteur de variables de FM (introuvable)"]
+    vs = [v for v in d["ValueVariables"] if v.get("m_name") not in VARS_BLOC]
+    for n, val in decl_bloc(style):
+        x = copy.deepcopy(vs[0])
+        x["m_name"], x["m_scopeValue"]["m_serializedData"] = n, val
+        vs.append(x)
+    d["ValueVariables"] = vs
+    return ["le style et les groupes de la révélation déclarés UNE fois, pour les 5 catégories (racine du bloc, "
+            "à la suite des variables de FM)"]
+
+
+def bloc_retirer(t):
+    d = porteur_bloc(t)
+    if d is None:
+        return False
+    reste = [v for v in d["ValueVariables"] if v.get("m_name") not in VARS_BLOC]
+    if len(reste) == len(d["ValueVariables"]):
+        return False
+    d["ValueVariables"] = reste
+    return True
+
+
+def attente_cat(t):
+    """le BindingExpect de la racine de la catégorie (playerlist, playercount, isMessage)"""
+    return first(t, lambda r: typ(t, r) == "BindingExpect")
+
+
+def noms_attendus(t):
+    be = attente_cat(t)
+    return [p.get("name") for p in (t.sd(be).get("Parameters") or [])] if be is not None else []
+
+
+def attendre_cat(t, retirer=False):
+    """v37 : nos deux variables ajoutées aux paramètres attendus de la catégorie, optionnelles (comme la carte les
+    redemande : v24, v25), à la suite de « isMessage », qu'elle reçoit déjà du même bloc ; retirer : ôtés"""
+    be = attente_cat(t)
+    params = (t.sd(be).get("Parameters") or []) if be is not None else []
+    if not params:
+        return False
+    reste = [p for p in params if p.get("name") not in VARS_BLOC]
+    if retirer:
+        if len(reste) == len(params):
+            return False
+        t.sd(be)["Parameters"] = reste
         return True
-    decl = [x["m_scopeValue"]["m_serializedData"] for c in t.sd(zone).get("m_components") or []
-            for x in (t.refs[c["rid"]]["data"].get("ValueVariables") or []) if x.get("m_name") == V_STYLE]
-    return decl == [f"Float|{numero_style(style)}|{CLE_STYLE}"]
+    for n in VARS_BLOC:
+        p = copy.deepcopy(params[0])
+        p["name"], p["type"], p["isOptional"] = n, {"id": 0}, 1
+        reste.append(p)
+    t.sd(be)["Parameters"] = reste
+    return True
 
 
 def cat_reperes(t):
@@ -3325,13 +3535,16 @@ def cat_poser(t, src, y, style):
     tc, rc = src["composant"]
     zone = seul(t, tc, rc, vis, NOM_ZONE, [CL_ZONE])
     t.styles.style(t, zone, {"flex-direction": "column", "align-self": "stretch", "margin-bottom": 8})
+    # v37 : le style (V_STYLE, v25) et les groupes de 26.22 (V_REV, v31) ne sont plus déclarés ici : le bloc les déclare
+    # une fois pour les 5 catégories (bloc_poser), la catégorie les attend (attendre_cat) ; sinon la 1re rangée, qui
+    # porte la bande des réglages, changeait seule
     if not variables(t, src, zone, [(V_TOUT, "Bool|0|"), (V_MAX, f"Int|{MAX_CARTES}|"),
-                                    (V_REV, f"Float|{REV_DEPART}|{CLE_REV}"),   # v31 : les groupes de 26.22
                                     (V_VRAI, "Bool|1|"),   # v31 : un vrai, pour la boîte de style de 26.22
                                     # (v24 à v30 : l'interrupteur de 26.22)
-                                    (V_STYLE, f"Float|{numero_style(style)}|{CLE_STYLE}"),   # v25 : le style
                                     (V_PREMIER, "Bool|0|"), (V_REGLAGES, "Bool|0|")]):   # v32 : la bande
         return [f"variable de FM ({SOURCE_VARIABLES}) : forme inattendue (introuvable)"]
+    if not attendre_cat(t):
+        return [f"{MODELE_CAT} : paramètres attendus de la catégorie (introuvables)"]
     premiere_rangee(t, src, y, zone)   # v32 : cette catégorie est-elle la 1re rangée affichée ?
     # v33 : la langue du jeu, sur tout ce qui suit (la barre, la bande, et les cartes de la liste)
     lg = conteneur_langue(t, zone, f"{NOM_ZONE}-langue", {"flex-direction": "column", "align-self": "stretch"})
@@ -3450,8 +3663,9 @@ def cat_retirer(t, t_orig):
     # (vu au banc : J -> D -> J)
     marquees = [i for i, rg in enumerate(t.styles.sh["m_Rules"])
                 if any(p.get("m_CustomName") in (REPERE_REGLE, REPERE_REGLE_26_22) for p in rg["m_Properties"])]
+    attendus = attendre_cat(t, retirer=True)   # v37 : nos deux paramètres attendus
     if not ns and not marquees and not (cad is not None and CL_TABLEAU in (t.elem(cad).get("m_Classes") or [])):
-        return False
+        return attendus
     enlever = set(marquees)
     for r in ns:
         if r in t.refs:
@@ -3513,6 +3727,11 @@ def cmd_appliquer():
     style = style_choisi()
     print(f"cartes des jeunes : les {len(ORDRE_STYLES)} styles, choisis en jeu ; style de départ {style.upper()} "
           f"({STYLES[style]['nom']})")
+    # v37 : le bloc doit avoir son porteur de variables (le style et la révélation y sont déclarés) : vu AVANT d'écrire
+    ob = ouvrir(MODELE_BLOC)
+    if ob is None or porteur_bloc(ob[3]) is None:
+        print(f"{MODELE_BLOC} : porteur de variables de FM introuvable, rien n'est changé")
+        return
     # 0 bis. v25 : la ligne du menu des styles (un modèle de FM cité par rien, réécrit)
     olig = ouvrir(MODELE_LIGNE_STYLE)
     if olig is None:
@@ -3578,6 +3797,18 @@ def cmd_appliquer():
             print(f"{MODELE_CAT} : rien n'est changé (la carte non plus)")   # v24 : ni carte ni marqueur
             return
         enregistrer(*o)
+    # 3. v37 : le style et la révélation, déclarés une fois pour les 5 catégories (racine du bloc d'Alex)
+    ob = ouvrir(MODELE_BLOC)
+    if bloc_a_jour(ob[3], style):
+        print(f"{MODELE_BLOC} : déjà appliqué")
+    else:
+        msgs = bloc_poser(ob[3], style)
+        for x in msgs:
+            print(f"{MODELE_BLOC} : {x}")
+        if any("introuvable" in x for x in msgs):
+            print(f"{MODELE_BLOC} : rien n'est changé (la carte et la catégorie non plus)")
+            return
+        enregistrer(*ob)
     nb.save_all()
     if not nb.DRY_RUN:
         with open(MARKER, "w", encoding="utf-8") as f:
@@ -3595,6 +3826,11 @@ def cmd_retirer():
     if o is not None and cat_retirer(o[3], ouvrir(MODELE_CAT, depart_original=True)[3]):
         enregistrer(*o)
         print(f"{MODELE_CAT} : nos morceaux retirés (le reste, dont la fonction d'Alex, n'est pas touché)")
+        rien = False
+    o = ouvrir(MODELE_BLOC)   # v37 : nos deux variables, à la racine du bloc
+    if o is not None and bloc_retirer(o[3]):
+        enregistrer(*o)
+        print(f"{MODELE_BLOC} : nos deux variables retirées (le reste, dont la fonction d'Alex, n'est pas touché)")
         rien = False
     for modele in (MODELE_CARTE, MODELE_LIGNE_STYLE):   # v25 : la ligne du menu des styles aussi
         o = ouvrir(modele)
@@ -3626,6 +3862,9 @@ def cmd_etat():
         noms = sorted({t for t in (o[3].name(r) for r in nos_elements(o[3])) if t.endswith(("-zone", "-carte"))})
         print(f"{modele} : " + (f"à jour, v{VERSION}" if a_jour(o[3]) else
                                 f"ANCIENNE version ({', '.join(noms)})" if noms else "d'origine"))
+    ob = ouvrir(MODELE_BLOC)   # v37
+    print(f"{MODELE_BLOC} : " + ("introuvable" if ob is None else f"style et révélation déclarés (à jour, v{VERSION})"
+                                 if bloc_a_jour(ob[3], style) else "style et révélation PAS déclarés"))
     print(f"fonction du drapeau ({NOM_CIBLE}) : {etat_drapeau()}")
     print("réapplication automatique (choix 1) :", "oui" if os.path.exists(MARKER) else "non")
     revelation("etat")   # v30

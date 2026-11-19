@@ -545,6 +545,9 @@ def jobs():
     lst.append((entete_tuile.MODELE, entete_tuile.job))
     # 2026-11-07 : étoiles Niveau / Potentiel sous la note du rapport (joueur hors club, vue tuile)
     lst.append((entete_tuile.MODELE_RAPPORT, entete_tuile.etoiles_rapport))
+    # 2026-11-19 (le joueur) : bouton « Demander à l'agent » dans la tuile Agent 2x2 de FM (fiche, Large, hors club :
+    # place du bas à droite, fiche_ordre_tuiles)
+    lst.append((entete_tuile.MODELE_TUILE_AGENT, entete_tuile.bouton_tuile_agent))
     # 2026-11-07 (le joueur : « partout juste les diminutifs ») : libellé court au lieu de la phrase, tous les modes,
     # en-tête / carte de la tuile + tuile « Rapport de supervision » + blocs de rapport (rapport_diminutif)
     import rapport_diminutif

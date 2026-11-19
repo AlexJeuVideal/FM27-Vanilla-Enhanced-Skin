@@ -371,7 +371,8 @@ FONCTIONS = {
     "colonne_personnalite": dict(cat="tableaux",
                                  fr="Colonne Personnalité dans Insérer colonne > Infos générales",
                                  en="Personality column in Insert column > General info"),
-    "colonne_temperament": dict(cat="tableaux", textes=True,   # 2026-11-13 ; textes : « Tempérament (logo) »
+    # 2026-11-19 (le joueur : « enlève-le du skin, pas actif à la base ») : facultatif ; déjà actif chez quelqu'un = reste
+    "colonne_temperament": dict(cat="tableaux", textes=True, facultatif=True,   # 2026-11-13 ; textes : « Tempérament (logo) »
                                 fr="Colonne Tempérament (Bosseur, Penseur...) dans Insérer colonne > Infos générales",
                                 en="Mindset column (Hard Worker, Thinker...) in Insert column > General info"),
     "nation_drapeau_seul": dict(cat="tableaux",
@@ -441,20 +442,24 @@ FONCTIONS = {
     # --- Kinito (numéros 26.x de ses notes), rangés par catégorie (KINITO_GROUPES) ---
     # Joueur : fiche
     "kinito_entete_large": dict(cat="kinito", textes=True, facultatif=True,   # 26.20 (2026-11-08)
-                                fr="Fiche joueur en 1080p et affichage Large : en haut, contrat, valeur, dispos, "
-                                   "boutons d'action et polygone ; dessous, la carte du joueur (photo, nation avec "
-                                   "drapeau, lieu de naissance, clubs), postes, notes, Infos, Pour / Contre avec leurs "
-                                   "phrases et rapport ; remplace la fiche du skin à cette taille",
-                                en="Player profile in 1080p and Large display: on top, contract, value, availability, "
-                                   "action buttons and polygon; below, the player card (photo, nation with flag, place "
-                                   "of birth, clubs), positions, attributes, Info, Pros / Cons with their sentences "
-                                   "and report; replaces the skin's profile at that size",
-                                aide=("Seulement en 1080p avec l'affichage des informations « Large » (Préférences de "
-                                      "FM). Moyen, Petit et les autres tailles de fenêtre gardent la fiche du skin ; "
-                                      "les tuiles du bas restent celles du skin.",
-                                      "Only in 1080p with the \"Large\" information display (FM Preferences). Medium, "
-                                      "Small and other window sizes keep the skin's profile; the bottom tiles stay "
-                                      "the skin's.")),
+                                # v21 / bloc v33 (2026-11-19, Kinito) : Grand, Moyen et Petit, plus « 1080p » dans le nom
+                                fr=("Fiche joueur (affichages Grand, Moyen et Petit) : en haut, des tuiles (contrat "
+                                    "avec le temps de jeu en évidence, valeur, dispos, boutons d'action, polygones, "
+                                    "entraînement) ; dessous, la carte du joueur (photo, nation avec drapeau, lieu de "
+                                    "naissance, clubs), postes, notes, Infos, niveau et potentiel au-dessus de Pour / "
+                                    "Contre avec leurs phrases et rapport ; remplace la fiche du skin"),
+                                en=("Player profile (Large, Medium and Small displays): on top, tiles (contract with "
+                                    "playing time highlighted, value, availability, action buttons, polygons, "
+                                    "training); below, the player card (photo, nation with flag, place of birth, "
+                                    "clubs), positions, attributes, Info, current and potential ability above Pros / "
+                                    "Cons with their sentences and report; replaces the skin's profile"),
+                                aide=(("Dans les trois affichages des informations (Grand, Moyen, Petit) et les "
+                                       "quatre tailles du texte, partout où FM prend la grande mise en page de la "
+                                       "fiche (1080p et plus grand). Une fenêtre plus petite garde la fiche du skin ; "
+                                       "les tuiles du bas restent celles du skin."),
+                                      ("In all three information displays (Large, Medium, Small) and the four text "
+                                       "sizes, wherever FM uses the large profile layout (1080p and bigger). A "
+                                       "smaller window keeps the skin's profile; the bottom tiles stay the skin's."))),
     # Effectif
     "kinito_capitaines_vues": dict(cat="kinito",   # 26.8
                                    fr="Capitaines : vues personnalisables dans « Tout l'effectif »",
@@ -615,7 +620,7 @@ OU = {
     "theme_fond": ("Tout le jeu", "Whole game"), "couleurs_interface": ("Barre du haut, Tactiques, tuiles, match",
                                                                                 "Top bar, Tactics, tiles, match"),
     "vues_alexjeuvideal": ("Menu des vues des tableaux", "Tables' views menu"),
-    "kinito_entete_large": ("Fiche joueur (1080p, affichage Large)", "Player profile (1080p, Large display)"),
+    "kinito_entete_large": ("Fiche joueur", "Player profile"),
     "kinito_capitaines_vues": ("Effectif > Capitaines", "Squad > Captains"),
     "kinito_enregistrement": ("Effectif > Enregistrement", "Squad > Registration"),
     "kinito_cartes_jeunes": ("Boîte de réception (message des jeunes) > Arrivée des jeunes",
@@ -780,7 +785,14 @@ BLOQUES_GURU = {
 # (+ tuiles du bas de la fiche, 2026-11-07, le joueur : ordre, État d'esprit / Condition, Stats carrière)
 AVEC_GURU = ["entete_fiche", "style_mediatique", "hors_defaut", "listes_pour_contre", "infobulle_pieds",
              "infobulle_pour_contre", "fiche_ordre_tuiles", "tuile_forme", "tuile_carriere",
-             "match_tuile_banc"]   # 2026-11-18, demande du joueur : Banc de touche à choix aussi en vue Guru
+             "match_tuile_banc",   # 2026-11-18, demande du joueur : Banc de touche à choix aussi en vue Guru
+             # 2026-11-19 (le joueur : « toutes les options de vues dans Guru », séparateurs, vues ; PAS le tempérament)
+             "vues_alexjeuvideal", "colonnes_separateur", "colonne_personnalite", "nation_drapeau_seul",
+             "moral_icone_seule", "tactiques_forme_valeur",   # colonne Forme avec valeur (5 matchs)
+             "recherches_ciblees",   # (le joueur : « perso dans le recrutement ») vues personnalisables du recrutement
+             # (le joueur : « toutes les vues modifiables qu'on a ajoutées ») : programme Rencontres (version Kinito,
+             # vues), rapports des recruteurs, capitaines (Tout l'effectif)
+             "rencontres_stade_spectateurs", "kinito_rapports_vues", "kinito_capitaines_vues"]
 # (temperament_infos : jamais en vue Guru, ni fiche ni infobulle, le joueur 2026-11-13)
 
 # zones d'essai : jamais dans le choix 1, retirées au début du choix 1
@@ -794,7 +806,7 @@ ESSAIS = ["essai_noms_installations", "essai_retour_entrainement", "essai_ids_at
           "essai_salle_trophees",     # 2026-11-09 : bandeau des trophées à la place des Actualités de la page club
           "essai_carte_monde",        # 2026-11-10 : carte de la connaissance du monde, étape 1 (image par sélection féminine)
           "essai_continuer_club",     # 2026-11-11 : bouton Continuer à la couleur du club (comme FM24)
-          "essai_competition_vue",    # 2026-11-12 : Compétition > Vue d'ensemble refaite (v3 : classement | stats 3x2 | 11)
+          "essai_competition_vue",    # 2026-11-12 : Compétition > Vue d'ensemble refaite (v7 : classement | stats en grille | 11 + transferts)
           "essai_selection_top50",    # 2026-11-13 : devenu recrutement\selection_top50 ; gardé pour retirer l'essai
           "essai_salle_honneurs"]     # 2026-11-15 : Honneurs du club = salle des trophées (fond IA + étagères)
 # (essai_echelle_1080p : devenu affichage\echelle_1080p.py le 2026-11-12, script supprimé ; la fonction coupée

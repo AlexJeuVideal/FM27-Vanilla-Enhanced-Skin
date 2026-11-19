@@ -113,7 +113,7 @@ MEDIUM_POLYGONE = (options.get("fiche_medium_colonne") == "polygone" and options
 # Pour / Contre sous le polygone (PC_DESSOUS)
 LARGE_TUILE = options.get("fiche_large_tuile") if options.get("entete_vue") == "tuile" else "entete"
 LARGE_POLYGONE = LARGE_TUILE in ("pastilles", "dessous")
-VERSION_COLONNE = f"uipicker-colonne-v23{SUFFIXE}" + ("-mpoly2" if MEDIUM_POLYGONE else "") # mpoly2 : cale anti-flash
+VERSION_COLONNE = f"uipicker-colonne-v23{SUFFIXE}" + ("-mpoly3proj" if MEDIUM_POLYGONE else "") # mpoly2 : cale anti-flash
                                              # (langue : titre « Projets ») changer le numéro refait la colonne à la prochaine application
                                              # (v8 : bouton polygone / Pour-Contre ; v9 : variable avec portée ;
                                              # v10 : aiguillage de FM ; v11 : élément BindingVariables ; v12 :
@@ -247,9 +247,12 @@ LARGE_PC_SEULS = options.get("entete_vue") == "tuile" and not LARGE_POLYGONE
 # 2026-11-15 (le joueur : « en grand on peut virer la tuile en haut à droite ») : fiche_large_tuile = dessous :
 # polygone en haut, Pour puis Contre dessous (montage POLYGONE_PC_DESSOUS) ; plus rien à droite de l'en-tête en Large
 PC_DESSOUS = POLYGONE_PC_DESSOUS or LARGE_TUILE == "dessous"
+PROJETS_LARGE = LARGE_TUILE == "pastilles" and not PC_DESSOUS   # 2026-11-19 : Large = polygone en haut, Projets dessous
+RAYON_PROJETS_PLUS = 4        # ... rayon du polygone (%) en plus avec Projets dessous (proj2)
+DECALAGE_POLY_PROJETS = 12    # ... px vers la droite (centré dans la place visible, trait de FM retiré)
 VERSION_POLYGONE_LARGE = "uipicker-polygone-large-v8" + (f"-pcseul1-{VERSION_COLONNE}" if LARGE_PC_SEULS else
                                                          f"-lpcb1-{VERSION_COLONNE}" if PC_DESSOUS else
-                                                         "-lpoly1" if LARGE_POLYGONE else
+                                                         f"-lpoly2proj2{SUFFIXE}" if PROJETS_LARGE else
                                                          f"-pc2-{VERSION_COLONNE}" if LARGE_POUR_CONTRE else
                                                          f"-pcb1-{VERSION_COLONNE}" if POLYGONE_PC_DESSOUS else "")   # v7 : polygone par taille de texte ; v8 : zone fixe,
                                                          # rayon qui rapetisse   # v3 : tailles prévues des colonnes comme Guru ; v4 :
@@ -465,11 +468,22 @@ def bascule_polygone(t, col, box, vis):
         t.sd(x)["AlwaysInstantiate"], t.sd(x)["AlwaysInstantiate_UxmlAttributeFlags"] = 1, 1
         t.styles.style(t, x, {"min-width": 0, "overflow": "hidden"})   # largeur gardée (colonne plus « hidden »)
     if MEDIUM_POLYGONE:
-        polygone_cale(t, src, pcol, avec)
+        # 2026-11-19 (le joueur : « en Moyen fais comme Large et Petit ») : polygone centré dans la moitié haute,
+        # Projets dans la moitié basse (cale centrée : ses bords vides débordent de la moitié, coupés)
+        haut = plain(t, avec, None, ["align-self-stretch", "align-items-center", "justify-content-center"])
+        t.elem(haut)["m_RuleIndex"] = -1
+        t.styles.style(t, haut, {**RESTE, "overflow": "hidden"})
+        polygone_cale(t, src, pcol, haut, POLY_MEDIUM_RAYON_PROJETS)
+        err = blocs_small(t, avec)
+        if err:
+            msgs_medium = [f"Medium : Projets sous le polygone ignorés ({err})"]
+        else:
+            msgs_medium = ["Medium : polygone en haut, Projets dessous"]
     else:
+        msgs_medium = []
         polygone(t, src, pcol, avec)
     if not FICHE_SMALL:
-        return ["bouton en haut de la colonne Pour / Contre (Medium / Small) : polygone à leur place"]
+        return msgs_medium + ["bouton en haut de la colonne Pour / Contre (Medium / Small) : polygone à leur place"]
     # Small (le joueur, 2026-11-12) : Pour / Contre passent sous les attributs, le polygone reste seul, sans bouton
     hors = si_small(t, col, t.children(col).index(vp), False, ["flex-grow-class", "align-self-stretch"])
     move(t, vp, hors)
@@ -480,7 +494,7 @@ def bascule_polygone(t, col, box, vis):
     t.elem(haut)["m_RuleIndex"] = -1
     t.styles.style(t, haut, {**RESTE, "overflow": "hidden"})
     polygone(t, src, pcol, haut)
-    msgs = ["bouton en haut de la colonne Pour / Contre (Medium) : polygone à leur place",
+    msgs = msgs_medium + ["bouton en haut de la colonne Pour / Contre (Medium) : polygone à leur place",
             "Small : polygone en haut de la colonne, sans bouton"]
     err = blocs_small(t, seul)
     return msgs + ([f"{err}, blocs sous le polygone ignorés"] if err else
@@ -622,7 +636,10 @@ POLY_MEDIUM_DECALAGE = 8           # px vers la droite
 POLY_MEDIUM_INTERIEUR = 2.0
 
 
-def polygone_cale(t, src, pcol, parent):
+POLY_MEDIUM_RAYON_PROJETS = 95.0  # px avec Projets dessous (moitié de hauteur : étiquettes ~±127 px)
+
+
+def polygone_cale(t, src, pcol, parent, rayon=POLY_MEDIUM_RAYON_PX):
     w, h = POLY_MEDIUM_CALE
     gw, gh = round(w * POLY_MEDIUM_INTERIEUR), round(h * POLY_MEDIUM_INTERIEUR)
     fixe = lambda a, b: {"width": a, "min-width": a, "max-width": a, "height": b, "min-height": b,  # noqa: E731
@@ -638,7 +655,7 @@ def polygone_cale(t, src, pcol, parent):
     polygone(t, src, pcol, att)
     for r in t.walk(att):
         if typ(t, r).endswith("FMSpiderChart"):
-            t.sd(r)["SpiderChartRadiusPercentage"] = round(POLY_MEDIUM_RAYON_PX * 100.0 / min(gw, gh), 2)
+            t.sd(r)["SpiderChartRadiusPercentage"] = round(rayon * 100.0 / min(gw, gh), 2)
             t.elem(r)["m_Classes"] = [k for k in t.elem(r)["m_Classes"]
                                       if k not in ("justify-content-end", "flex-grow-class", "align-self-stretch")]
             t.styles.style(t, r, fixe(gw, gh))
@@ -1218,6 +1235,21 @@ def polygone_large(t):
                 if t.name(r) == "layout-divider-solid-horizontal" or (
                         t.elem(r).get("m_TemplateAlias") or "") == "layout-divider-solid-horizontal":
                     t.elem(r)["m_Classes"] = ["align-self-stretch", "margin-vertical-global-gap-small"]
+        elif PROJETS_LARGE:
+            # 2026-11-19 (le joueur, option pastilles : Pour / Contre dans l'en-tête) : polygone centré dans la moitié
+            # haute, Projets (comme le Small) dans la moitié basse, deux moitiés égales
+            t.elem(col)["m_Classes"] = ["column-direction-normal", "align-items-stretch", "flex-grow-class"]
+            cible = plain(t, col, None, ["align-self-stretch", "align-items-center", "justify-content-center"])
+            t.elem(cible)["m_RuleIndex"] = -1
+            # (le joueur, capture : « agrandis un peu, décale légèrement à droite ») : rayon + RAYON_PROJETS_PLUS,
+            # décalé de DECALAGE_POLY_PROJETS px dans la place laissée à droite (trait de FM retiré) : rien de coupé
+            t.styles.style(t, cible, {**RESTE, "overflow": "visible", "right": -DECALAGE_POLY_PROJETS})
+            t.styles.style(t, taille, {"overflow": "visible"})
+            t.styles.style(t, col, {"overflow": "visible"})
+            rayon = rayon + RAYON_PROJETS_PLUS
+            err = blocs_small(t, col)
+            if err and not msg_pc:
+                msg_pc = [f"mode Large : Projets sous le polygone ignorés ({err})"]
         poly = t.clone(chart, cible, src=src)   # polygone de la fiche d'origine, réglé comme la vue Guru
         t.styles.copy_from(src.styles, t, poly)
         copy_usings(t, src, chart)
@@ -1872,7 +1904,9 @@ def taille_infos(t):
     """2026-11-05 (le joueur) : avec l'en-tête en grande tuile (option entete_vue = tuile), la taille est sous le
     nom en haut -> « Taille » d'Infos cachée dans toutes les fiches (tous modes) ; remise si l'option revient à FM.
     Cachée par un élément SANS liaison (taille 0, coupé, hors du flux : rien de lié ne tient au chargement)"""
-    cacher_ = options.get("entete_vue") == "tuile"
+    # 2026-11-19 (le joueur, en-tête format Gómez : « remets la taille dans les infos comme à la base ») : pas cachée
+    # avec entete_style = gomez (l'en-tête ne la montre plus)
+    cacher_ = options.get("entete_vue") == "tuile" and options.get("entete_style") != "gomez"
     boites = [r for r in t.walk() if t.name(r) == NOM_TAILLE_CACHEE]
     if not cacher_:
         for b in boites:
@@ -1895,6 +1929,37 @@ def taille_infos(t):
     return [f"taille cachée dans Infos ({len(tailles)}), elle est dans l'en-tête en grande tuile"] if tailles else []
 
 
+NOM_TRAIT_COLONNE = "UIPickerTraitColonnePolygone-v1"
+
+
+def trait_colonne_polygone(t):
+    """2026-11-19 (le joueur, Large : « un séparateur à droite du polygone, pourquoi ? ») : FM cache la colonne 6
+    (polygone de FM / Pour / Contre) en Large mais laisse le trait qui la précède (colonne 5). Le trait passe dans un
+    SIVisible lié comme le bouton du polygone (affiché seulement avec la colonne 6) ; le conteneur garde la place de
+    colonne 5 (et ses marges) pour l'ExpandableContentElement"""
+    exp = first(t, lambda r: isinstance((t.sd(r).get("Settings") or {}).get("m_settings"), list))
+    kids = t.children(exp) if exp is not None else []
+    if len(kids) != 7:
+        return ["colonnes de la fiche introuvables (le jeu a changé ?), trait du polygone laissé"]
+    trait = kids[5]
+    if t.name(trait) == NOM_TRAIT_COLONNE:
+        return []
+    if (t.elem(trait).get("m_TemplateAlias") or "") != "layout-divider-solid-vertical":
+        return ["trait de la colonne du polygone introuvable, laissé"]
+    marges = [c for c in (t.elem(trait).get("m_Classes") or []) if c.startswith("margin-")]
+    boite = plain(t, exp, 5, marges + ["row-direction-normal", "align-self-stretch"], NOM_TRAIT_COLONNE)
+    t.sd(boite)["name_UxmlAttributeFlags"] = 1
+    t.elem(boite)["m_RuleIndex"] = -1
+    t.styles.style(t, boite, {"flex-grow": 0, "flex-shrink": 0})
+    vis = plain(t, boite, None, ["row-direction-normal", "align-self-stretch"])
+    t.elem(vis)["m_RuleIndex"] = -1
+    if not polygon_visible(t, vis):
+        return ["bouton du polygone introuvable, trait laissé"]
+    t.elem(trait)["m_Classes"] = [c for c in (t.elem(trait).get("m_Classes") or []) if not c.startswith("margin-")]
+    move(t, trait, vis)
+    return ["Large : trait à droite du polygone retiré (colonne de FM cachée)"]
+
+
 def jobs():
     # 2026-11-12 : la vue FM Guru est un script à part (fiche_fmguru.py) qui prend le dessus : cette fonction est
     # désactivée quand elle est choisie (main) ; sans_guru nettoie encore une vue Guru d'avant (v1 à v12, ici)
@@ -1908,6 +1973,7 @@ def jobs():
                              (FICHE_SMALL and LEGENDE_A_GAUCHE, small_gauche_infos)) if on]
     if POLYGONE_LARGE:
         big.append(polygone_large)   # en dernier ; recopie le tableau d'attributs : son job passe avant
+        big.append(trait_colonne_polygone)
     if POUR_CONTRE_A_LA_PLACE_DU_POLYGONE and POLYGONE_POUR_CONTRE:
         big.append(bouton_large_seul)   # après la copie Large (qui garde le bouton)
     big.append(taille_infos)   # en dernier : aussi dans les copies d'Infos (option entete_vue, 2026-11-05)

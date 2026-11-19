@@ -377,6 +377,66 @@ def regle_blessures(modele):
     return {"m_itemA": ELEMENT_BLESSURES, "m_itemB": f}
 
 
+# 2026-11-19 (le joueur : hors club, « pas besoin de carrousel » à la place d'État d'esprit, où fiche_ordre_tuiles
+# v12 met Éligibilité devant) : État d'esprit visible seulement si Éligibilité est cachée. Règle de FM d'Éligibilité
+# (37341ce5 : 2 comparaisons ET, ReportMode != 0 et != 2) recopiée sur Happiness avec ReportMode != 1 et < 3 :
+# toujours une seule des deux visible (0 / 2 : État d'esprit ; 1, 3+ : Éligibilité)
+ELEMENT_ETAT = "Happiness"
+ELEMENT_ELIG = "PlayerHomegrownStatus"
+ELEMENT_AGENT = "AgentReport"   # <ID> de PlayerAgentReportTileDescription
+OP_INF_STRICT = 0
+
+
+def regle_etat_esprit(modele_elig):
+    """règle « État d'esprit visible si ReportMode != 1 et < 3 » d'après celle d'Éligibilité (None si inattendue)"""
+    f = json.loads(json.dumps(modele_elig["m_itemB"]))
+    args = decode_args(f["m_inputs"]["m_variable"]["m_argumentBytes"])
+    if len(args) != 7 or not args[6][0].endswith(b"StringVisualArg"):
+        return None
+    args[0][1], args[1][1] = OP_DIFFERENT.to_bytes(4, "little"), (1).to_bytes(4, "little")
+    args[3][1], args[4][1] = OP_INF_STRICT.to_bytes(4, "little"), (3).to_bytes(4, "little")
+    s = ELEMENT_ETAT.encode()
+    args[6][1] = b"\x01" + bytes([len(s)]) + s
+    f["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(args)
+    return {"m_itemA": ELEMENT_ETAT, "m_itemB": f}
+
+
+def etat_esprit_hors_club(listes, retirer):
+    """pose / retire la règle d'État d'esprit dans chaque liste ; True si changé"""
+    import fiche_ordre_tuiles as fot
+    change = False
+    for v in listes:
+        elig = next((e for e in v if e["m_itemA"] == ELEMENT_ELIG), None)
+        etat = next((e for e in v if e["m_itemA"] == ELEMENT_ETAT), None)
+        if elig is None or etat is None:
+            continue
+        voulu = None if (retirer or not fot.ELIG_A_LA_PLACE_ETAT_ESPRIT) else regle_etat_esprit(elig)
+        if voulu is None:
+            # FM : règle vide (toujours visible)
+            voulu = {"m_itemA": ELEMENT_ETAT, "m_itemB": {"m_target": {"m_guid": ""}, "m_inputs": {"m_variable": {
+                "m_argumentBytes": []}}, "m_outputs": {"m_variable": {"m_argumentBytes": []}}}}
+        if etat != voulu:
+            etat.clear()
+            etat.update(voulu)
+            change = True
+        # v14 de fiche_ordre_tuiles (Large, place du bas à droite) : tuile Agent visible comme Éligibilité (autres
+        # clubs : ReportMode != 0 et != 2) ; règle d'Éligibilité recopiée avec le nom de la tuile
+        voulu_a = None
+        if not retirer and fot.ELIG_A_LA_PLACE_ETAT_ESPRIT:
+            voulu_a = json.loads(json.dumps(elig))
+            voulu_a["m_itemA"] = ELEMENT_AGENT
+            ab = voulu_a["m_itemB"]["m_inputs"]["m_variable"]
+            args = decode_args(ab["m_argumentBytes"])
+            s = ELEMENT_AGENT.encode()
+            args[-1][1] = b"\x01" + bytes([len(s)]) + s
+            ab["m_argumentBytes"] = encode_args(args)
+        actuel = [e for e in v if e["m_itemA"] == ELEMENT_AGENT]
+        if actuel != ([voulu_a] if voulu_a else []):
+            v[:] = [e for e in v if e["m_itemA"] != ELEMENT_AGENT] + ([voulu_a] if voulu_a else [])
+            change = True
+    return change
+
+
 def fiche_large(retirer=False):
     """v6 : règle de visibilité des Blessures dans PlayerReport (posée / retirée sur place) ; True si changé"""
     o = ouvrir(FICHE)
@@ -399,6 +459,10 @@ def fiche_large(retirer=False):
             continue
         v[:] = [e for e in v if e["m_itemA"] != ELEMENT_BLESSURES] + ([voulu] if voulu else [])
         change = True
+    if etat_esprit_hors_club(listes, retirer):
+        change = True
+        print(f"{FICHE} : État d'esprit " + ("toujours visible (FM)" if retirer else
+                                              "caché pour les joueurs hors club (Éligibilité à sa place)"))
     if change:
         obj.save_typetree(tt)
         nb._dirty.add(bundle)

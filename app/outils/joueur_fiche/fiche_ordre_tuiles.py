@@ -59,6 +59,13 @@ ELARGIR = {}
 TAILLES = {"PlayerReportOverviewComposition-Large": {"PlayerSeasonStats": (8, 8, 10)}}
 LARGEUR = {c: {k: w for k, (w, _, _) in t.items()} for c, t in TAILLES.items()}
 SLOT_ENTRAINEMENT = "PlayerTrainingOverview"
+# 2026-11-19 ESSAI (le joueur : vide en bas en Medium / Small, « étendre ce qu'on a déjà », « try ») : gros bloc
+# 5 -> 6 rangées (comme le Large), rangée du bas descendue d'une rangée ; seulement par le 124
+# (UIPICKER_ESSAI_RANGEE=1) ; sans la variable, bloc remis à sa place d'origine. Risque connu (technique.md) : +1
+# rangée = page qui défile
+ESSAI_RANGEE = os.environ.get("UIPICKER_ESSAI_RANGEE") == "1"
+RANGEE_EN_PLUS = {"PlayerReportOverviewComposition-Standard", "PlayerReportOverviewComposition-Small"}
+BLOC = "PlayerAttributesBlock"
 GUID_EFFICACITE_2X2 = "d0a61cef5fce9e640bd4623e58da0cdc"   # TacticalEffectivenessTile_2x2
 # v9 (2026-11-13, le joueur : « Entraînement fait doublon avec Progression en haut ») : essai, seulement par le .bat
 # 124 (argument --blessures, pas d'option dans l'app) -> la tuile Historique des blessures de FM (celle de Condition
@@ -75,6 +82,16 @@ GUID_EFFICACITE_2X2 = "d0a61cef5fce9e640bd4623e58da0cdc"   # TacticalEffectivene
 DESC_ELIGIBILITE = "PlayerHomegrownStatusTileDescription"
 DESC_BLESSURES = "InjuryHistoryTileDescription"
 GUID_BLESSURES = "67103b067801d3c4f824e737a8cb0f1e"        # InjuryHistoryTile_4x2
+# v12 (2026-11-19, le joueur) : joueur hors club : Éligibilité à la place d'État d'esprit (vide pour eux), Blessures
+# toujours en bas à droite ; tes joueurs : inchangé (Éligibilité cachée par FM pour eux)
+ELIG_A_LA_PLACE_ETAT_ESPRIT = True
+SLOT_ETAT_ESPRIT = "Happiness"
+# v14 (2026-11-19, le joueur : Large, joueur hors club, place du bas à droite vide : « une tuile que pour ici, avec
+# un bouton parler à l'agent ») : tuile Agent de FM (2x2, bouton ajouté par entete_tuile.bouton_tuile_agent) en
+# dernier dans cette place, composition Large seulement ; visible hors club seulement (règle de tuile_blessures)
+DESC_AGENT = "PlayerAgentReportTileDescription"
+GUID_AGENT_2X2 = "c90b5ce296820404ea5b7ce471742488"   # PlayerAgentReportTile_2x2
+COMPOSITION_AGENT = "PlayerReportOverviewComposition-Large"
 # =====================================================================================================
 
 TUILES = os.path.join(nb.AA, "ui-tileslayouts_assets_all.bundle")
@@ -139,7 +156,7 @@ def jeu_tuiles(env):
     return None
 
 
-def configs_voulues(orig_c, loc, eff, bles=None, elig=None):
+def configs_voulues(orig_c, loc, eff, bles=None, elig=None, agent=None):
     """(m_configDescriptions, m_gridElementConfigs) de la place Entraînement : celles de FM, avec (mode Guru, place
     2x2) l'Efficacité tactique en premier = choisie d'office ; v9 (option fiche_blessures) : l'Historique des
     blessures en premier, à la taille de la place (2x2, étirée à 4 en Large)"""
@@ -151,10 +168,23 @@ def configs_voulues(orig_c, loc, eff, bles=None, elig=None):
                          "Asset": {"m_FileID": 0, "m_PathID": 0},
                          "AssetRef": {"m_AssetGUID": GUID_BLESSURES, "m_SubObjectName": "", "m_SubObjectType": ""},
                          "Type": 0})
-        # v11 : Éligibilité (description + ses configs, ordre de FM gardé entre elles) remise devant les Blessures
-        if elig is not None and elig in descs:
+        # v11 : Éligibilité remise devant les Blessures ; v12 (2026-11-19, le joueur : « hors club, remplace État
+        # d'esprit par Éligibilité, qu'on voie les blessures tout le temps en bas à droite ») : plus remise devant
+        # (Blessures en 1er pour tous), elle passe à la place d'État d'esprit (configs_etat_esprit)
+        if elig is not None and elig in descs and not ELIG_A_LA_PLACE_ETAT_ESPRIT:
             descs = [d for d in descs if d == elig] + [d for d in descs if d != elig]
             confs = [c for c in confs if c["Description"] == elig] + [c for c in confs if c["Description"] != elig]
+        elif elig is not None and ELIG_A_LA_PLACE_ETAT_ESPRIT:
+            # v13 (le joueur : « pas de carrousel en bas à droite, ne mets que celle-là ») : Éligibilité retirée de
+            # cette place (hors club : Blessures seule visible)
+            descs = [d for d in descs if d != elig]
+            confs = [c for c in confs if c["Description"] != elig]
+        if agent is not None and agent not in descs:   # v14 : tuile Agent en dernier (Large)
+            descs.append(dict(agent))
+            confs.append({"Description": dict(agent), "Size": {"x": loc["width"], "y": loc["height"]},
+                          "Asset": {"m_FileID": 0, "m_PathID": 0},
+                          "AssetRef": {"m_AssetGUID": GUID_AGENT_2X2, "m_SubObjectName": "", "m_SubObjectType": ""},
+                          "Type": 0})
     elif eff is not None and (loc["width"], loc["height"]) == (2, 2):
         descs.insert(0, dict(eff))
         confs.insert(0, {"Description": dict(eff), "Size": {"x": 2, "y": 2},
@@ -162,6 +192,17 @@ def configs_voulues(orig_c, loc, eff, bles=None, elig=None):
                          "AssetRef": {"m_AssetGUID": GUID_EFFICACITE_2X2, "m_SubObjectName": "",
                                       "m_SubObjectType": ""}, "Type": 0})
     return descs, confs
+
+
+def configs_etat_esprit(orig_c, orig_entr, elig):
+    """v12 : place État d'esprit = Éligibilité en 1er (sa visibilité de FM : autres clubs seulement, ReportMode != 0
+    et != 2 ; ses configs prises dans la place Entraînement d'origine, toutes tailles), puis État d'esprit de FM"""
+    descs = [dict(d) for d in orig_c["m_configDescriptions"]]
+    confs = json.loads(json.dumps(orig_c["m_gridElementConfigs"]))
+    ajout = [c for c in json.loads(json.dumps(orig_entr["m_gridElementConfigs"])) if c["Description"] == elig]
+    if not ajout or elig in descs:
+        return descs, confs
+    return [dict(elig)] + descs, ajout + confs
 
 
 def compositions(env):
@@ -241,6 +282,7 @@ def run(retirer):
     elig = description_blessures(env, DESC_ELIGIBILITE) if bles is not None else None
     if bles is not None and elig is None:
         print("Éligibilité (statut formé au club) introuvable (le jeu a changé ?) : Blessures aussi pour les autres clubs")
+    agent = description_blessures(env, DESC_AGENT) if bles is not None and ELIG_A_LA_PLACE_ETAT_ESPRIT else None
     # v9 : jeu de tuiles de la page = celui de FM (+ Historique des blessures si choisi : dans le ⌄ aussi)
     js = jeu_tuiles(env)
     src = backup.backup_path(TUILES)
@@ -250,6 +292,8 @@ def run(retirer):
         voulu_js = [dict(d) for d in js_orig.read_typetree()["m_gridElementDescriptions"]]
         if bles is not None and bles not in voulu_js:
             voulu_js.append(dict(bles))
+        if agent is not None and agent not in voulu_js:
+            voulu_js.append(dict(agent))
         if tt_js["m_gridElementDescriptions"] != voulu_js:
             tt_js["m_gridElementDescriptions"] = voulu_js
             js.save_typetree(tt_js)
@@ -264,6 +308,11 @@ def run(retirer):
             continue
         fait = []
         orig_comp = {c["m_elementID"]: c for c in orig[nom][1]["m_gridComponents"]}
+        if BLOC in orig_comp and BLOC not in cible:   # gros bloc : place d'origine, sauf ESSAI_RANGEE
+            cible[BLOC] = dict(orig_comp[BLOC]["m_location"])
+        if ESSAI_RANGEE and not (retirer or g) and nom in RANGEE_EN_PLUS and BLOC in cible:
+            cible[BLOC]["height"] += 1
+            cible = {k: ({**l, "y": l["y"] + 1} if k in ORDRE else l) for k, l in cible.items()}
         for c in tt["m_gridComponents"]:
             l = cible.get(c["m_elementID"])
             if l is not None and c["m_location"] != l:
@@ -278,13 +327,24 @@ def run(retirer):
                 if (c["m_minSize"]["x"], c["m_maxSize"]["x"]) != (mini, maxi):
                     c["m_minSize"]["x"], c["m_maxSize"]["x"] = mini, maxi
                     fait.append(c["m_elementID"] + " (taille)")
+                # ESSAI_RANGEE : hauteur mini du gros bloc = sa hauteur (sinon celle de FM)
+                mini_y = cible[BLOC]["height"] if c["m_elementID"] == BLOC else o_c["m_minSize"]["y"]
+                if c["m_minSize"]["y"] != mini_y:
+                    c["m_minSize"]["y"] = mini_y
+                    fait.append(c["m_elementID"] + " (hauteur)")
                 # v8 : configs de FM (remet celles changées par v6 / v7)
                 confs = json.loads(json.dumps(o_c["m_gridElementConfigs"]))
-                if c["m_elementID"] != SLOT_ENTRAINEMENT and c["m_gridElementConfigs"] != confs:
-                    c["m_gridElementConfigs"] = confs
+                descs_o = [dict(d) for d in o_c["m_configDescriptions"]]
+                if (c["m_elementID"] == SLOT_ETAT_ESPRIT and ELIG_A_LA_PLACE_ETAT_ESPRIT and elig is not None
+                        and SLOT_ENTRAINEMENT in orig_comp):
+                    descs_o, confs = configs_etat_esprit(o_c, orig_comp[SLOT_ENTRAINEMENT], elig)
+                if c["m_elementID"] != SLOT_ENTRAINEMENT and (c["m_gridElementConfigs"] != confs
+                                                              or c["m_configDescriptions"] != descs_o):
+                    c["m_gridElementConfigs"], c["m_configDescriptions"] = confs, descs_o
                     fait.append(c["m_elementID"] + " (config)")
             if c["m_elementID"] == SLOT_ENTRAINEMENT and c["m_elementID"] in orig_comp:
-                descs, confs = configs_voulues(orig_comp[c["m_elementID"]], c["m_location"], eff, bles, elig)
+                descs, confs = configs_voulues(orig_comp[c["m_elementID"]], c["m_location"], eff, bles, elig,
+                                               agent if nom == COMPOSITION_AGENT else None)
                 if c["m_configDescriptions"] != descs or c["m_gridElementConfigs"] != confs:
                     c["m_configDescriptions"], c["m_gridElementConfigs"] = descs, confs
                     fait.append(c["m_elementID"] + (" (Historique des blessures)" if bles else

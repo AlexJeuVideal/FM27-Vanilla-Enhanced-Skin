@@ -56,12 +56,14 @@ GRILLE_MENTAL = ["PlayerHappinessTile_2x2", "PlayerHappinessTile_4x2", "PlayerHa
 GRILLE_PHYSIQUE = ["PlayerFitnessTile_2x2", "PlayerFitnessTile_4x2"]
 REMISES_FM = ["PlayerFitnessTile_2x1"]
 ANCIENS = GRILLE_MENTAL + GRILLE_PHYSIQUE + REMISES_FM   # retirer : remises d'origine
-VERSION_GRILLE = "uipicker-tuile-grille-v9"# changer le numéro refait les tuiles de grille (v2 : icônes en
+VERSION_GRILLE = "uipicker-tuile-grille-v11"# changer le numéro refait les tuiles de grille (v2 : icônes en
                                                # grand avec leur texte, condition à gauche, forme / fatigue + statut ;
                                                # v7 : Small, forme / fatigue collées au texte, trait d'État d'esprit
                                                # au milieu ; v8 : Condition comme en Small dans tous les modes, 2x2 en
                                                # Large = icônes + petit texte ; v9 : logos Hiérarchie / Groupe social
-                                               # dans État d'esprit, 2x2 en Large = 4 icônes sans texte)
+                                               # dans État d'esprit, 2x2 en Large = 4 icônes sans texte ; v10 :
+                                               # textes liés gardés cachés, demande_cachee)
+CLASSE_DEMANDE = "uipicker-logos-demande-v1"
 LOGOS_ECART_LARGE = 20                         # px entre [smiley, boussole] et [logos] (2x2 en Large, sans texte)
 LOGOS_ECART_TEXTE = 12                         # px minimum entre les textes et les logos (hors Large)
 LOGOS_MARGE_DROITE = 20                        # px entre les logos et le bord droit de la tuile (hors Large)
@@ -160,10 +162,26 @@ def icones(t, parent, noms, ns, rm_note, taille=None, case=None, base=JOUEUR):
     return None
 
 
-def logos(t, rm, bulle=True, taille=None, en_ligne=False, case=None):
+def chemin_texte(t, r):
+    return (((t.sd(r).get("TextBinding") or {}).get("m_direct") or {}).get("Path") or {}).get("m_path")
+
+
+def demande_cachee(t, r, rm):
+    """grille-v10 (2026-11-19, le joueur : logos vides dans la tuile, pleins dans l'onglet Personnel) : le texte de
+    FM lié directement à l'info (hiérarchie / groupe) gardé hors du SIVisible, en 0 x 0 : sa liaison directe fait
+    charger l'info par FM (la fonction du BindingDataSetter seule ne la demande pas, hypothèse)"""
+    move(t, r, rm)
+    t.sd(r)["name"] = ""
+    t.elem(r)["m_Classes"] = [CLASSE_DEMANDE]
+    t.elem(r)["m_RuleIndex"] = -1
+    t.styles.style(t, r, {**FIXE, "width": 0, "height": 0, "min-width": 0, "min-height": 0, "max-width": 0,
+                          "overflow": "hidden"})
+
+
+def logos(t, rm, bulle=True, taille=None, en_ligne=False, case=None, demande=False):
     """logos Hiérarchie / Groupe social (BindingSetter de l'onglet Personnel recopié : sans info, rien) dans le
     conteneur rm (où « person » existe) ; textes retirés, libellé au survol si bulle ; taille = px de l'image ;
-    case = hauteur px de chaque ligne (alignée sur les cases des icônes)"""
+    case = hauteur px de chaque ligne (alignée sur les cases des icônes) ; demande : texte lié gardé, caché"""
     fs = src_tree(fjp.GROS_BLOC)
     tip = first(fs, lambda r: typ(fs, r) == "SI.Bindable.Tooltip" and len(fs.children(r)) == 1
                 and typ(fs, fs.children(r)[0]) == "SI.Bindable.SIText") if fs else None
@@ -179,7 +197,10 @@ def logos(t, rm, bulle=True, taille=None, en_ligne=False, case=None):
         t.sd(new)["name"] = ""
         t.styles.copy_from(Styles(bundle, stt), t, new)   # taille de l'image (24 px)
         for r in [r for r in t.walk(new) if typ(t, r) == "SI.Bindable.SIText"]:
-            t.remove(r)
+            if demande and chemin_texte(t, r) == label:
+                demande_cachee(t, r, rm)
+            else:
+                t.remove(r)
         img = next(r for r in t.walk(new) if typ(t, r) == "SI.Bindable.SIImage")
         frame = t.parent[img]
         t.elem(img)["m_Classes"] = []
@@ -325,12 +346,19 @@ def colonne_logos(t, parent, index, ns, rm_note):
     for k in list(t.children(rm)):
         t.remove(k)
     t.sd(rm)["name"] = PREFIXE + "Logos"
+    # grille-v11 (le joueur : logos toujours vides) : le modèle de FM (PersonPersonalBlock_HierarchyFrame) attend
+    # person, team ET IsAvailable : son interrupteur (fd9f0cec) ne montre le logo que si IsAvailable est vrai ; sans
+    # lui = branche « pas d'info » (texte retiré par nous) = vide. IsAvailable = const.True, team = équipe du joueur
     t.sd(rm)["Mappings"] = [{"m_serialisedType": 0, "from": "person", "to": {"m_path": JOUEUR},
-                             "type": {"id": fjp.JOUEUR}}]
+                             "type": {"id": fjp.JOUEUR}},
+                            {"m_serialisedType": 0, "from": "team", "to": {"m_path": JOUEUR + ".Team"},
+                             "type": {"id": fjp.EQUIPE}},
+                            {"m_serialisedType": 0, "from": "IsAvailable", "to": {"m_path": "const.True"},
+                             "type": {"id": 0}}]
     t.elem(rm)["m_Classes"] = ["column-direction-normal", "align-items-center", VERSION_GRILLE]
     t.elem(rm)["m_RuleIndex"] = -1
     t.styles.style(t, rm, FIXE)
-    return rm, logos(t, rm, taille=TAILLE_GRANDE, case=CASE_ICONE)
+    return rm, logos(t, rm, taille=TAILLE_GRANDE, case=CASE_ICONE, demande=True)
 
 
 def mental_logos(t, cadre, l1, l2, ns, rm_note):

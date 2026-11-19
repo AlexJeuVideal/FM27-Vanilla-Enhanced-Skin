@@ -1,5 +1,41 @@
 """[AJOUT KINITO] 26.20 — la bande du haut de la fiche joueur, À NOUS, en 1080p et affichage « Large » (06/11/2026).
 
+Bloc v24 (Kinito, 16/11/2026, joueur prêté, photo coupée en Grand aux textes Grand et Plus grand : « retirer en
+dimensionnement grand Club parent et En prêt à, on laisse que les écussons de club ») : en affichage Grand seulement,
+le prêt de la carte du joueur n'a plus que les deux écussons et l'icône des prêts ; titres et noms des clubs restent en
+Moyen et Petit (PRET_ECUSSONS_SEULS, _pret_cote_a_cote).
+Bloc v33 (Kinito, 17/11/2026) : en Grand aussi, les titres et noms reviennent (la carte n'a plus les étoiles).
+
+Bloc v25 (Kinito, 16/11/2026, en Moyen : « manger un peu l'écart entre la bande du haut et la carte joueur ») : la bande
+vide sous la bande, en Moyen, était dans NOTRE bloc (journal des clics) : un SIVisible de taille du texte, visible et
+vide, qui prenait la moitié de la place libre de la case. Les places des tailles du texte sont maintenant un arbre de
+SIVisible deux à deux contraires (_places_tailles) : la carte et les attributs prennent toute la case du bloc.
+
+v19 (Kinito, 16/11/2026, v18 vue en jeu : « en Moyen, ajouter le polygone des stats entre l'entraînement et le polygone
+des attributs ») : en affichage Moyen et pour tes joueurs seulement, une tuile de plus (STATS_EN_PLUS_L de large) entre
+le polygone des attributs et l'entraînement : le polygone de stats que les autres joueurs ont dans le bout
+(stats_en_plus47). En Grand et Petit, et pour les autres joueurs, rien ne change.
+
+v18 (Kinito, 16/11/2026, v17 vue en jeu, capture de Krapikas : « tu peux centrer l'entraînement dans sa tuile ? ») :
+pour tes joueurs, l'entraînement (titre, note, pouces et les 4 menus) est un bloc à la largeur de ses menus, centré
+dans sa tuile en hauteur et en largeur ; il était en haut à gauche (bout47, _entrainement47).
+
+v17 (Kinito, 16/11/2026 : « découper en mini tuiles » la bande, comme celle d'un autre skin ; il a choisi la variante 2
+de la maquette) : la bande n'est plus une carte coupée par des traits mais des TUILES (fond, bord et coins de la carte,
+ECART_TUILES entre elles) : [contrat, tuile haute] [valeur ; dessous Dispo. transfert | Dispo. prêt] [boutons]
+[polygone des attributs] [bout : entraînement, stats ou texte]. Une colonne de chiffres de moins : la place va aux
+polygones. Le polygone de stats a toute la hauteur de sa tuile (180 au lieu de 166) : ses étiquettes de deux lignes,
+coupées en haut et en bas sur sa capture (texte Grand), tiennent avec les mêmes rayons.
+
+v16 / bloc v23 (Kinito, 15/11/2026 : « j'ai fait une fiche pour 1080 Grand ; active-la pour Moyen et Small, je
+l'adapterai ensuite à ces affichages ») : notre fiche (bande, grand bloc, photo de FM cachée) dans les TROIS affichages
+des informations, Grand (0), Moyen (1) et Petit (2), toujours en 1080p seulement. Rien d'autre ne change : elle est la
+même qu'en Grand (pas encore adaptée à Moyen / Petit). Ce qui était à sa place (tuile d'Alex ou bannière de FM, son
+grand bloc, la photo de FM) reste posé dans notre « sinon », qui ne se montre plus qu'au-delà de DERNIER_MODE (aucun
+affichage connu) : ses outils l'y refont toujours, et les deux fiches ne se montrent jamais ensemble (conditions
+exactement contraires, si_notre_fiche / si_autre_fiche). Ce qui suit parle encore de « Large seulement » : c'était
+vrai jusqu'à la v15 / bloc v22.
+
 Demande de Kinito (capture de S. Faye) : seulement en 1080p et en Large (Préférences de FM, « Affichage des
 informations »), dans les quatre tailles du texte ; les autres tailles de fenêtre et d'affichage ne changent pas.
 De gauche à droite :
@@ -77,6 +113,73 @@ moitiés, polygone dessous), la personnalité et les rapports médias à la lign
 nombre, « Aucun projet », un projet long coupé avec « … » et sa phrase entière au survol), la taille et la réputation,
 les caractéristiques ; 1080p Moyen / Petit et les autres tailles de fenêtre inchangés.
 
+GRILLE v1, ESSAI (Kinito, 16/11/2026, « redescendre un peu tout et répartir les marges », bloc v25 dans le jeu) : en
+Moyen, la grille de tuiles de FM laisse ~72 px vides sous la rangée du bas (elle garde ses proportions, calculées sur la
+largeur). Le modèle de la vraie fiche (PlayerReport) a UNE grille (ScalableBindableGridLayoutElement) avec un réglage
+« CentreContent », à 0 partout dans le jeu (527 grilles). L'essai le met à 1 (poser_grille) : si FM centre alors la
+grille dans sa place, tout descend de ~30 px en Moyen (~6 en Grand) ; on règle ensuite nos marges. Seul ce réglage
+change ; le retrait le remet à sa valeur d'origine. (Le réglage d'alignement de la composition, m_contentAlignment,
+n'est qu'horizontal : GridContentAlignment = Center / Left / Right, lu dans le code du jeu.)
+VU EN JEU (16/11, capture de Krapikas en Moyen) : la grille descend (38 px sous la bande, 14 entre le bloc et la rangée
+du bas, 41 sous la rangée). Bloc v26 : en Moyen, le bloc remonte de RECENTRAGE et laisse autant en bas (26 px chacun).
+
+BANDE v20 + BLOC v27 (Kinito, 16/11/2026, en Moyen ; son choix : « Moyen seulement », fait HORS GRAND, c.-à-d. Moyen et
+Petit, qui a plus de place encore : conditions « mode < 1 » / « mode > 0 », déjà vues en jeu ; l'opérateur « différent »
+de FM, NotEqual = 5, n'a jamais été essayé) : hors Grand, le menu « Actions » de FM en tête de la tuile des boutons
+de la bande (actions_bande47) ; dans la carte, niveau / potentiel et la ligne Actions en Grand seulement, « Rep » (les
+pastilles d'état de FM) à côté du nom ; le rapport hors Grand (_rapport_bloc : un en Grand, un hors Grand) plus haut
+(POLY_H_HORS_GRAND), niveau et potentiel en tête, sans le titre « Rapport du préparateur » (sa note reste), sa barre de
+défilement toujours visible ; les suspensions de FM sous les pieds (_suspensions). Projets et caractéristiques avaient
+déjà leur barre de défilement « si besoin » (verticalScrollerVisibility 0 = Auto). « Club parent » / « En prêt à » :
+déjà visibles hors Grand depuis le bloc v24 (cachés en Grand seulement), rien à changer.
+
+BLOC v28 (Kinito, 16/11/2026, v27 vue en jeu : « on ne voit pas entièrement l'icône à côté du nom ; aérer la carte »,
+puis ses choix : « à gauche du nom », « on répartit la place libre », « la photo en plus grand », « le commentaire du
+préparateur à côté du niveau, coupé par … ; le niveau actuel à gauche de la colonne Pour, le potentiel à gauche de la
+colonne Contre ») : hors Grand, « Rep » dans la cale de gauche du nom ; des SIVisible vides qui grandissent entre les
+lignes de la carte ; une 2e photo, plus grande ; _etoiles_rapport en tête du rapport.
+
+BLOC v29 (Kinito, 16/11/2026, v28 vue en jeu : « tu n'as pas augmenté la photo ? ni l'écart entre les composantes de la
+carte ? ni les marges égales entre la bande, le bloc et les tuiles du bas ? ») : mesuré au journal des clics, un
+SIVisible SANS enfant ne prend aucune place dans le jeu : les cales du v28 et le recentrage du v26 ne faisaient rien
+(_cale : chacun reçoit un enfant vide). La photo hors Grand avait grandi de 30 % : maintenant ~1,63 fois celle de Grand.
+
+BLOC v30 (Kinito, 16/11/2026, v29 vue en jeu : « mieux » ; « remonter encore le rapport un tout petit peu ») : hors
+Grand, le rapport fait 20 de FM de plus (POLY_H_HORS_GRAND = POLY_H + 90). Sa place reste fixe : hauteur imposée en bas
+de la colonne, le dessus (projets, caractéristiques) prend le reste et défile s'il ne tient pas.
+
+BLOC v31 (Kinito, 16/11/2026, en préparant le paquet d'Alex : « on ne touche QUE notre fiche à nous, pas la fiche
+d'Alex ») : la grille centrée de l'essai grille v1 est RETIRÉE (CentreContent est un réglage de la grille de tuiles de
+PlayerReport, qui est aussi sous la fiche d'Alex à toutes les autres tailles de fenêtre) : « appliquer » la remet
+d'origine si elle est centrée. En Moyen, sans elle : 8 px entre la bande et le bloc, 14 à 15 px entre le bloc et la
+rangée du bas (capture de Krapikas, bloc v25) : le haut du bloc descend de RECENTRAGE (7 de FM), le bas reste.
+
+BLOC v32 (Kinito, 16/11/2026, v31 vue en jeu en Moyen : « augmenter la taille du bloc suspension, il peut prendre
+jusqu'en bas de son bloc », joueur de champ et gardien) : hors Grand, la case des suspensions grandit jusqu'en bas de sa
+colonne (SUSP_H n'est plus que son minimum) ; pour cela la disposition des notes reprend toute la hauteur du tableau,
+comme chez FM (flex-grow 1 ; elle était à la hauteur de son contenu), et la 3e colonne du gardien ne répartit plus ses
+enfants (justify-content-space-between retiré de notre copie : elle est la plus haute des trois, elle n'avait rien à
+répartir ; sans cela, en Grand, ses enfants s'écarteraient).
+
+BLOC v33 (Kinito, 17/11/2026, v32 vue en jeu, capture de Vicario en Grand : « en Grand, vire Rapport du préparateur et
+mets niveau actuel et niveau potentiel sur les colonnes Pour et Contre comme sur Moyen. Remets pour les joueurs en prêt
+club parent et club en prêt comme avant, avec la place gagnée ça devrait être bon. Ne change que ça et qu'en Grand ;
+Moyen, on n'y touche plus pour le moment ») : le rapport de Grand se construit comme celui de Moyen (_etoiles_rapport en
+tête, pas de titre « Rapport du préparateur », sa note reste), avec sa hauteur (POLY_H) et sa barre de défilement « si
+besoin » de toujours ; la carte de Grand n'a plus les étoiles ; le prêt a de nouveau, en Grand, ses titres (« Club
+Parent » / « En prêt à ») et ses noms de clubs : leurs SIVisible restent, visibles partout où notre fiche se montre
+(si_notre_fiche), pour que Moyen et Petit ne changent pas d'un détail.
+
+BANDE v21 (Kinito, 19/11/2026, bloc v33 vu en jeu, capture de Bedfian en Grand : « mettre en évidence le temps de jeu du
+joueur, « Gardien titulaire », en couleur comme « Gardien de but » sous le nom, augmenter la police, et le mettre au-dessus
+du mot « Salaire » ; en Moyen, Grand et Petit ») : le statut du contrat (person.FullContract.AgreedPlayingTime) sort du
+bouton du contrat pour la tête de sa tuile, au-dessus de « Salaire », en or (COULEUR_DESCRIPTION, la couleur de la
+description des médias) et en heading-lg (18 ; FM : heading-md 16, heading-xl 22 comme le salaire). Comme avant, il ne
+s'affiche que pour un joueur sous contrat : il est dans une copie de l'aiguillage de FM person.fullcontract.IsValid
+[faux : rien | vrai : le statut]. Il n'est plus cliquable (le salaire et la date le restent). La colonne des icônes de
+tes joueurs perd le fantôme du statut : elle reprend les textes du bouton, qui n'en a plus que trois. La bande est la
+même dans les trois affichages : Grand, Moyen et Petit changent ensemble.
+
 Usage : python kinito_entete_large.py appliquer|retirer|etat|si-actif [--dry-run]
 """
 import copy
@@ -95,7 +198,19 @@ from langue import SUFFIXE, texte as L  # noqa: E402  (titre fixe fr / en : chan
 import notes_installations as ni  # noqa: E402
 import hierarchie_pyramide as hp  # noqa: E402
 
-VERSION = 15  # v15 (Kinito, 08/11 : « ce qui concerne le contrat avec le contrat, son départ avec le départ », pour
+VERSION = 21  # v21 (Kinito, 19/11, capture de Bedfian : « mettre en évidence le temps de jeu, « Gardien titulaire », en
+#               couleur comme « Gardien de but » sous le nom, police plus grande, au-dessus du mot « Salaire » ; en
+#               Moyen, Grand et Petit ») : le statut du contrat en tête de la tuile du contrat, en or (COULEUR_DESCRIPTION),
+#               en heading-lg (18 ; il était en gras 14 sous « Salaire », dans le bouton du contrat) ;
+#               v20 (Kinito, 16/11, en Moyen) : hors Grand, le menu « Actions » de FM en tête de la tuile des boutons
+#               (actions_bande47) ;
+#               v19 (Kinito, 16/11, v18 vue en jeu) : en Moyen, tes joueurs ont aussi le polygone de stats, dans une
+#               tuile entre le polygone des attributs et l'entraînement (stats_en_plus47) ;
+#               v18 (Kinito, 16/11, v17 vue en jeu) : l'entraînement centré dans sa tuile (bout47) ;
+#               v17 (Kinito, 16/11, sa maquette « variante 2 ») : la bande en TUILES (POIDS_TUILES, _tuile47) ; le
+#               polygone de stats sur toute la hauteur de sa tuile (STATS_H 180 : ses étiquettes n'y sont plus coupées) ;
+#               v16 (Kinito, 15/11) : notre bande aussi en affichage Moyen et Petit (DERNIER_MODE, voir l'en-tête) ;
+#   v15 (Kinito, 08/11 : « ce qui concerne le contrat avec le contrat, son départ avec le départ », pour
 #   TES joueurs) : dans la colonne des boutons, « Interroger l'agent sur l'intérêt suscité » à la place de « Discuter
 #   d'un nouveau contrat avec l'agent » ; dans la case du contrat, à droite du salaire et de la date de fin, deux
 #   boutons-icônes (_icones_contrat) : « Discuter d'un nouveau contrat avec l'agent » (bulle) et « Proposer nouveau
@@ -134,6 +249,10 @@ VERSION = 15  # v15 (Kinito, 08/11 : « ce qui concerne le contrat avec le contr
 #   étoiles du rapport, polygone au plus grand ; v4 : réputation au-dessus du prix, prix plus large ;
 #   v5 : indépendante de la tuile d'Alex (voir l'en-tête)
 VERSION_FN = 1   # la fonction du drapeau a son numéro à elle (vue en jeu en v1 : inchangée)
+VERSION_GRILLE = 1   # v1 (Kinito, 16/11/2026) : ESSAI, la grille de tuiles de la fiche avec CentreContent à 1 ;
+#                     RETIRÉ au bloc v31 (la grille de FM est aussi sous la fiche d'Alex) : retirer_grille seulement
+GRILLE_FICHE = "PlayerReport"                  # le modèle de la vraie fiche (sa grille de tuiles)
+GRILLE_TYPE = "ScalableBindableGridLayoutElement"
 # v10 (08/11, captures 32-33) : une option de l'app d'Alex (entete_large_disposition) mettait au choix le rapport ou le
 # polygone des attributs dans la bande ; v11 (captures 34-40, Kinito : « polygone en haut, fixe ») : l'option est
 # retirée, le polygone est dans la bande et le rapport en bas de la colonne de droite du bloc, toujours
@@ -151,6 +270,9 @@ BANNIERE = "report-player-banner-max"      # la bannière de FM en 1080p (mesur�
 PHOTO = "PersonPictureFrame"
 AIGUILLAGES = {"UseStandard": "app.GridBreakpointIsStandard", "UseSmall": "app.GridBreakpointIsSmall"}
 MODE = "settings.AdaptiveScalingLevelIndex"   # Large 0, Moyen 1, Petit 2
+# v16 / bloc v23 (15/11/2026) : notre fiche jusqu'à cet affichage compris (0 = Grand seulement, comme jusqu'à la v15 ;
+# 2 = Grand, Moyen et Petit) ; ce qui était à sa place se montre au-delà
+DERNIER_MODE = 2
 TAILLE_TEXTE = "settings.TextScaling"      # Petit 85, Normal 100, Grand 110, Plus grand 120
 OP_INF, OP_EGAL, OP_SUP = 0, 2, 4          # opérateurs des comparaisons de FM (BindIntToVisible)
 TYPE_NATION = 1145176074                   # type de « nation » (cellules de nation de FM)
@@ -358,6 +480,43 @@ def drapeau_a_jour():
     fns = _objets(FONCTIONS)
     obj = fns and fns.get(FN_CIBLE)
     return obj is not None and obj.read_typetree().get("m_Name") == NOM_FN
+
+
+# ---------- grille v1, ESSAI (16/11/2026) : la grille de tuiles de la fiche centrée (voir l'en-tête) ----------
+def _grille(tt):
+    """les données UXML de LA grille de tuiles du modèle (une seule, avec CentreContent), ou None"""
+    gs = [r for r in ((tt or {}).get("references") or {}).get("RefIds") or []
+          if str(((r.get("type") or {}).get("class")) or "").startswith(GRILLE_TYPE)]
+    if len(gs) != 1 or "CentreContent" not in (gs[0].get("data") or {}):
+        return None
+    return gs[0]["data"]
+
+
+def _ecrire_fiche(bundle, obj, tt):
+    obj.save_typetree(tt)
+    nb._ecrits[(bundle, obj.path_id)] = tt   # relu tel quel par la suite du même passage (comme enregistrer)
+    nb._dirty.add(bundle)
+
+
+def retirer_grille():
+    bundle, obj, tt = nb.find_vta(GRILLE_FICHE)
+    d = _grille(tt)
+    if d is None or d["CentreContent"] != 1:
+        return []
+    od = _grille(hp.original(bundle, obj))
+    if od is None:
+        return [f"{GRILLE_FICHE} : pas de sauvegarde d'origine, grille laissée centrée (vérification des fichiers Steam)"]
+    if od["CentreContent"] == 1:
+        return []   # celle de FM : rien à nous
+    d["CentreContent"] = od["CentreContent"]
+    _ecrire_fiche(bundle, obj, tt)
+    return [f"{GRILLE_FICHE} : grille de tuiles remise d'origine"]
+
+
+def grille_a_jour():
+    _b, _o, tt = nb.find_vta(GRILLE_FICHE)
+    d = _grille(tt)
+    return d is not None and d["CentreContent"] == 1
 
 
 # ---------- petits outils (à nous) ----------
@@ -1072,12 +1231,26 @@ CARTE_L = 270
 # 174), dispos 130 (« Indisponible » 126), boutons 290 (« Discuter d'un nouveau contrat avec l'agent » ~250 + icône
 # et marges du bouton de FM) ; polygone 335 (rayon 49 + étiquettes ~112 de chaque côté) ; bout 352 (les deux menus
 # d'entraînement de MENU_L, 328)
-POIDS_47 = dict(chiffres=860, avis=335, bout=352)
 # v12 (Kinito, 08/11, captures 41-45 : « les 4 premières colonnes de la même largeur, la colonne des boutons bien
-# réduite ») : quatre colonnes de 214 de large chacune, marges comprises. La zone fait 856 (860 moins les 3 traits) ;
-# une colonne a une base nulle, plus ses marges (10 à droite ; 14 à gauche, sauf la 1re) : 10 + 24 × 3 = 82 ; il
-# reste 774 à partager : 204 à la 1re (sans marge à gauche), 190 aux autres → 214 chacune
-POIDS_CHIFFRES = dict(contrat=204, valeur=190, dispo=190, boutons=190)
+# réduite ») : quatre colonnes de 214 de large chacune, marges comprises (contrat 204, valeur / dispos / boutons 190,
+# chiffres 860, polygone 335, bout 352).
+# v17 (Kinito, 16/11, « découper en mini tuiles » comme la bande d'un autre skin ; sa maquette choisie : variante 2) :
+# la bande n'est plus UNE carte coupée par des traits, ce sont des TUILES (fond, bord et coins de la carte),
+# ECART_TUILES entre elles : [contrat, tuile haute] [valeur au-dessus ; Dispo. transfert | Dispo. prêt côte à côte
+# dessous] [boutons] [polygone des attributs] [bout]. Poids = largeurs de contenu voulues (base nulle : les marges
+# intérieures et les bords s'y ajoutent, la place qui reste se partage au prorata). Sur une bande de 1626 (1080p,
+# Grand ; 120 de marges, bords et écarts), × 1,028 : contrat 205 de contenu (« Indésirable dans l'équipe » : 167 au
+# texte Normal, 200 en Plus grand) ; valeurs 370 : la valeur 344, chaque dispo 155 (« Indisponible » : 126 au texte
+# Normal, 151 en Plus grand) ; boutons 195 ; polygone 355 (335 avant) ; bout 380 (les deux menus d'entraînement,
+# 2 × (161 + 6) = 334 ; 352 avant). Une colonne de chiffres de moins : la place gagnée va aux tuiles
+POIDS_TUILES = dict(contrat=200, valeurs=360, boutons=190, avis=345, bout=370)
+ECART_TUILES = 8
+TUILE_MARGES = (14, 10)          # marges intérieures gauche / droite d'une tuile de chiffres (celles des colonnes v12)
+TUILE_MARGES_BOUTONS = (12, 12)  # boutons et bout : centrés
+TUILE_MARGES_POLYGONE = (4, 4)   # le polygone prend toute la tuile
+TETE_STATS_HAUT = 6              # la compétition et le pouce du polygone de stats, sous le bord de leur tuile
+COTES = ("top", "bottom", "left", "right")
+COINS = ("top-left", "top-right", "bottom-left", "bottom-right")
 CHEMIN_SALAIRE = "person.FullContract.Wage.DisplayValue"            # (bannière de FM, cellule du contrat)
 CHEMIN_STATUT = "person.FullContract.AgreedPlayingTime.DisplayValue"  # « Joueur important »
 CHEMIN_DESCRIPTION = "Person.MediaDescription"                       # « Défenseur central prometteur »
@@ -1090,6 +1263,7 @@ LISTES_PC = (("p", "report.ScoutedProConsList.ProsList", "report.ScoutedProConsL
              ("c", "report.ScoutedProConsList.ConsList", "report.ScoutedProConsList.ConsCount"))
 TEXTE_LIBRE = ("Joueur libre de tout contrat : pas de données de prestation.", "Free agent: no performance data.")
 TITRE_PREPARATEUR = ("Rapport du préparateur", "Coach Report")   # texte de FM 27 (0x100ad0e8)
+# (bloc v33 : plus écrit nulle part ; gardé pour les vérifications des versions d'avant)
 # v10 : le polygone de stats prend toute la hauteur de sa case : la bande (HAUT_BANDE 182) moins ses marges intérieures
 # (2 × 6) et ses bords (2 × 1) = 168, moins 2 de marge. Rayon, par taille du texte (une bande par taille) : les
 # étiquettes 10 px de deux lignes en haut et en bas (18 de haut au texte Normal, mesurées sur la capture 33, × la taille
@@ -1097,7 +1271,13 @@ TITRE_PREPARATEUR = ("Rapport du préparateur", "Coach Report")   # texte de FM 
 # - 6. Sur les côtés (case de ~345 de large), il reste ~110 par étiquette. Les coins du haut (compétition à gauche sur
 # TITRE_STATS_L, pouce à droite) restent libres : les étiquettes en biais du haut sont à ~35 du haut, sous les deux
 # lignes de la compétition (~30)
-STATS_H = 166
+# v17 (capture d'Augusto Schott, 16/11, texte Grand : « % Ce » coupé en haut, « Drb/90 » coupé en bas) : les étiquettes
+# de deux lignes sont plus hautes que les 18 × taille supposés. Mesuré sur la capture (1,137 px par px de FM, polygone
+# de rayon 49) : le bas de « Drb/90 » est à 86 du centre, soit 8 + ~29 d'étiquette au texte Grand (~26 Normal, ~22
+# Petit, ~32 Plus grand) ; la cale de 166 n'en laissait que 83. En tuiles, le polygone a TOUTE la hauteur de sa tuile
+# (HAUT_BANDE 182 moins ses deux bords, sans marge intérieure en hauteur) : 180, soit 90 du centre, ~3,5 de marge à
+# chaque taille avec les MÊMES rayons (90 - 8 - étiquette - 3 : 56 / 52 / 50 / 47, au-dessus de RAYONS_STATS ou égal)
+STATS_H = 180
 RAYONS_STATS = {"petit": 53.0, "normal": 51.0, "grand": 49.0, "plus-grand": 47.0}
 TITRE_STATS_L = 110
 # v10, option « polygone » (v11 : toujours) : le polygone des attributs dans la case du milieu (v11 : ~335 de large ;
@@ -1116,13 +1296,27 @@ RAYONS_BANDE = {"petit": 51.0, "normal": 49.0, "grand": 47.0, "plus-grand": 45.0
 # du haut), 10 px plus bas.
 HAUT_BANDE = HAUT - MARGE_HAUT       # 182 : la bande, sous sa marge du haut, finit au bord de l'en-tête
 JOINTURE = 12                        # de FM entre la ligne où le jeu coupe la zone du bloc et le haut du bloc
+# bloc v26 (Kinito, 16/11/2026, grille de FM centrée par l'essai grille v1, capture de Krapikas en Moyen : 38 px entre la
+# bande et le bloc, 14 px entre le bloc et la rangée du bas, « faut la même marge entre les deux ») : en Moyen, le bloc
+# remonte de RECENTRAGE et laisse RECENTRAGE en bas, même hauteur : (38 - 14) / 2 = 12 px = 13 de FM (0,9187 px par px
+# de FM) -> 26 px de chaque côté. Grand (~1,4 px d'écart estimé) et Petit (pas mesuré) : rien ne change.
+# bloc v31 (Kinito : « on ne touche QUE notre fiche » : la grille de FM n'est plus centrée) : la rangée du bas reste où
+# FM la met ; mesuré en Moyen sans la grille centrée (capture de Krapikas, bloc v25) : 8 px entre la bande et le bloc,
+# 14 à 15 px entre le bloc et la rangée du bas. Le haut du bloc DESCEND de RECENTRAGE (une cale en tête des places,
+# le bas ne bouge pas, le bloc rapetisse d'autant) : 7 de FM, ~6,5 px -> ~14,5 px de chaque côté. Plus de marge
+# négative : au-dessus de 281,9 la vue de FM coupe (JOINTURE y est déjà).
+RECENTRAGE = 7
+RECENTRAGE_MODE = 1                  # MODE : Moyen seulement
 #                                      (capture 29 : y 322 -> 336 = 14 px = 12,3 de FM ; 12 : le bord reste visible)
 DECALE_ETOILES = 6                   # les étoiles de FM sont centrées dans une case à marge intérieure de 4 : la 1re
 #                                      était 7 px (6 de FM) à droite de son titre (capture 29, Niveau actuel et Potentiel)
 CL_LAB = ["body-sm", "global-text-secondary", "content-no-wrap", "content-ellipsis"]       # titres (comme FM)
 CL_VAL = ["heading-xl", "global-text-primary", "content-no-wrap", "content-ellipsis"]      # réponses en grand (22)
 CL_STAT = ["heading-xsmall-14px", "global-text-primary", "content-no-wrap", "content-ellipsis"]   # statut (gras 14)
-TRAIT_CHIFFRE = (1.0, 1.0, 1.0, 0.45)   # le petit trait clair au-dessus de chaque chiffre (maquette 47)
+# v21 (Kinito, 19/11) : le statut mis en avant, en tête de la tuile du contrat : heading-lg (18), en or
+# (COULEUR_DESCRIPTION), au-dessus de « Salaire », STATUT_MARGE dessous
+CL_STATUT_AVANT = ["heading-lg", "content-no-wrap", "content-ellipsis"]
+STATUT_MARGE = 4
 TEXTE_SANS_RAPPORT = (("Pas encore de rapport de supervision", "No scouting report yet"),
                       ("Observe-le : ses points forts et ses points faibles s'afficheront ici.",
                        "Scout him: his strengths and weaknesses will show here."))
@@ -1190,17 +1384,20 @@ def bulle(t, k, parent, liaison=None, chemin=None):
     return b, n
 
 
-def _colonne47(t, parent, poids, centre=False):
-    return boite(t, parent, {"flex-grow": poids, "flex-shrink": 1, "flex-basis": 0, "min-width": 0, "overflow": "hidden",
-                             "justify-content": "center"},
+def _tuile47(t, parent, poids, premier=False, centre=False, marges=TUILE_MARGES, css=None):
+    """v17 : une tuile de la bande (jusqu'à la v16 : une colonne de la carte, _colonne47, séparée par des traits,
+    _sep47) : le fond, le bord et les coins de la carte (FOND, BORD, RAYON), ses marges intérieures à gauche et à
+    droite ; base nulle et poids (sa largeur dans une ligne, sa hauteur dans une colonne) ; ECART_TUILES à sa gauche,
+    sauf la 1re de sa ligne. Son contenu est centré en hauteur, à gauche (ou au milieu si centre)"""
+    g, d = marges
+    return boite(t, parent, {"flex-grow": poids, "flex-shrink": 1, "flex-basis": 0, "min-width": 0, "min-height": 0,
+                             "overflow": "hidden", "justify-content": "center", "background-color": FOND,
+                             **{f"border-{c}-width": 1 for c in COTES}, **{f"border-{c}-color": BORD for c in COTES},
+                             **{f"border-{c}-radius": RAYON for c in COINS},
+                             "padding-left": g, "padding-right": d,
+                             **({} if premier else {"margin-left": ECART_TUILES}), **(css or {})},
                  ["column-direction-normal", "align-items-center" if centre else "align-items-start",
                   "align-self-stretch"])
-
-
-def _sep47(t, parent):
-    boite(t, parent, {"width": ECART, "min-width": ECART, "flex-shrink": 0})
-    trait_vertical(t, parent)
-    boite(t, parent, {"width": ECART, "min-width": ECART, "flex-shrink": 0})
 
 
 def _bloc_clubs47(t, k, parent):
@@ -1227,14 +1424,42 @@ def _bloc_clubs47(t, k, parent):
     if sw is None:
         return [f"{CLUB} : aiguillage club / prêt (IsAtTeam) introuvable"]
     t.styles.style(t, sw, {"flex-grow": 1, "flex-shrink": 1, "min-width": 0, "align-items": "center"})
-    return _pret_cote_a_cote(t, c)
+    return _pret_cote_a_cote(t, k, c)
 
 
-def _pret_cote_a_cote(t, c):
+# bloc v24 (Kinito, 16/11, capture d'Augusto Schott, prêté à Toulouse ; affichage Grand, texte Grand et Plus grand :
+# « la photo est coupée ; retirer en dimensionnement grand Club parent et En prêt à, on laisse que les écussons de
+# club ») : le bloc du prêt, [titre, écusson 48, nom] deux fois, fait ~81 de haut contre 48 pour un club seul ; la
+# carte manque de place et la photo cède (coupée en bas, voir _contenu_carte). Jusqu'à l'affichage PRET_ECUSSONS_SEULS
+# (MODE : 0 = Grand seulement), les titres et les noms des deux clubs sont cachés : il reste les deux écussons
+# (cliquables comme dans FM : ClubIcon a son bouton) et l'icône des prêts entre eux, à la hauteur d'un club seul. Au-delà
+# (Moyen, Petit), rien ne change : Kinito les adaptera
+# bloc v33 (Kinito, 17/11, v32 vue en jeu : « remets pour les joueurs en prêt club parent et club en prêt comme avant ;
+# avec la place gagnée ça devrait être bon ») : en Grand, niveau et potentiel ont quitté la carte (au-dessus de Pour /
+# Contre, _rapport47) ; la carte a la place des titres et des noms. Plus aucun affichage ne les cache (None) : leurs
+# SIVisible restent, visibles partout où notre fiche se montre (si_notre_fiche, « mode < 3 », condition déjà vue en jeu),
+# pour que Moyen et Petit, où ils étaient déjà visibles, ne changent pas d'un détail (« pour Moyen on ne touche plus »)
+PRET_ECUSSONS_SEULS = None
+
+
+def _hors_grand(t, k, parent, el):
+    """el dans un SIVisible « mode > PRET_ECUSSONS_SEULS », à sa place dans parent, centré comme lui ; bloc v33
+    (PRET_ECUSSONS_SEULS = None) : visible partout où notre fiche se montre"""
+    b = k.s_vis.sd(k.vis)["Binding"]
+    v = visible(t, k, parent, t.children(parent).index(el), "",
+                si_notre_fiche(b) if PRET_ECUSSONS_SEULS is None
+                else ni.make_binding(b, OP_SUP, [MODE], PRET_ECUSSONS_SEULS),
+                {"align-items": "center", "min-width": 0, "max-width": {"unit": 2, "value": 100.0}})
+    move(t, el, v)
+    return v
+
+
+def _pret_cote_a_cote(t, k, c):
     """v9 (capture 31, « on avait dit l'un à côté de l'autre ») : un joueur prêté, le club parent et le club où il est
     prêté CÔTE À CÔTE, chacun en colonne (son titre, son écusson, son nom), l'icône « prêts » de FM entre les deux.
     Dans le bloc de FM (LoanTrialClub) : [écusson | titre + nom] (club parent) puis [écusson | titre + nom] (prêt à),
-    l'un sous l'autre ; leurs liaisons et leurs remappers ne changent pas, seuls les éléments bougent dans leur cadre"""
+    l'un sous l'autre ; leurs liaisons et leurs remappers ne changent pas, seuls les éléments bougent dans leur cadre.
+    Bloc v24 : en affichage Grand, titres et noms cachés, les écussons seuls (PRET_ECUSSONS_SEULS)"""
     pret = next((r for r in t.walk(c) if t.name(r) == "LoanTrialClub"), None)
     parts = t.children(pret) if pret is not None else []
     if len(parts) != 2:
@@ -1257,18 +1482,22 @@ def _pret_cote_a_cote(t, c):
         t.styles.style(t, part, {"flex-grow": 1, "flex-shrink": 1, "flex-basis": 0, "min-width": 0,
                                  "overflow": "hidden"})
         # ce qui était à droite de l'écusson (le nom, et la colonne vide du titre parti) : centré dessous
-        for x in t.children(part):
-            if x not in (titre_c, haut) and x in t.refs and not typ(t, x).endswith("Component"):
-                t.elem(x)["m_Classes"] = [y for y in t.elem(x).get("m_Classes") or []
-                                          if not y.startswith(("margin-left", "margin-bottom"))]
-                t.styles.style(t, x, {"align-items": "center", "max-width": {"unit": 2, "value": 100.0},
-                                      "min-width": 0})
-                for y in t.walk(x):
-                    if y != x and y in t.refs and not typ(t, y).endswith("Component"):
-                        t.elem(y)["m_Classes"] = [z for z in t.elem(y).get("m_Classes") or []
-                                                  if z != "margin-bottom-global-gap-regular"]
-                        if "row-direction-normal" in t.elem(y)["m_Classes"]:   # la ligne du nom (club parent)
-                            t.styles.style(t, y, {"justify-content": "center"})
+        noms = [x for x in t.children(part)
+                if x not in (titre_c, haut) and x in t.refs and not typ(t, x).endswith("Component")]
+        for x in noms:
+            t.elem(x)["m_Classes"] = [y for y in t.elem(x).get("m_Classes") or []
+                                      if not y.startswith(("margin-left", "margin-bottom"))]
+            t.styles.style(t, x, {"align-items": "center", "max-width": {"unit": 2, "value": 100.0},
+                                  "min-width": 0})
+            for y in t.walk(x):
+                if y != x and y in t.refs and not typ(t, y).endswith("Component"):
+                    t.elem(y)["m_Classes"] = [z for z in t.elem(y).get("m_Classes") or []
+                                              if z != "margin-bottom-global-gap-regular"]
+                    if "row-direction-normal" in t.elem(y)["m_Classes"]:   # la ligne du nom (club parent)
+                        t.styles.style(t, y, {"justify-content": "center"})
+        # bloc v24 : titre et nom(s) cachés en affichage Grand (PRET_ECUSSONS_SEULS) ; bloc v33 : de nouveau visibles
+        for x in [titre_c] + noms:
+            _hors_grand(t, k, part, x)
     ico = boite(t, pret, {"width": ICONE_PRET_T, "height": ICONE_PRET_T, "min-width": ICONE_PRET_T,
                           "flex-shrink": 0, "margin-left": 6, "margin-right": 6}, [ICONE_PRET])
     move(t, ico, pret, 1)
@@ -1329,6 +1558,12 @@ def carte_bas47(t, k, parent, taille):
 
 ECART_CARTE = 8                    # v9 : entre deux morceaux de la carte
 PHOTO_H = dict(petit=138, normal=130, grand=120, **{"plus-grand": 110})   # v9 : hauteur de la photo (FM : 138)
+# bloc v28 (Kinito, en Moyen : « la photo en plus grand ») : hors Grand, ~30 % de plus (mesuré en Moyen, capture de
+# Y. Hamache, texte Grand : ~190 px libres dans la carte, la photo en prend ~33, le reste se répartit entre les lignes)
+# bloc v29 (Kinito : « tu n'as pas augmenté la photo si ? ») : elle avait grandi (journal des clics : 121,9 de large au
+# lieu de 93,9, l'image de FM est un carré de la largeur de la case), trop peu pour se voir ; maintenant ~1,63 fois la
+# photo de Grand (texte Grand : 153 de large, ~141 px ; il reste ~117 de FM libres, ~20 par cale)
+PHOTO_H_HORS_GRAND = dict(petit=224, normal=212, grand=196, **{"plus-grand": 180})
 PHOTO_L, PHOTO_H_FM = 108, 138     # la photo de FM (thumbnails-alt-person-picture-player-report) : 108 x 138
 COULEUR_DESCRIPTION = (0.945, 0.835, 0.561, 1.0)   # la description des médias, en or (maquette 47 : #f1d58f)
 ICONE_PRET = "game-concepts-loans_small"         # v9 : l'icône « prêts » de FM (globe et flèches), choix de Kinito
@@ -1344,26 +1579,42 @@ def _contenu_carte(t, k, parent, taille):
     b = k.s_vis.sd(k.vis)["Binding"]
     n = [0]
 
-    def groupe(css=None):
-        g = boite(t, parent, {"flex-shrink": 0, "align-self": "stretch", "overflow": "hidden",
-                              "margin-top": ECART_CARTE if n[0] else 0, **(css or {})},
+    seuls_grand = []   # bloc v28 : les SIVisible « Grand seulement » (cachés hors Grand : pas d'espace autour d'eux)
+
+    def groupe(css=None, grand_seul=False, hors_grand=False):
+        """bloc v27 : grand_seul, le groupe dans un SIVisible « mode < 1 » (affichage Grand seulement), marge comprise ;
+        bloc v28 : hors_grand, dans un SIVisible « mode > 0 »"""
+        dans = parent
+        if grand_seul or hors_grand:
+            op, val = (OP_INF, HORS_GRAND_MODE + 1) if grand_seul else (OP_SUP, HORS_GRAND_MODE)
+            dans = visible(t, k, parent, None, "", ni.make_binding(b, op, [MODE], val))
+            t.elem(dans)["m_Classes"] = ["column-direction-normal", "align-self-stretch"]
+            if grand_seul:
+                seuls_grand.append(dans)
+        g = boite(t, dans, {"flex-shrink": 0, "align-self": "stretch", "overflow": "hidden",
+                            "margin-top": ECART_CARTE if n[0] else 0, **(css or {})},
                   ["column-direction-normal", "align-items-center"])
         n[0] += 1
         return g
     msgs = []
     # la photo (celle de l'en-tête de FM), à sa hauteur pour la taille du texte ; si la carte manque de place, c'est
     # elle qui cède (coupée en bas, jamais le club)
-    h = PHOTO_H[taille]
-    g = groupe({"flex-shrink": 1, "min-height": 70, "justify-content": "flex-start"})
-    ph = k.entete.clone(t, k.photo, g)
-    t.sd(ph)["name"] = ""
-    t.elem(ph)["m_Classes"] = ["row-direction-normal", "align-items-start", "justify-content-center"]
-    t.styles.style(t, ph, {"flex-shrink": 0, "padding-left": 0, "padding-right": 0, "align-self": "center"})
-    images = [r for r in t.walk(ph) if (t.elem(r).get("m_TemplateAlias") or "") == "PersonPicture"]
-    if len(images) != 1:
-        msgs.append(f"photo du joueur : {len(images)} images au lieu d'une (introuvable)")
-    for r in images:
-        t.styles.style(t, r, {"width": round(PHOTO_L * h / PHOTO_H_FM), "height": h, "flex-shrink": 0})
+    # bloc v28 (Kinito, en Moyen : « la photo en plus grand ») : en Grand la photo de toujours (PHOTO_H), hors Grand une
+    # autre, plus grande (PHOTO_H_HORS_GRAND) ; la 2e n'a pas de marge au-dessus (elle est la 1re visible hors Grand)
+    for h, seul in ((PHOTO_H[taille], "grand"), (PHOTO_H_HORS_GRAND[taille], "hors")):
+        g = groupe({"flex-shrink": 1, "min-height": 70, "justify-content": "flex-start",
+                    **({"margin-top": 0} if seul == "hors" else {})},
+                   grand_seul=seul == "grand", hors_grand=seul == "hors")
+        t.styles.style(t, t.parent[g], {"flex-shrink": 1, "min-height": 70})   # le SIVisible cède avec la photo
+        ph = k.entete.clone(t, k.photo, g)
+        t.sd(ph)["name"] = ""
+        t.elem(ph)["m_Classes"] = ["row-direction-normal", "align-items-start", "justify-content-center"]
+        t.styles.style(t, ph, {"flex-shrink": 0, "padding-left": 0, "padding-right": 0, "align-self": "center"})
+        images = [r for r in t.walk(ph) if (t.elem(r).get("m_TemplateAlias") or "") == "PersonPicture"]
+        if len(images) != 1:
+            msgs.append(f"photo du joueur : {len(images)} images au lieu d'une (introuvable)")
+        for r in images:
+            t.styles.style(t, r, {"width": round(PHOTO_L * h / PHOTO_H_FM), "height": h, "flex-shrink": 0})
     # le nom, CENTRÉ sur la largeur de la carte, le numéro à sa droite (v9, capture 30 : il était calé à gauche) ; le
     # numéro de FM prend les couleurs et le texte de l'équipe reçue (« team » de la tuile, pas celle où il joue : il
     # restait vide pour un joueur prêté, capture 31) -> son équipe actuelle, person.Team
@@ -1388,12 +1639,33 @@ def _contenu_carte(t, k, parent, taille):
                     numero += 1
     if numero != 1:
         msgs.append(f"numéro du joueur : {numero} liens d'équipe au lieu d'un (introuvable)")
+    if nom is not None:
+        # bloc v27 (Kinito, en Moyen : « Rep », les pastilles d'état de FM, à côté du nom) : hors Grand, une copie des
+        # pastilles (posée APRÈS le réglage du numéro : elles gardent leur équipe, localteam, qui est ici person.Team) ;
+        # en Grand, elles restent à côté d'Actions. Bloc v28 (Kinito : « on ne voit pas entièrement l'icône » ; « à
+        # gauche du nom on essaie ») : dans la cale de GAUCHE du nom, calées contre lui, le numéro restant à droite
+        gauche = t.children(c)[0]
+        t.elem(gauche)["m_Classes"] = ["row-direction-normal", "align-items-center"]
+        t.styles.style(t, gauche, {"padding-right": 8, "justify-content": "flex-end", "overflow": "hidden"})
+        vf = visible(t, k, gauche, None, "", ni.make_binding(b, OP_SUP, [MODE], HORS_GRAND_MODE))
+        t.elem(vf)["m_Classes"] = ["row-direction-normal", "align-items-center"]
+        t.styles.style(t, vf, {"align-self": "center"})
+        f2 = src.clone(t, p["flags"], vf)
+        t.elem(f2)["m_Classes"] = []
+        for x in t.walk(f2):
+            if x != f2 and x in t.refs:
+                t.elem(x)["m_Classes"] = [y for y in t.elem(x).get("m_Classes") or []
+                                          if not y.startswith(("margin-bottom", "align-self"))]
     # la description des médias mise en évidence (maquette 47 : en or, en gras, plus grande), à la ligne si longue
     texte_direct(t, k, g, CHEMIN_DESCRIPTION, ["heading-md", "content-center-align", "content-wrap"],
                  {"color": COULEUR_DESCRIPTION, "align-self": "stretch"})
     # v9 : niveau actuel et potentiel SOUS le nom et la description (capture 30, ils étaient dans la bande)
-    msgs += _etoiles_carte(t, k, groupe())
-    g = groupe()   # Actions CENTRÉ sur la largeur de la carte, le statut à sa droite (v9, capture 30)
+    # bloc v27 (Kinito, en Moyen) : hors Grand, niveau et potentiel au-dessus de Pour / Contre (_rapport47) et Actions
+    # dans la tuile des boutons de la bande (actions_bande47) : ces deux groupes en Grand seulement
+    # bloc v33 (Kinito, 17/11 : « en Grand, mets niveau actuel et niveau potentiel sur les colonnes Pour et Contre comme
+    # sur Moyen ») : en Grand aussi, niveau et potentiel au-dessus de Pour / Contre : plus d'étoiles dans la carte ;
+    # Actions y reste, en Grand seulement
+    g = groupe(grand_seul=True)   # Actions CENTRÉ sur la largeur de la carte, le statut à sa droite (v9, capture 30)
     ligne = boite(t, g, {"flex-shrink": 0, "align-self": "stretch"}, ["row-direction-normal", "align-items-center"])
     a = src.clone(t, p["actions"], ligne)
     t.sd(a)["name"] = ""
@@ -1428,6 +1700,15 @@ def _contenu_carte(t, k, parent, taille):
             t.styles.style(t, r, {"flex-shrink": 1, "min-width": 0})
     g = groupe()   # le club (club parent / en prêt à)
     msgs += _bloc_clubs47(t, k, g)
+    # bloc v28 (Kinito, en Moyen : « aérer la carte », « on répartit la place libre ») : hors Grand, un SIVisible vide
+    # « mode > 0 » qui grandit (base 0) avant, entre et après les groupes visibles hors Grand : la place libre se partage
+    # à parts égales ; s'il en manque, ils ne prennent rien (la photo cède comme avant)
+    visibles = [x for x in t.children(parent) if x not in seuls_grand]
+    for x in visibles + [None]:
+        i = t.children(parent).index(x) if x is not None else len(t.children(parent))
+        # bloc v29 : une cale qui s'affiche vraiment (avec son enfant vide : un SIVisible sans enfant ne prend rien)
+        _cale(t, k, parent, i, ni.make_binding(b, OP_SUP, [MODE], HORS_GRAND_MODE),
+              {"flex-grow": 1, "flex-shrink": 1, "flex-basis": 0, "min-height": 0})
     return msgs
 
 
@@ -1478,6 +1759,54 @@ def _etoiles_carte(t, k, parent):
     return msgs
 
 
+# bloc v28 (Kinito, 16/11, en Moyen : « ajouter le commentaire du préparateur, pas en dessous du niveau actuel mais à
+# côté ; coupé par … si la phrase est trop longue ; le niveau actuel à gauche de la colonne Pour, le potentiel à gauche
+# de la colonne Contre ») : le commentaire est celui de l'infobulle de FM sur les étoiles (son StandardTextTooltip :
+# report.Scouted…AbilityInfo.LongString, lu dans PlayerReportHeaderScoutSection), écrit sur une ligne à côté des étoiles ;
+# l'infobulle de FM reste (tout le cadre) : la phrase entière au survol
+COMMENTAIRES_NIVEAU = {"CurrentAbility": "report.ScoutedCurrentAbilityInfo.LongString",
+                       "PotentialAbility": "report.ScoutedPotentialAbilityInfo.LongString"}
+
+
+def _etoiles_rapport(t, k, parent):
+    """en tête du rapport (hors Grand depuis le bloc v28, en Grand aussi depuis le bloc v33) : les étoiles de FM
+    (_etoiles_carte), étalées sur la largeur : niveau actuel
+    dans la moitié gauche (au-dessus de Pour), potentiel dans la moitié droite (au-dessus de Contre), chacun [titre et
+    étoiles | commentaire du préparateur sur une ligne, « … »]"""
+    g = boite(t, parent, {"flex-shrink": 0, "margin-bottom": 6, "overflow": "hidden"},
+              ["column-direction-normal", "align-self-stretch"])
+    msgs = _etoiles_carte(t, k, g)
+    boutons = [r for r in t.walk(g) if typ(t, r).endswith("SIButton")
+               and {t.name(x) for x in t.children(r)} >= set(COMMENTAIRES_NIVEAU)]
+    if len(boutons) != 2:   # les deux dispositions du rapport de FM (supervision, préparateur)
+        return msgs + [f"étoiles du rapport : {len(boutons)} rangées au lieu de 2 (introuvable)"]
+    for bt in boutons:
+        x = bt
+        while x != g:   # du bouton de FM jusqu'à notre groupe : toute la largeur
+            t.styles.style(t, x, {"align-self": "stretch", "flex-grow": 1, "min-width": 0})
+            x = t.parent[x]
+        for j, cadre in enumerate(x for x in t.children(bt) if t.name(x) in COMMENTAIRES_NIVEAU):
+            t.elem(cadre)["m_Classes"] = ["row-direction-normal"]
+            t.styles.style(t, cadre, {"flex-grow": 1, "flex-shrink": 1, "flex-basis": 0, "min-width": 0,
+                                      "margin-right": 0, "margin-left": ECART_PC if j else 0,
+                                      "align-items": "flex-end"})
+            tete = [x for x in t.children(cadre) if typ(t, x).endswith("SIText")
+                    or (t.elem(x).get("m_TemplateAlias") or "").endswith("AbilityStarRangeCell")]
+            if len(tete) != 2:
+                msgs.append(f"étoiles du rapport : {t.name(cadre)} : titre ou étoiles introuvables")
+                continue
+            pile = boite(t, cadre, {"flex-shrink": 0}, ["column-direction-normal", "align-items-start"])
+            move(t, pile, cadre, 0)
+            for x in tete:
+                move(t, x, pile)
+                t.styles.style(t, x, {"align-self": "flex-start"})
+            tx = texte_direct(t, k, cadre, COMMENTAIRES_NIVEAU[t.name(cadre)],
+                              ["body-sm", "global-text-primary", "content-no-wrap", "content-ellipsis"],
+                              {"flex-grow": 1, "margin-left": 8, "margin-bottom": 1})
+            move(t, tx, cadre, 1)
+    return msgs
+
+
 def manquants_carte(k):
     """les morceaux de la bande dont le bas de la carte a besoin (dans la tuile du bloc)"""
     m = [f"carte du joueur : {x}" for x in k.manque]
@@ -1509,29 +1838,24 @@ def chiffres47(t, k, parent):
     Salaire (le statut en gras au-dessus, la FIN DE CONTRAT dessous, v12 : sa date en grand sous son titre ; le tout
     CLIQUABLE comme la cellule du contrat de la bannière de FM) | Valeur (sans cadre, soulignée au survol à la largeur de son texte, le clic de FM) | Dispo.
     transfert / Dispo. prêt | boutons d'action de FM (boutons47). v15 : pour tes joueurs, deux boutons-icônes à
-    droite du salaire et de la date de fin (_icones_contrat)"""
+    droite du salaire et de la date de fin (_icones_contrat).
+    v17 (maquette « variante 2 » de Kinito) : des TUILES, posées directement dans la bande : [contrat, tuile haute]
+    [valeur au-dessus ; Dispo. transfert | Dispo. prêt dessous, côte à côte] [boutons] ; chaque contenu centré en
+    hauteur dans sa tuile ; plus de petit trait clair au-dessus des chiffres ni de trait entre les colonnes"""
     src, p, st = k.src, k.p, k.statut
     msgs = []
-    zone = _colonne47(t, parent, POIDS_47["chiffres"])
-    t.elem(zone)["m_Classes"] = ["row-direction-normal", "align-items-stretch", "align-self-stretch"]
-
-    def col(nom, premier=False, tete=True):
-        if not premier:   # le trait entre deux colonnes (court, comme la maquette)
-            boite(t, zone, {"width": 1, "min-width": 1, "flex-shrink": 0, "align-self": "stretch",
-                            "background-color": TRAIT, "margin-top": 34, "margin-bottom": 22})
-        c = _colonne47(t, zone, POIDS_CHIFFRES[nom])
-        t.styles.style(t, c, {"justify-content": "flex-start" if tete else "center", "padding-top": 30 if tete else 0,
-                              "padding-right": CELLULE[1], "padding-left": 0 if premier else 14})
-        if tete:
-            boite(t, c, {"width": 36, "min-width": 36, "height": 3, "min-height": 3, "flex-shrink": 0,
-                         "background-color": TRAIT_CHIFFRE, "margin-bottom": 11,
-                         **{f"border-{x}-radius": 2 for x in ("top-left", "top-right", "bottom-left",
-                                                              "bottom-right")}})
-        return c
     # 1. le contrat : « Salaire », puis le bouton de la cellule du contrat de FM (text-cell-button-medium-secondary-text,
     #    son clic recopié de la bannière : il ouvre la fenêtre du contrat) avec dedans le statut (« Joueur important »)
     #    en gras, le salaire en grand et la fin de contrat ; « - » sans contrat
-    c1 = col("contrat", premier=True)
+    c1 = _tuile47(t, parent, POIDS_TUILES["contrat"], premier=True)
+    # v21 (Kinito, 19/11 : « mettre en évidence le temps de jeu, en couleur comme Gardien de but, plus grand, au-dessus
+    # du mot Salaire ») : le statut en tête de la tuile, pour un joueur sous contrat seulement (une copie de l'aiguillage
+    # de FM person.fullcontract.IsValid : [faux : rien | vrai : le statut]) ; il était sous « Salaire », dans le bouton
+    st_c = seul(t, src.s, p["contrat"], c1)
+    t.elem(st_c)["m_Classes"] = ["align-self-stretch"]
+    boite(t, st_c, {}, [])
+    texte_direct(t, k, st_c, CHEMIN_STATUT, CL_STATUT_AVANT,
+                 {"color": COULEUR_DESCRIPTION, "margin-bottom": STATUT_MARGE})
     _titre_chiffre(t, k, c1, "Salaire", "Wage")
     sw = seul(t, src.s, p["contrat"], c1)
     t.elem(sw)["m_Classes"] = ["align-self-stretch"]
@@ -1546,8 +1870,11 @@ def chiffres47(t, k, parent):
     # 2. valeur : le bouton de FM (son clic et son infobulle), sans son icône ; cell-medium (le soulignement de FM au
     #    survol) MAIS sa hauteur de 16 (qui coupait le texte, capture 28) et tout fond retirés. v11 (capture 38 : « la
     #    ligne de soulignement déborde ») : le trait de FM (.cell-text-underline : absolu, 100 % de la largeur du
-    #    bouton) suivait le bouton, étiré sur toute la colonne ; le bouton prend maintenant la largeur de son texte
-    c2 = col("valeur")
+    #    bouton) suivait le bouton, étiré sur toute la colonne ; le bouton prend maintenant la largeur de son texte.
+    #    v17 : la valeur dans la tuile du haut d'une colonne sans fond ; dessous, une ligne de deux tuiles (les dispos)
+    col2 = boite(t, parent, {"flex-grow": POIDS_TUILES["valeurs"], "flex-shrink": 1, "flex-basis": 0, "min-width": 0,
+                             "margin-left": ECART_TUILES}, ["column-direction-normal", "align-self-stretch"])
+    c2 = _tuile47(t, col2, 1, premier=True)
     _titre_chiffre(t, k, c2, "Valeur", "Value")
     v = src.clone(t, p["valeur"], c2)
     t.elem(v)["m_Classes"] = ["align-self-stretch"]
@@ -1572,15 +1899,18 @@ def chiffres47(t, k, parent):
             no_styles(t, tx)
             _classes_texte(t, tx, CL_VAL)
         boite(t, bouton, {}, ["cell-text-underline"])
-    # 3. dispos : les deux cadres de la tuile de FM (titre, puis la réponse, ici en grand), l'un sous l'autre
-    c3 = col("dispo")
+    # 3. dispos : les deux cadres de la tuile de FM (titre, puis la réponse, ici en grand) ; v17 : chacun sa tuile,
+    #    côte à côte sous la valeur (jusqu'à la v16 : l'un sous l'autre dans une colonne)
+    rang = boite(t, col2, {"flex-grow": 1, "flex-shrink": 1, "flex-basis": 0, "min-height": 0,
+                           "margin-top": ECART_TUILES}, ["row-direction-normal", "align-self-stretch"])
     for i, nom_titre in enumerate(STATUT_CADRES):
         titre_fm = first(st.s, lambda r: st.s.name(r) == nom_titre)
         if titre_fm is None:
             msgs.append(f"{STATUT} : {nom_titre} introuvable")
             continue
+        c3 = _tuile47(t, rang, 1, premier=not i)
         rm = remapper(t, k.rm_model, c3, {"player": ("person", JOUEUR)}, ["align-self-stretch"])
-        t.styles.style(t, rm, {"margin-top": 8 if i else 0, "flex-shrink": 0})
+        t.styles.style(t, rm, {"flex-shrink": 0})
         c = st.clone(t, st.s.parent[titre_fm], rm)
         t.sd(c)["name"] = ""
         for r in t.walk(c):
@@ -1588,18 +1918,45 @@ def chiffres47(t, k, parent):
                 cl = list(t.elem(r).get("m_Classes") or [])
                 cl = ["heading-xl" if x == "heading-xsmall-14px" else x for x in cl]
                 _classes_texte(t, r, dict.fromkeys(cl + ["content-no-wrap", "content-ellipsis"]))
-    # 4. les boutons d'action de FM, centrés en hauteur (ni trait clair ni titre)
-    c4 = col("boutons", tete=False)
+    # 4. les boutons d'action de FM, centrés en hauteur (sans titre), dans une tuile haute
+    c4 = _tuile47(t, parent, POIDS_TUILES["boutons"], marges=TUILE_MARGES_BOUTONS)
+    msgs += actions_bande47(t, k, c4)   # v20 : hors Grand, le menu « Actions » de FM au-dessus des boutons
     msgs += boutons47(t, k, c4)
     return msgs
+
+
+# v20 (Kinito, 16/11/2026, en Moyen : « le bouton Actions passerait au-dessus des boutons, dans la même tuile, plutôt
+# que sous le niveau et le potentiel ») : HORS GRAND (MODE > HORS_GRAND_MODE : Moyen, et Petit qui a encore plus de
+# place), le menu « Actions » de FM (FrameActions de la bannière, comme dans la carte) en tête de la tuile des boutons,
+# de toute sa largeur, dans une case de la hauteur d'un bouton ; en Grand, il reste dans la carte (bloc v27)
+HORS_GRAND_MODE = 0       # MODE > 0 : Moyen, Petit ; MODE < 1 : Grand
+
+
+def actions_bande47(t, k, parent):
+    b = k.s_vis.sd(k.vis)["Binding"]
+    v = visible(t, k, parent, None, "", ni.make_binding(b, OP_SUP, [MODE], HORS_GRAND_MODE),
+                {"margin-bottom": ECART_BOUTONS})
+    t.elem(v)["m_Classes"] = ["column-direction-normal", "align-self-stretch"]
+    case = boite(t, v, {"height": BOUTON_H, "min-height": BOUTON_H, "max-height": BOUTON_H, "flex-shrink": 0,
+                        "overflow": "hidden"}, ["column-direction-normal", "align-self-stretch"])
+    a = k.src.clone(t, k.p["actions"], case)
+    t.sd(a)["name"] = ""
+    t.elem(a)["m_Classes"] = ["column-direction-normal"]
+    t.styles.style(t, a, {"flex-grow": 1, "align-self": "stretch"})
+    menu = t.children(a)[:1]   # le menu de FM (PluginContextMenuBindings) : toute la case, son contenu centré
+    for x in menu:
+        t.styles.style(t, x, {"flex-grow": 1, "align-self": "stretch", "justify-content": "center",
+                              "align-items": "center"})
+    return [] if menu else ["menu « Actions » de FM (FrameActions) : forme inattendue (introuvable)"]
 
 
 def _bouton_contrat(t, k, parent):
     """v11 (Kinito, 08/11 : « on remet la date de fin de contrat avec le contrat ; on rend le contrat cliquable comme
     sur la fiche de base du jeu ») : le bouton de la cellule du contrat de FM (text-cell-button-medium-secondary-text,
     SIButton « CellButton » et son trait de soulignement), avec le CLIC de la bannière (ses événements, surchargés
-    dans la bannière : la fenêtre du contrat de FM, avec person) ; dedans, à la place de ses deux textes : le statut
-    en gras, le salaire en grand, puis « Fin de contrat » et la date. Il prend la largeur de son texte le plus long
+    dans la bannière : la fenêtre du contrat de FM, avec person) ; dedans, à la place de ses deux textes : le salaire
+    en grand, puis « Fin de contrat » et la date (v21 : le statut, en gras au-dessus jusqu'à la v20, est en tête de la
+    tuile). Il prend la largeur de son texte le plus long
     (le trait aussi) ; sa hauteur de cellule (cell-medium) et son fond retirés, comme la valeur"""
     msgs = []
     b = k.cellule.clone(t, k.cellule_bouton, parent)
@@ -1617,7 +1974,7 @@ def _bouton_contrat(t, k, parent):
                           "align-self": "flex-start"})
     if not any(t.name(x) == "Underline" for x in t.children(b)):
         msgs.append("contrat : trait de soulignement de FM introuvable")
-    texte_direct(t, k, b, CHEMIN_STATUT, CL_STAT)
+    # v21 : le statut n'est plus ici : il est en tête de la tuile, au-dessus de « Salaire » (chiffres47)
     texte_direct(t, k, b, CHEMIN_SALAIRE, CL_VAL)
     # v12 (Kinito, 08/11, capture 41 : « la date en dessous de Fin de contrat plutôt qu'à côté, aussi grosse que le
     # salaire ; garder Fin de contrat tel quel ») : le titre, puis la date en grand (CL_VAL, comme le salaire)
@@ -1640,8 +1997,9 @@ def _icones_contrat(t, k, parent):
     dessous, à droite de la fin du contrat, une icône contrat « pour lui proposer un nouveau contrat » ; seulement en
     icône, grisées quand ce n'est pas possible) : une colonne de ICONE_B de large, sous team = human.Team (comme
     boutons47), visible si le contrat est chez toi (CONTRAT_HUMAIN). Pour être en face du salaire et de la date À
-    TOUTES LES TAILLES DU TEXTE, la colonne reprend les textes du contrat à l'identique, invisibles (_fantome : statut,
-    salaire, « Fin de contrat », date, mêmes liaisons et mêmes classes, donc mêmes hauteurs) ; chaque icône est centrée
+    TOUTES LES TAILLES DU TEXTE, la colonne reprend les textes du contrat à l'identique, invisibles (_fantome : salaire,
+    « Fin de contrat », date ; v21 : plus le statut, sorti du bouton ; mêmes liaisons et mêmes classes, donc mêmes
+    hauteurs) ; chaque icône est centrée
     sur la ligne du salaire ou de la date (une place absolue qui couvre la ligne). Chaque case d'icône : le bouton
     d'action de FM avec SON gabarit d'icône (GABARITS_ICONES), et dessous le même bouton-icône grisé
     (_bouton_gris_icone), que le bouton de FM pousse hors de la case quand il est là"""
@@ -1652,7 +2010,7 @@ def _icones_contrat(t, k, parent):
     t.elem(g)["m_Classes"] = ["column-direction-normal"]
     t.styles.style(t, g, {"width": ICONE_B, "min-width": ICONE_B, "max-width": ICONE_B, "flex-shrink": 0,
                           "flex-grow": 1})
-    _fantome(t, texte_direct(t, k, g, CHEMIN_STATUT, CL_STAT))
+    # v21 : plus de fantôme du statut (il a quitté le bouton du contrat) : salaire, « Fin de contrat », date
     for i, (cle, _nom, numero, fr, en) in enumerate(ACTIONS_CONTRAT):
         if i:
             ti = _titre_chiffre(t, k, g, "Fin de contrat", "Contract Expires")
@@ -2194,7 +2552,7 @@ def _lignes_pc(t, k, parent, cle, liste, nombre, icone):
 def avis47(t, k, parent, taille="normal"):
     """la case du milieu de la bande : le polygone des attributs (v10 option « polygone », v11 pour de bon ; le rapport
     est en bas de la colonne de droite du bloc, _rapport_bloc)"""
-    col = _colonne47(t, parent, POIDS_47["avis"], centre=True)
+    col = _tuile47(t, parent, POIDS_TUILES["avis"], centre=True, marges=TUILE_MARGES_POLYGONE)   # v17 : une tuile
     _polygone_2x(t, k, col, STATS_H, RAYONS_BANDE[taille],
                  lambda dans: remapper(t, k.rm_model, dans, {"player": ("person", JOUEUR)}),
                  lambda dans: _cloner_fa(t, k, k.chart, dans))
@@ -2209,12 +2567,17 @@ def _cloner_fa(t, k, r, parent):
     return c
 
 
-def _rapport47(t, k, col, kb):
+def _rapport47(t, k, col, kb, hors_grand=False):
     """en haut, centrés : le titre du rapport sur deux lignes et sa note (« Rapport du préparateur » et la note du
     préparateur pour tes joueurs) ; dessous, Pour | Contre en icônes. (Niveau actuel et Potentiel : dans la carte
     depuis la v9). Dans col (la case de la bande, ou v15 option « polygone », le bas de la colonne de droite du bloc :
-    il y faut localteam)"""
+    il y faut localteam). Bloc v27, hors_grand : niveau et potentiel en tête (ceux de la carte, _etoiles_carte), pas de
+    titre « Rapport du préparateur » (sa note reste), la barre de défilement de Pour / Contre toujours visible. Bloc v33
+    (Kinito, 17/11 : « en Grand, vire Rapport du préparateur et mets niveau actuel et niveau potentiel sur les colonnes
+    Pour et Contre comme sur Moyen ») : niveau et potentiel en tête et pas de titre en Grand aussi ; hors_grand ne
+    décide plus que de la barre de défilement (toujours visible hors Grand, « si besoin » en Grand, comme avant)"""
     msgs = []
+    msgs += _etoiles_rapport(t, k, col)
     haut = boite(t, col, {"flex-shrink": 0, "margin-bottom": 8},
                  ["row-direction-normal", "align-items-center", "justify-content-center", "align-self-stretch"])
     s = k.txt.s
@@ -2289,9 +2652,8 @@ def _rapport47(t, k, col, kb):
     # puis les étoiles de FM
     ligne_c = boite(t, sw, {}, ["row-direction-normal", "align-items-center"])
     move(t, ligne_c, sw, 1)
-    tc = titre(t, k, ligne_c, *TITRE_PREPARATEUR)
-    t.styles.style(t, tc, {"max-width": 78, "margin-right": 8, "flex-shrink": 0})
-    t.elem(tc)["m_Classes"] = ["body-xs-strong", "global-text-secondary"]
+    # bloc v27 : hors Grand, plus de « Rapport du préparateur » (niveau et potentiel au-dessus) ; bloc v33 : en Grand
+    # non plus (TITRE_PREPARATEUR n'est plus écrit nulle part)
     note = _par_nom_dans(t, eclaireur, "PlayerRecommendationCell-Unpacked")
     if note is None:
         msgs.append("note du rapport (PlayerRecommendationCell-Unpacked) introuvable")
@@ -2313,7 +2675,7 @@ def _rapport47(t, k, col, kb):
     rmr = seul(t, k.txt.s, k.rm_rapport, bas)
     t.elem(rmr)["m_Classes"] = ["column-direction-normal", "align-self-stretch"]
     t.styles.style(t, rmr, {"flex-grow": 1, "min-height": 0})
-    msgs += _listes_pc(t, k, kb, rmr)
+    msgs += _listes_pc(t, k, kb, rmr, toujours=hors_grand)
     n_pour, n_contre = LISTES_PC[0][2], LISTES_PC[1][2]
     plein = {"position": "absolute", "left": 0, "top": 0, "right": 0, "bottom": 0}
     sans_pour = visible(t, k, rmr, None, "", ni.equal_binding(b, n_pour, 0), plein)
@@ -2325,7 +2687,7 @@ def _rapport47(t, k, col, kb):
     return msgs
 
 
-def _listes_pc(t, k, kb, parent):
+def _listes_pc(t, k, kb, parent, toujours=False):
     """bloc v16 : Pour, puis Contre (bloc v17 : côte à côte), dans un SIScrollView de FM (kb : sources du bloc) qui
     prend la place qui reste ;
     chacun : son titre de FM (pouce et mot), puis ses lignes [pastilles d'Alex en colonne | phrases] (la pastille et la
@@ -2357,7 +2719,9 @@ def _listes_pc(t, k, kb, parent):
             msgs += _phrases_liste(t, k, corps, liste)
         else:
             msgs += _lignes_pc(t, k, corps, cle, liste, nombre, icone=True)
-    _dans_defilement(t, kb, parent, t.children(parent).index(contenu), [contenu])
+    d = _dans_defilement(t, kb, parent, t.children(parent).index(contenu), [contenu])
+    if toujours:   # bloc v27 (Kinito : « toujours la barre de défilement sur le rapport ») : AlwaysVisible (1)
+        t.sd(d)["verticalScrollerVisibility"], t.sd(d)["verticalScrollerVisibility_UxmlAttributeFlags"] = 1, 1
     return msgs
 
 
@@ -2441,13 +2805,15 @@ def _entrainement47(t, k, parent):
     move(t, intensite, ligne2)
     no_styles(t, positions)
     t.elem(positions)["m_Classes"] = ["row-direction-normal", "align-self-stretch"]
+    # v18 : l'écart de 6 après le 1er menu de chaque ligne seulement : centré, le bloc aurait 6 de vide à droite
+    premiers = set(t.children(positions)[:1]) | {focus}
     for x in list(t.children(positions)) + [focus, intensite]:
         no_styles(t, x)
         # v11 : MENU_L de large, fixe ; le menu (le modèle inclus de FM, et le ContextShortcutsElement qui entoure le
         # 1er) étiré sur toute cette largeur : ils prenaient la largeur de leur texte (capture 37 : 161 / 64 / 69 / 161)
         t.elem(x)["m_Classes"] = ["column-direction-normal"]
         t.styles.style(t, x, {"width": MENU_L, "min-width": MENU_L, "max-width": MENU_L, "flex-grow": 0,
-                              "flex-shrink": 0, "align-items": "stretch", "margin-right": 6})
+                              "flex-shrink": 0, "align-items": "stretch", **({"margin-right": 6} if x in premiers else {})})
         for m in t.walk(x):
             if m != x and m in t.refs and not typ(t, m).endswith("SIText"):
                 t.styles.style(t, m, {"max-width": {"unit": 2, "value": 100.0}, "min-width": 0,
@@ -2489,7 +2855,8 @@ def _stats47(t, k, parent, taille="normal"):
         msgs.append(f"polygone de stats : {len(graphes)} graphiques au lieu d'un (introuvable)")
     for x in graphes:
         _regler_polygone_2x(t, x, STATS_H, RAYONS_STATS[taille])
-    tete = boite(t, ok, {"position": "absolute", "left": 0, "top": 0, "right": 0, "flex-shrink": 0},
+    # v17 : TETE_STATS_HAUT sous le bord de la tuile (la bande avait 6 de marge intérieure en haut, la tuile aucune)
+    tete = boite(t, ok, {"position": "absolute", "left": 0, "top": TETE_STATS_HAUT, "right": 0, "flex-shrink": 0},
                  ["row-direction-normal", "align-items-start"])
     _sans_souris(t, tete)
     ti = k.perf.clone(t, k.perf_titre, tete)
@@ -2538,8 +2905,7 @@ def _stats47(t, k, parent, taille="normal"):
 def bout47(t, k, parent, taille="normal"):
     """le bout de la bande : sans contrat (libre) un texte à nous ; tes joueurs l'entraînement ; les autres le polygone
     de stats (ou le texte de FM s'il n'y a pas assez de données)"""
-    col = _colonne47(t, parent, POIDS_47["bout"])
-    t.styles.style(t, col, {"justify-content": "flex-start"} if False else {})
+    col = _tuile47(t, parent, POIDS_TUILES["bout"], marges=TUILE_MARGES_BOUTONS)   # v17 : une tuile
     sw = seul(t, k.src.s, k.p["contrat"], col)   # person.fullcontract.IsValid : [faux | vrai]
     t.elem(sw)["m_Classes"] = ["align-self-stretch"]
     t.styles.style(t, sw, {"flex-grow": 1})
@@ -2548,34 +2914,63 @@ def bout47(t, k, parent, taille="normal"):
     _titre_et_texte(t, k, lib, TITRE_PRESTATION, TEXTE_LIBRE)
     avec = boite(t, sw, {"flex-grow": 1}, ["column-direction-normal", "align-self-stretch"])
     a_nous = visible_bool(t, k, avec, CLUB_HUMAIN)
-    t.elem(a_nous)["m_Classes"] = ["column-direction-normal", "align-self-stretch"]
-    msgs = _entrainement47(t, k, a_nous)
+    # v18 (Kinito, 16/11, capture de Krapikas : « tu peux centrer l'entraînement dans sa tuile ? ») : l'entraînement
+    # était en haut à gauche de sa tuile (le SIVisible ne grandissait pas, ses lignes s'étiraient sur toute la largeur).
+    # Il est dans un bloc à la largeur de ses menus, centré dans la tuile, en hauteur et en largeur ; dans le bloc, le
+    # titre reste aligné sur le 1er menu. Plus étroite que le bloc (jamais vu), la tuile le couperait à droite comme avant
+    t.elem(a_nous)["m_Classes"] = ["column-direction-normal", "align-items-center", "align-self-stretch"]
+    t.styles.style(t, a_nous, {"flex-grow": 1, "justify-content": "center"})
+    bloc = boite(t, a_nous, {"flex-shrink": 0, "max-width": {"unit": 2, "value": 100.0}}, ["column-direction-normal"])
+    msgs = _entrainement47(t, k, bloc)
     autres = visible_bool(t, k, avec, CLUB_HUMAIN, inverse=True)
     t.elem(autres)["m_Classes"] = ["column-direction-normal", "align-self-stretch"]
     msgs += _stats47(t, k, autres, taille)
     return msgs
 
 
+# v19 (Kinito, 16/11/2026, v18 vue en jeu : « en Moyen, dans le bandeau du haut, possibilité d'ajouter le polygone des
+# stats qu'on a mis sur les joueurs qui ne nous appartiennent pas ? entre l'entraînement et le polygone des attributs ») :
+# en affichage STATS_EN_PLUS (Moyen) et pour TES joueurs seulement, une tuile de plus entre le polygone des attributs et
+# l'entraînement : le polygone de stats (_stats47, le même que celui des autres joueurs dans le bout). Deux conditions,
+# donc deux SIVisible l'un dans l'autre ; un SIVisible caché ne prend pas de place, mais celui du dehors, visible, garde
+# celle de ce qu'il contient : la tuile a une largeur FIXE (STATS_EN_PLUS_L) plutôt qu'un poids, et rien d'autre (ni
+# écart ni marge) n'est posé sur les SIVisible : caché, l'un ou l'autre ne coûte rien. La bande a ~420 de FM de plus en
+# Moyen qu'en Grand (interface à 80 % : 1920 px font 2111 de FM au lieu de 1689, moins les mêmes 63 de bords : ~2048
+# au lieu de 1626 ; capture de Krapikas : 1866 px à 0,91 px par px de FM) : la tuile et son écart en prennent 408, les
+# cinq autres tuiles gardent à peu près leur largeur de Grand. Les autres joueurs : rien ne change (leurs stats sont
+# déjà dans le bout).
+STATS_EN_PLUS = 1         # MODE : Moyen seulement
+STATS_EN_PLUS_L = 400     # largeur de la tuile (dedans : 374 ; en Grand, les stats du bout ont ~390)
+
+
+def stats_en_plus47(t, k, parent, taille="normal"):
+    """v19 : [SIVisible mode == STATS_EN_PLUS > SIVisible club à toi > tuile de STATS_EN_PLUS_L : le polygone de stats]"""
+    b = k.s_vis.sd(k.vis)["Binding"]
+    v = visible(t, k, parent, len(t.children(parent)), "", ni.make_binding(b, OP_EGAL, [MODE], STATS_EN_PLUS))
+    t.elem(v)["m_Classes"] = ["row-direction-normal"]
+    a_toi = visible_bool(t, k, v, CLUB_HUMAIN)
+    t.elem(a_toi)["m_Classes"] = ["row-direction-normal", "align-self-stretch"]
+    col = _tuile47(t, a_toi, 0, marges=TUILE_MARGES_BOUTONS,
+                   css={"flex-grow": 0, "flex-shrink": 0, "flex-basis": STATS_EN_PLUS_L, "width": STATS_EN_PLUS_L,
+                        "min-width": STATS_EN_PLUS_L, "max-width": STATS_EN_PLUS_L})
+    return _stats47(t, k, col, taille)
+
+
 def construire_47(t, parent, k, taille="normal"):
     """la bande : chiffres | avis | bout. v9 (capture 30 : « solidifier le bandeau en haut complètement ») : sur TOUTE la
     largeur, la carte du joueur (photo comprise) est entière dans le bloc, dessous. taille : la taille du texte de
-    cette bande (TAILLES_TEXTE), pour le rayon des polygones (v10)"""
+    cette bande (TAILLES_TEXTE), pour le rayon des polygones (v10). v17 (maquette « variante 2 » de Kinito) : la bande
+    est une ligne SANS fond, de la même place que la carte d'avant (HAUT_BANDE de haut, mêmes marges extérieures) ;
+    dedans, des tuiles (_tuile47) : celles des chiffres, le polygone, le bout"""
     msgs = []
-    v, h = PADDING_V, MARGE_COTES_INT
     carte = boite(t, parent, {
         "flex-direction": "row", "align-items": "stretch", "height": HAUT_BANDE, "min-height": HAUT_BANDE,
-        "max-height": HAUT_BANDE,
-        "flex-shrink": 0, "flex-grow": 1, "overflow": "hidden", "background-color": FOND,
-        **{f"border-{c}-width": 1 for c in ("top", "bottom", "left", "right")},
-        **{f"border-{c}-color": BORD for c in ("top", "bottom", "left", "right")},
-        **{f"border-{c}-radius": RAYON for c in ("top-left", "top-right", "bottom-left", "bottom-right")},
-        "padding-top": v, "padding-bottom": v, "padding-left": h, "padding-right": h,
+        "max-height": HAUT_BANDE, "flex-shrink": 0, "flex-grow": 1, "overflow": "hidden",
         "margin-top": MARGE_HAUT, "margin-bottom": 0, "margin-left": MARGE_COTES,
         "margin-right": MARGE_COTES}, ["align-self-stretch"])
     msgs += chiffres47(t, k, carte)
-    _sep47(t, carte)
     msgs += avis47(t, k, carte, taille)
-    _sep47(t, carte)
+    msgs += stats_en_plus47(t, k, carte, taille)   # v19 : Moyen, tes joueurs
     msgs += bout47(t, k, carte, taille)
     return msgs
 
@@ -2685,16 +3080,33 @@ def _deballer_dans(t, k):
     t.remove(k)
 
 
+def affichages():
+    """les affichages où notre fiche se montre, en clair (« Grand, Moyen, Petit »)"""
+    return ", ".join(("Grand", "Moyen", "Petit")[:DERNIER_MODE + 1])
+
+
+def si_notre_fiche(b):
+    """v16 / bloc v23 : liaison « visible là où notre fiche se montre » (affichage <= DERNIER_MODE), d'après la
+    comparaison de FM b (BindIntToVisible) ; jusqu'à la v15 : « mode == 0 »"""
+    return ni.make_binding(b, OP_INF, [MODE], DERNIER_MODE + 1)
+
+
+def si_autre_fiche(b):
+    """le contraire exact de si_notre_fiche (affichage > DERNIER_MODE) : ce qui était à cette place ; jusqu'à la v15 :
+    « mode > 0 »"""
+    return ni.make_binding(b, OP_SUP, [MODE], DERNIER_MODE)
+
+
 def poser(t, k, sw):
-    """à l'enfant 0 de UseStandard : [ce qui y était, en Moyen / Petit | notre bande en Large, par taille du texte]"""
+    """à l'enfant 0 de UseStandard : [ce qui y était, au-delà de DERNIER_MODE | notre bande, par taille du texte]"""
     b = k.s_vis.sd(k.vis)["Binding"]
     declares = {u.get("alias") for u in t.tt.get("m_Usings") or []}
     ancien = t.children(sw)[0]
     place = boite(t, sw, {}, ["align-self-stretch"], NOM_PLACE)
     move(t, place, sw, 0)
-    autres = visible(t, k, place, 0, NOM_AUTRES, ni.make_binding(b, OP_SUP, [MODE], 0))
+    autres = visible(t, k, place, 0, NOM_AUTRES, si_autre_fiche(b))
     move(t, ancien, autres)
-    large = visible(t, k, place, 1, NOM_LARGE, ni.equal_binding(b, MODE, 0))
+    large = visible(t, k, place, 1, NOM_LARGE, si_notre_fiche(b))
     # le BindingSetter de la bannière (variables hasContract / teamtodisplay lues par le bloc du club), vidé
     racine = t.clone(k.p["setter"], large, src=k.src.s)
     for x in list(t.children(racine)):
@@ -2722,9 +3134,9 @@ def poser(t, k, sw):
 
 
 def poser_photo(t, k):
-    """la photo de FM cachée en 1080p Large seulement, quand rien d'autre ne la cache (la tuile d'Alex la cache
-    partout) : [SIVisible mode > 0 : la photo | SIVisible mode == 0 : UseSmall'[UseStandard'[rien, doublure],
-    doublure]] (copies des aiguillages de FM : 1080p = enfants 0)"""
+    """la photo de FM cachée en 1080p là où notre fiche se montre, quand rien d'autre ne la cache (la tuile d'Alex la
+    cache partout) : [SIVisible si_autre_fiche : la photo | SIVisible si_notre_fiche : UseSmall'[UseStandard'[rien,
+    doublure], doublure]] (copies des aiguillages de FM : 1080p = enfants 0)"""
     ph = first(t, lambda r: t.name(r) == PHOTO)
     if ph is None:
         return [f"photo de FM ({PHOTO}) introuvable"]
@@ -2735,9 +3147,9 @@ def poser_photo(t, k):
     b = k.s_vis.sd(k.vis)["Binding"]
     w = boite(t, par, {"flex-shrink": 0}, ["column-direction-normal", "align-self-end"], NOM_PHOTO)
     move(t, w, par, i)
-    fm = visible(t, k, w, 0, NOM_PHOTO_FM, ni.make_binding(b, OP_SUP, [MODE], 0))
+    fm = visible(t, k, w, 0, NOM_PHOTO_FM, si_autre_fiche(b))
     move(t, ph, fm)
-    lg = visible(t, k, w, 1, "", ni.equal_binding(b, MODE, 0))
+    lg = visible(t, k, w, 1, "", si_notre_fiche(b))
 
     def aig(modele, dans):
         a = t.clone_shallow(modele, dans)
@@ -2825,7 +3237,44 @@ def _marquer():
 # recopient « le 1er SIVisible » ou « le 1er VisualElement » du modèle n'en héritent rien) autour de l'élément de FM qui
 # porte tout le bloc (ExpandableContentElement) : [« mode > 0 » : lui, tel qu'Alex l'a fait | « mode == 0 » : notre
 # modèle, inclus].
-VERSION_BLOC = 22    # v22 (Heyti, 2026-11-12) : sélections de la carte = A dès qu'il a joué en A, même avant 21 ans
+VERSION_BLOC = 33    # v33 (Kinito, 2026-11-17, v32 vue en jeu, en affichage GRAND seulement : « vire Rapport du
+#                      préparateur, mets niveau actuel et potentiel sur les colonnes Pour et Contre comme sur Moyen ;
+#                      remets pour les joueurs en prêt club parent et club en prêt comme avant ») : en Grand aussi,
+#                      niveau et potentiel au-dessus de Pour / Contre (plus dans la carte), plus de titre « Rapport du
+#                      préparateur » ; les titres et les noms des clubs du prêt de nouveau visibles (PRET_ECUSSONS_SEULS
+#                      = None) ; Moyen et Petit inchangés ;
+#                      v32 (Kinito, 2026-11-16, v31 vue en jeu : « augmenter le bloc suspension, jusqu'en bas de son
+#                      bloc ») : hors Grand, la case des suspensions grandit jusqu'en bas de la colonne (SUSP_H =
+#                      minimum) ; la disposition des notes prend toute la hauteur (flex-grow 1, comme chez FM) ; la 3e
+#                      colonne du gardien sans justify-content-space-between ;
+#                      v31 (Kinito, 2026-11-16 : « on ne touche QUE notre fiche, pas la fiche d'Alex ») : plus de
+#                      grille centrée (celle de l'essai grille v1 remise d'origine) ; en Moyen, le haut du bloc
+#                      descend de RECENTRAGE (7) au lieu de remonter : même écart au-dessus et au-dessous ;
+#                      v30 (Kinito, 2026-11-16, v29 vue en jeu) : le rapport hors Grand 20 de FM plus haut
+#                      (POLY_H_HORS_GRAND = POLY_H + 90) ;
+#                      v29 (Kinito, 2026-11-16, v28 vue en jeu) : les cales de la carte et le recentrage du v26 par
+#                      _cale (un SIVisible vide ne prend aucune place dans le jeu : il leur faut un enfant), la photo
+#                      hors Grand plus grande encore (PHOTO_H_HORS_GRAND) ;
+#                      v28 (Kinito, 2026-11-16, v27 vue en jeu, en Moyen ; hors Grand) : « Rep » à GAUCHE du nom (il
+#                      était coupé à droite), la place libre de la carte répartie entre ses lignes, la photo plus grande
+#                      (PHOTO_H_HORS_GRAND), niveau et potentiel étalés au-dessus de Pour / Contre avec le commentaire
+#                      du préparateur à côté (_etoiles_rapport) ;
+#                      v27 (Kinito, 2026-11-16, en Moyen ; HORS GRAND, Petit compris) : niveau et potentiel au-dessus
+#                      de Pour / Contre à la place de « Rapport du préparateur » (plus dans la carte), Actions dans la
+#                      bande (plus dans la carte), « Rep » à côté du nom, le rapport plus haut (POLY_H_HORS_GRAND) avec
+#                      sa barre de défilement toujours visible, les suspensions sous les pieds (_suspensions) ;
+#                      v26 (Kinito, 2026-11-16, grille centrée par l'essai grille v1, en Moyen : « la même marge entre
+#                      la bande et le bloc qu'entre le bloc et la rangée du bas ») : le bloc remonte de RECENTRAGE et
+#                      laisse RECENTRAGE en bas (deux SIVisible « mode == 1 » vides autour des places) ;
+#                      v25 (Kinito, 2026-11-16, en Moyen : « manger l'écart entre la bande et la carte joueur ») :
+#                      les places des tailles du texte en arbre de SIVisible contraires (_places_tailles) ; un
+#                      SIVisible visible et vide prenait la moitié de la place libre de la case, en haut (64 de FM
+#                      en Moyen au texte Grand, mesuré au journal des clics) ;
+#                      v24 (Kinito, 2026-11-16, capture d'un joueur prêté : photo coupée en Grand, texte Grand et
+#                      Plus grand) : en affichage Grand, le prêt de la carte n'a plus que ses deux écussons et l'icône
+#                      des prêts (titres « Club Parent » / « En prêt à » et noms des clubs cachés, PRET_ECUSSONS_SEULS) ;
+#                      v23 (Kinito, 2026-11-15) : notre bloc aussi en affichage Moyen et Petit (DERNIER_MODE) ;
+#                      v22 (Heyti, 2026-11-12) : sélections de la carte = A dès qu'il a joué en A, même avant 21 ans
 #                      v21 (Kinito, capture 55 : un joueur de Toluca montré au club de Kinito, Rodez) : le club de la
 #                      carte (et ses pastilles d'état) pris sur person.Team, le club où il joue (carte_bas47) ;
 #                      v20 (Kinito, captures 53-54, texte Normal et Petit : « réduire la colonne du terrain, donner ce
@@ -2950,6 +3399,13 @@ TAILLES_BLOC = [
 # RAYONS_BLOC = {"petit": 72.0, "normal": 67.5, "grand": 65.5, "plus-grand": 45.0}   (jusqu'au bloc v15)
 # avant (v9 à v14) : 83 / 79 / 76 / 74, rayons DEMANDÉS, que FM réduisait (le saut au changement de joueur)
 POLY_L, POLY_H = 280, 230   # POLY_L : plus utilisé depuis la v9 (cale à la largeur de la colonne)
+# bloc v27 (Kinito, 16/11, en Moyen : « remonter un peu ce rapport ») : hors Grand, le rapport fait 70 de FM de plus
+# (~64 px) ; mesuré en Moyen (capture de Krapikas) : ~100 px libres sous les projets, et projets et caractéristiques
+# défilent s'ils ne tiennent pas
+# bloc v30 (Kinito, 16/11, v29 vue en jeu : « remonter encore le rapport un tout petit peu ») : 20 de FM de plus (~18 px) ;
+# mesuré en Moyen, texte Grand (capture de V. Pastrana, 1 projet à long terme) : 40 px libres sous les projets, il en
+# reste ~22, la place d'une ligne de projet de plus avant que les projets ne défilent
+POLY_H_HORS_GRAND = POLY_H + 90
 # px de la colonne des postes (v3 : fixe, 380). Bloc v20 (Kinito, captures 53-54 : « réduire la colonne du terrain, et
 # donner ce que tu réduis à la colonne de droite ») : au plus étroit qui garde la liste des rôles ENTIÈRE (LISTE_ROLES :
 # ses colonnes fixes de FM, Sélec. 45 + Niveau 75 + Rôle 200, et ses marges ; plus étroite, FM la rogne sans « … », vu en
@@ -3258,11 +3714,16 @@ def _tableau(t, k, ligne, largeurs, entrainement=True):
         # place (le terrain et Pour / Contre gardent COTE_MIN), les colonnes rétrécissent ensemble
         cols = t.children(disp)
         total = sum(largeurs[nom_disp]) + ECART_COLONNES * (len(cols) - 1)
-        t.styles.style(t, disp, {"flex-grow": 0, "width": total, "max-width": {"unit": 2, "value": 100.0}})
+        # bloc v32 : la disposition prend toute la hauteur du tableau, comme chez FM (sa classe flex-grow-class ; elle
+        # était à 0, donc à la hauteur de son contenu). L'aiguillage est une colonne (aucune règle de FM ne le touche :
+        # valeurs d'Unity) : flex-grow ne joue que sur la hauteur ; la largeur reste celle écrite ici. Les colonnes
+        # s'étirent avec elle (align-items par défaut) : la case des suspensions peut descendre jusqu'en bas du bloc
+        t.styles.style(t, disp, {"flex-grow": 1, "width": total, "max-width": {"unit": 2, "value": 100.0}})
         for c, w in zip(cols, largeurs[nom_disp]):
             t.styles.style(t, c, {"flex-grow": 0, "flex-shrink": 1, "flex-basis": w, "min-width": 0})
+    msgs = []
     for x in [x for x in t.walk(r) if _alias(t, x) == "PlayerReportFootednessBlock"]:
-        _pieds_ecartes(t, k, x)
+        msgs += _suspensions(t, k, _pieds_ecartes(t, k, x))
 
     def liste(chemin):
         return next((x for x in t.walk(r) if typ(t, x).endswith("StreamedObjectList")
@@ -3273,6 +3734,54 @@ def _tableau(t, k, ligne, largeurs, entrainement=True):
     if entrainement:
         _entrainement(t, k, t.parent[t.parent[physique]])
         _entrainement(t, k, t.parent[gardien])
+    return msgs
+
+
+# bloc v27 (Kinito, 16/11/2026, en Moyen : « on ajoute les suspensions en dessous des pieds ») : hors Grand, sous les
+# pieds (joueur de champ et gardien), le bloc des suspensions de FM (PlayerReportBansBlock : titre avec le carton,
+# « aucune suspension » ou son tableau) dans une case de SUSP_H de haut : le titre fixe, le reste défile (barre
+# seulement si besoin). Mesuré en Moyen (capture de Krapikas) : ~90 de FM libres sous les pieds
+# bloc v32 (Kinito, 16/11/2026, v31 vue en jeu en Moyen : « augmenter la taille du bloc suspension, il peut prendre
+# jusqu'en bas de son bloc », joueur de champ et gardien) : la case GRANDIT jusqu'en bas de la colonne (flex-grow 1),
+# SUSP_H n'est plus que son minimum (la hauteur d'avant : jamais plus petite) ; la colonne descend jusqu'en bas du
+# tableau (la disposition grandit, _tableau). La 3e colonne du gardien répartissait ses enfants
+# (justify-content-space-between) : la classe est retirée de notre copie, sinon en Grand (pas de case) ses enfants
+# s'écarteraient sur toute la hauteur. Aujourd'hui elle est la plus haute des trois colonnes (12 lignes, 3 titres et les
+# pieds contre 14 lignes et un titre) : elle n'avait donc aucune place à répartir, Grand ne change pas
+SUSP_H = 72
+SUSP_MARGE = 8
+REPARTIT = "justify-content-space-between"
+
+
+def _suspensions(t, k, pieds):
+    b = k.s_vis.sd(k.vis)["Binding"]
+    par = t.parent[pieds]
+    t.elem(par)["m_Classes"] = [c for c in t.elem(par).get("m_Classes") or [] if c != REPARTIT]
+    v = visible(t, k, par, t.children(par).index(pieds) + 1, "", ni.make_binding(b, OP_SUP, [MODE], HORS_GRAND_MODE),
+                {"margin-top": SUSP_MARGE, "flex-grow": 1, "flex-shrink": 0, "flex-basis": SUSP_H,
+                 "min-height": SUSP_H, "overflow": "hidden"})
+    t.elem(v)["m_Classes"] = ["column-direction-normal", "align-self-stretch"]
+    # le bloc de FM lit Player.BansOverview : la tuile reçoit person, un remapper player <- person (comme Pour / Contre)
+    rm = t.clone(k.remapper, v, src=k.pieds.s)
+    for x in list(t.children(rm)):
+        t.remove(x)
+    no_styles(t, rm)
+    t.sd(rm)["name"] = ""
+    t.sd(rm)["Mappings"] = [{"m_serialisedType": 0, "from": "player", "to": {"m_path": "person"},
+                             "type": {"id": JOUEUR}}]
+    t.elem(rm)["m_Classes"] = ["column-direction-normal", "align-self-stretch"]
+    t.styles.style(t, rm, MOITIE)
+    r = k.bans.clone(t, racine_de(k.bans.s), rm)
+    t.sd(r)["name"] = ""
+    t.styles.style(t, r, MOITIE)
+    t.elem(r)["m_Classes"] = ["column-direction-normal", "align-self-stretch"]
+    titre_ = next((x for x in t.children(r) if t.name(x) == "BansTitleFrame"), None)
+    reste = [x for x in t.children(r) if x != titre_]
+    if titre_ is None or not reste:
+        return ["suspensions : bloc de FM (BansTitleFrame) introuvable"]
+    t.elem(titre_)["m_Classes"] = ["row-direction-normal", "align-items-center", "margin-bottom-global-gap-small"]
+    t.styles.style(t, titre_, {"flex-shrink": 0})
+    _dans_defilement(t, k, r, t.children(r).index(reste[0]), reste)
     return []
 
 
@@ -3609,13 +4118,25 @@ def _rapport_bloc(t, k, kc, parent):
     encore de rapport ») en bas de la colonne de droite, POLY_H de haut (v15 : option « polygone » de l'app ; bloc
     v16 : toujours, le polygone des attributs est dans la bande). kc = les sources de la BANDE, k celles du bloc (le
     défilement de FM) ; la tuile reçoit team, pas localteam : un remapper localteam <- team"""
-    zone = boite(t, parent, {"flex-shrink": 0, "height": POLY_H, "min-height": POLY_H, "max-height": POLY_H,
-                             "overflow": "hidden", "padding-top": 10, "padding-left": 8, "padding-right": 8},
-                 ["column-direction-normal", "align-items-center", "align-self-stretch"])
-    rm = remapper(t, kc.rm_model, zone, {"localteam": ("team", EQUIPE)},
-                  ["column-direction-normal", "align-items-center", "align-self-stretch"])
-    t.styles.style(t, rm, {"flex-grow": 1, "min-height": 0})
-    return _rapport47(t, kc, rm, k)
+    # bloc v27 (Kinito, 16/11, en Moyen) : deux rapports, l'un en Grand (« mode < 1 », comme avant), l'autre hors Grand
+    # (« mode > 0 ») : POLY_H_HORS_GRAND de haut (il remonte), niveau et potentiel en tête, sans « Rapport du
+    # préparateur », la liste Pour / Contre avec sa barre de défilement toujours visible
+    # bloc v33 (Kinito, 17/11, en Grand) : le rapport de Grand a lui aussi niveau et potentiel en tête et pas de titre
+    # « Rapport du préparateur » (_rapport47) ; il garde sa hauteur (POLY_H) et sa barre « si besoin »
+    b = kc.s_vis.sd(kc.vis)["Binding"]
+    msgs = []
+    for hors_grand, op, val in ((False, OP_INF, HORS_GRAND_MODE + 1), (True, OP_SUP, HORS_GRAND_MODE)):
+        v = visible(t, kc, parent, None, "", ni.make_binding(b, op, [MODE], val))
+        t.elem(v)["m_Classes"] = ["column-direction-normal", "align-self-stretch"]
+        h = POLY_H_HORS_GRAND if hors_grand else POLY_H
+        zone = boite(t, v, {"flex-shrink": 0, "height": h, "min-height": h, "max-height": h,
+                            "overflow": "hidden", "padding-top": 10, "padding-left": 8, "padding-right": 8},
+                     ["column-direction-normal", "align-items-center", "align-self-stretch"])
+        rm = remapper(t, kc.rm_model, zone, {"localteam": ("team", EQUIPE)},
+                      ["column-direction-normal", "align-items-center", "align-self-stretch"])
+        t.styles.style(t, rm, {"flex-grow": 1, "min-height": 0})
+        msgs += _rapport47(t, kc, rm, k, hors_grand=hors_grand)
+    return msgs
 
 
 def _colonne_droite(t, k, ligne, kc):
@@ -3644,6 +4165,44 @@ def _sans_souris(t, r):
     sd["pickingMode"], sd["pickingMode_UxmlAttributeFlags"] = 1, 1
 
 
+def _cale(t, k, parent, index, liaison, css, css_dedans=None):
+    """bloc v29 : un SIVisible qui ne sert qu'à prendre de la place (cale, marge), avec UN ENFANT VIDE. Mesuré en jeu
+    (16/11, journal des clics, Moyen) : un SIVisible SANS enfant ne prend aucune place, même avec sa condition vraie —
+    les cales du bloc v28 (la carte restait centrée, 78 de FM vides en haut et en bas) et le recentrage du bloc v26 (les
+    places commençaient au haut de la case, 326,6) n'ont rien fait. Les SIVisible de FM sont des
+    ConditionalVisualElement, qui fabriquent leurs enfants ; sans enfant, le nôtre ne se montre sans doute jamais.
+    Un SIVisible AVEC enfant prend bien sa place (bloc v25 : un SIVisible visible dont l'enfant était caché prenait la
+    moitié de la case). Les deux laissent passer la souris."""
+    v = visible(t, k, parent, index, "", liaison, css)
+    d = boite(t, v, {"flex-grow": 1, "flex-shrink": 1, "min-height": 0, **(css_dedans or {})})
+    for x in (v, d):
+        _sans_souris(t, x)
+    return v
+
+
+# bloc v25 (Kinito, 16/11/2026, en Moyen : « manger un peu l'écart entre la bande du haut et la carte joueur ») : mesuré
+# en jeu (journal des clics, affichage Moyen, texte Grand) : la bande vide, 64 de FM sous le haut de la case du bloc,
+# était un SIVisible de NOTRE bloc, visible et vide. Jusqu'au bloc v24, la place de chaque taille du texte était une
+# chaîne [SIVisible « texte > bas » > SIVisible « texte < haut »], toutes deux en flex-grow 1 : au texte Grand, celui du
+# dehors de la taille Normal (« > 94 ») est vrai, celui du dedans (« < 105 ») faux. Le premier, visible et vide, prenait
+# la MOITIÉ de la place libre de la case, en haut (au texte Plus grand, deux d'entre eux en prenaient les deux tiers).
+# En Grand la case laisse peu de place libre (~50 de FM) : la carte du joueur, posée en absolu sur toute la hauteur de
+# sa place, en perdait la moitié (la photo coupée de la capture de Schott, aux textes Grand et Plus grand seulement) ; en
+# Moyen la case est plus haute (557 de FM au lieu de 480, la grille de FM garde ses proportions) : 64 de vide en haut.
+# Maintenant un ARBRE de SIVisible deux à deux contraires (« texte < s » | « texte > s - 1 ») : à chaque niveau, un seul
+# des deux est visible, aucun conteneur visible ne reste vide, la taille du texte en cours prend toute la case.
+def _places_tailles(t, k, parent, b, bas_):
+    """les places des tailles du texte (dans l'ordre de TAILLES_BLOC) : un arbre de SIVisible contraires deux à deux,
+    coupé au seuil bas de la 1re taille de la seconde moitié ; bas_ : le seuil bas de chaque taille (None pour la 1re)"""
+    if len(bas_) == 1:
+        return [parent]
+    m = len(bas_) // 2
+    s = bas_[m]
+    gauche = visible(t, k, parent, None, "", ni.make_binding(b, OP_INF, [TAILLE_TEXTE], s), {"flex-grow": 1})
+    droite = visible(t, k, parent, None, "", ni.make_binding(b, OP_SUP, [TAILLE_TEXTE], s - 1), {"flex-grow": 1})
+    return _places_tailles(t, k, gauche, b, bas_[:m]) + _places_tailles(t, k, droite, b, bas_[m:])
+
+
 def construire_tuile(t, k):
     """la tuile (modèle d'origine) vidée, puis notre bloc : une disposition par taille du texte"""
     uxml = t.tt["m_VisualTree"]["rid"]
@@ -3657,12 +4216,13 @@ def construire_tuile(t, k):
                    ["column-direction-normal", "flex-grow-class", "align-self-stretch"], nom=NOM_TUILE)
     msgs = []
     kc = None   # v12 : les sources de la bande, pour le bas de la carte du joueur
-    for nom_t, bas, haut, largeurs, _haut_perso, cotes in TAILLES_BLOC:
-        dans = racine
-        if bas is not None:
-            dans = visible(t, k, dans, None, "", ni.make_binding(b, OP_SUP, [TAILLE_TEXTE], bas - 1), {"flex-grow": 1})
-        if haut is not None:
-            dans = visible(t, k, dans, None, "", ni.make_binding(b, OP_INF, [TAILLE_TEXTE], haut), {"flex-grow": 1})
+    # bloc v26 (Moyen seulement) : tout le bloc remonte de RECENTRAGE (marge négative d'un SIVisible vide en tête) et
+    # laisse RECENTRAGE en bas (SIVisible vide en queue) : même hauteur, même écart au-dessus et au-dessous
+    # bloc v29 : par _cale (avec un enfant vide) : vides, les deux SIVisible du v26 ne faisaient rien dans le jeu ;
+    # bloc v31 : une seule cale, en tête : le haut du bloc descend de RECENTRAGE, le bas reste au bas de la case
+    _cale(t, k, racine, None, ni.make_binding(b, OP_EGAL, [MODE], RECENTRAGE_MODE), {"height": RECENTRAGE})
+    places = _places_tailles(t, k, racine, b, [x[1] for x in TAILLES_BLOC])
+    for (nom_t, bas, haut, largeurs, _haut_perso, cotes), dans in zip(TAILLES_BLOC, places):
         # la carte de FM (fond, bord, coins, marges intérieures du bloc) : ses classes, en ligne
         # v8 : la carte remplit toute la case du bloc (elle était à la hauteur de son contenu, calée en bas de la case :
         # son haut bougeait d'un joueur à l'autre) ; ce qui ne tient pas défile dans sa place
@@ -3831,10 +4391,10 @@ def bloc_poser(t, k):
     i = t.children(ce).index(carte)
     # données du SIVisible de FM telles quelles (pas de style, drapeaux d'origine) : les fonctions d'Alex qui recopient
     # « le 1er SIVisible » du bloc (hors_defaut, make_visible) tombent sur le nôtre et en font la même copie qu'avant
-    autres = ni.new_visible(t, k.s_vis, k.vis, ce, i, NOM_BLOC_AUTRES, ni.make_binding(b, OP_SUP, [MODE], 0),
+    autres = ni.new_visible(t, k.s_vis, k.vis, ce, i, NOM_BLOC_AUTRES, si_autre_fiche(b),
                             ["flex-grow-class", "align-self-stretch"])
     move(t, carte, autres)
-    large = ni.new_visible(t, k.s_vis, k.vis, ce, i + 1, NOM_BLOC_LARGE, ni.equal_binding(b, MODE, 0),
+    large = ni.new_visible(t, k.s_vis, k.vis, ce, i + 1, NOM_BLOC_LARGE, si_notre_fiche(b),
                            ["flex-grow-class", "align-self-stretch"])
     # notre modèle, inclus (un modèle inclus de FM recopié : son alias et son modèle changés)
     inst = t.clone(k.trait_v, large, src=k.bloc.s)
@@ -3893,8 +4453,8 @@ def appliquer_bloc():
     enregistrer(*op, modele=GABARIT_PHRASE)   # bloc v19 : AVANT la tuile, qui le cite
     enregistrer(*otu, modele=TUILE)
     enregistrer(*ob, modele=BLOC)
-    return True, msgs + [f"{BLOC} : notre bloc en 1080p Large ({len(TAILLES_BLOC)} tailles du texte, modèle {TUILE}) ; "
-                         f"en Moyen / Petit, celui qui y était, tel quel"]
+    return True, msgs + [f"{BLOC} : notre bloc en 1080p, affichage {affichages()} ({len(TAILLES_BLOC)} tailles du "
+                         f"texte, modèle {TUILE}) ; ailleurs, celui qui y était, tel quel (dans notre « sinon »)"]
 
 
 def retirer_bloc():
@@ -3969,7 +4529,8 @@ def appliquer_entete():
     for oi, modele in icones:
         enregistrer(*oi, modele=modele)
     enregistrer(*o)
-    print(f"{MODELE} : notre bande en 1080p Large ({len(TAILLES_TEXTE)} tailles du texte) ; ailleurs, ce qui y était "
+    print(f"{MODELE} : notre bande en 1080p, affichage {affichages()} ({len(TAILLES_TEXTE)} tailles du texte) ; "
+          f"ailleurs, ce qui y était "
           f"(tuile d'Alex ou en-tête de FM) tel quel"
           + ("" if ok else " ; nation avec le logo de FM (fonction du drapeau pas posée)"))
     return True
@@ -3980,7 +4541,13 @@ def cmd_appliquer():
     ok, msgs = appliquer_bloc()
     for x in dict.fromkeys(msgs):
         print(x)
-    if change or ok:
+    # bloc v31 (Kinito, 16/11 : « on ne touche QUE notre fiche, pas la fiche d'Alex ») : plus de grille centrée (la
+    # grille de tuiles de PlayerReport est aussi sous la fiche d'Alex, aux autres tailles de fenêtre) ; celle que
+    # l'essai grille v1 avait centrée est remise d'origine (rien si elle est déjà celle de FM)
+    msgs_g = retirer_grille()
+    for x in msgs_g:
+        print(x)
+    if change or ok or msgs_g:
         nb.save_all()
     _marquer()
 
@@ -3999,7 +4566,7 @@ def cmd_retirer(silencieux=False):
             enregistrer(*o)
             print(f"{MODELE} : notre bande retirée (ce qui y était est remis tel quel)")
             rien = False
-    for m in retirer_drapeau() + retirer_bloc() + retirer_gabarit():
+    for m in retirer_drapeau() + retirer_bloc() + retirer_gabarit() + retirer_grille():
         print(m)
         rien = False
     if rien:
@@ -4026,11 +4593,11 @@ def cmd_etat():
             print(f"{MODELE} : " + (f"à jour, v{VERSION}" if a_jour(t) else
                                     f"ANCIENNE version ({', '.join(noms)})" if ici else
                                     "v1-v4 (dans la tuile d'Alex)" if anciens(t) else "pas posée"))
-            print("  en Moyen / Petit, à cette place :", ", ".join(t.name(x) or t.elem(x).get("m_TemplateAlias") or "?"
-                                                         for x in dedans))
+            print("  dans notre « sinon » (caché en affichage " + affichages() + ") :",
+                  ", ".join(t.name(x) or t.elem(x).get("m_TemplateAlias") or "?" for x in dedans))
             print("  photo de FM :", "cachée par la tuile d'Alex" if CACHE_ALEX in ancetres(
-                t, first(t, lambda r: t.name(r) == PHOTO) or -1) else "cachée en 1080p Large (nous)" if photo_ok(t)
-                else "visible partout")
+                t, first(t, lambda r: t.name(r) == PHOTO) or -1) else
+                f"cachée en 1080p, affichage {affichages()} (nous)" if photo_ok(t) else "visible partout")
     print(f"fonction du drapeau ({NOM_CIBLE}) :", "posée" if drapeau_a_jour() else "d'origine")
     og = ouvrir_modele(GABARIT_BOUTON)
     print(f"gabarit des boutons ({GABARIT_BOUTON}) :", "introuvable" if og is None else "à jour" if gabarit_a_jour()
@@ -4057,6 +4624,9 @@ def cmd_etat():
     print(f"ligne des phrases ({GABARIT_PHRASE}) :", "introuvable" if op is None else "à jour" if phrase_a_jour()
           else "ANCIENNE version" if any((op[3].name(x) or "").startswith(PREFIXE_BLOC) for x in op[3].walk())
           else "d'origine")
+    print(f"grille de tuiles de la fiche ({GRILLE_FICHE}) :",
+          f"centrée par l'ancien essai grille v{VERSION_GRILLE} (remise d'origine au prochain « appliquer »)"
+          if grille_a_jour() else "de FM (nous n'y touchons plus)")
     print("réapplication automatique (choix 1) :", "oui" if os.path.exists(MARKER) else "non")
 
 

@@ -104,7 +104,16 @@ import kinito_cartes_jeunes as cj  # noqa: E402  (les cartes 26.19 et leurs outi
 
 L = cj.L   # v20 : le texte de la langue de l'app, qui garde son français (la clé de ses traductions, cj.TRADUCTIONS)
 
-VERSION = 20  # v20 (13/11, Kinito : « oui, comme les consignes ») : nos textes suivent la LANGUE DU JEU, en direct
+VERSION = 23  # v23 (19/11) : rien de neuf ici ; les autres nationalités viennent enfin (26.19 v38 : leurs chemins
+#               étaient mal écrits). Sans ce numéro, la fenêtre se dirait « déjà appliquée » et garderait la faute
+# v22 (19/11, Kinito, capture de l'écran de la fiche : « il faut ajouter la nationalité du joueur, toutes
+#               ses nationalités d'ailleurs s'il en a plusieurs ») : sous le nom et le poste, la nation du jeune puis ses
+#               autres nationalités (cj.nationalites, 26.19 v37 : notre drapeau et « FRA », comme la carte), dans
+#               l'en-tête de l'écran de la fiche ET du dossier de la fenêtre (le même en-tête)
+# v21 (19/11) : rien de neuf ici ; la grande carte est redessinée avec les cartes 26.19 v36 (le drapeau
+#               du dos J redressé). Sans ce numéro, la fenêtre se disait « déjà appliquée » et gardait le drapeau penché
+#               (vu au banc : la grande carte est dessinée par les fonctions des cartes, mais à jour selon CE numéro)
+# v20 (13/11, Kinito : « oui, comme les consignes ») : nos textes suivent la LANGUE DU JEU, en direct
 #               (26.19 v33 : conteneur de langue de FM, une copie par langue) ; un conteneur dans la grande carte et
 #               sur la fiche ; les traductions de nos textes sont dans cj.TRADUCTIONS ; rien d'autre ne change
 # v19 (13/11, Kinito : « je n'ai pas l'animation d'ouverture de la fiche en automatique, je ne vois pas
@@ -1049,6 +1058,7 @@ def dossier(t, src, k, x, parent, s):
                                     "max-width": 240, "flex-shrink": 0})
     cj.noms(k, ident, encre, {"align-items": "flex-start", "align-self": "flex-start"})
     cj.poste(k, ident, gris, {"margin-top": 4}, taille=13)
+    cj.nationalites(k, ident, gris, {"margin-top": 4})   # v22 : toutes ses nationalités
     tr_, rr_ = src["remap"]
 
     def titre(parent_, s_txt, css=None):
@@ -1532,6 +1542,7 @@ def ecran_fiche(t, src, k, x, parent, s, gauche, croix_ev, classes_contenu=()):
                                     "max-width": 300, "flex-shrink": 0})
     cj.noms(k, ident, encre, {"align-items": "flex-start", "align-self": "flex-start"})
     cj.poste(k, ident, gris, {"margin-top": 4}, taille=14)
+    cj.nationalites(k, ident, gris, {"margin-top": 4})   # v22 : toutes ses nationalités
     zt = cj.boite(t, src, tete, {"flex-direction": "row", "align-items": "center", "justify-content": "center",
                                  "flex-grow": 1, "flex-shrink": 1, "min-width": 0,
                                  "margin-left": ECART_NOM_ETOILES, "align-self": "center"})

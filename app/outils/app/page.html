@@ -604,6 +604,9 @@
   .mq .li > :last-child { text-align: right; white-space: nowrap; }
   .mq .entete-cartes { min-height: 86px; }
   .mq .entete-cartes .titre { font-size: 8.5px; }
+  .mq .entete-cartes.sans-cases { border-left: 3px solid #F2B51B; padding-left: 6px; }
+  .mq .entete-cartes.sans-cases .bloc { background: radial-gradient(ellipse at 50% 0%, rgba(242,181,27,.2), transparent 75%); border: none; }
+  .mq .entete-cartes .numero { font-size: 40px; font-weight: 700; color: rgba(0,0,0,.3); -webkit-text-stroke: 1px #F2B51B; line-height: 1; margin-right: 4px; }
   .jr-onglets { display: flex; gap: 4px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
   .jr-onglets .note { margin-left: auto; font-size: 12px; opacity: .7; }
   .jr-reglages { display: flex; flex-direction: column; gap: 14px; }
@@ -2454,6 +2457,8 @@ let flashJ = new Set();
 const REGLAGES_J = [
   [["En-tête", "Header"], [
     ["o:entete_vue", "fiche", "entete", ["Forme de l'en-tête", "Header layout"], null],
+    ["o:entete_style", "fiche", "entete", ["Style de l'en-tête en cartes", "Card header style"], null],
+    ["o:entete_couleur_club", "fiche", "entete", ["Couleur du club derrière l'en-tête", "Club colour behind the header"], ["Le dégradé aux couleurs du club derrière les cartes de l'en-tête (comme FM), ou rien (fond du skin).", "The club colour gradient behind the header cards (like FM), or nothing (skin background)."]],
     ["entete_fiche", "fiche", "entete", ["Retouches de l'en-tête", "Header tweaks"], ["2e nationalité, bouton Actions sous l'âge, nations en 3 lettres, Niveau / Potentiel serrés.", "2nd nationality, Actions button under the age, 3-letter nations, tighter Ability / Potential."]],
     ["o:fiche_large_colonne", "fiche", "colonne entete", ["À droite d'Infos", "Right of Info"], null],
     ["o:fiche_medium_colonne", "fiche", "colonne entete", ["Affichage Moyen seulement : polygone ou Pour / Contre", "Medium display only: polygon or Pros / Cons"], ["Seulement en affichage Moyen (Medium), rien ne change en Large / Petit. Les deux s'échangent ensemble (en-tête en cartes).", "Only in Medium display, nothing changes in Large / Small. Both swap together (card header)."]],
@@ -2493,7 +2498,7 @@ const REGLAGES_J = [
 // catégories joueur pas rangée ici : bloc 2 (pas encore classée).
 const TOUCHE_J = {
   entete_fiche: [["Rapports sur la fiche (Rapport de supervision, Niveau / Potentiel) : la note courte (A, B…) redevient le texte long.", "Reports on the profile (Scouting report, Ability / Potential): the short grade (A, B…) goes back to the long text."],
-    ["Fiche Kinito 1080p (si elle est active) : refaite par-dessus.", "Kinito 1080p profile (if on): rebuilt on top."]],
+    ["Fiche de Kinito (si elle est active) : refaite par-dessus.", "Kinito's profile (if on): rebuilt on top."]],
   fiche_joueur_plus: [["Bloc Entraînement de la fiche : note, pouces de Kinito, roue d'actions (raccourci vers l'entraînement) disparaissent.", "Profile Training block: rating, Kinito thumbs, action cog (training shortcut) are gone."],
     ["Bouton « Observer » quand le joueur n'est pas supervisé.", "« Scout » button when the player is not scouted."],
     ["Vue FM Guru : sa copie du tableau d'attributs est refaite.", "FM Guru view: its copy of the attribute table is rebuilt."]],
@@ -2515,11 +2520,20 @@ const jRegl = nom => REGLAGES_J.flatMap(g => g[1]).find(r => r[0] === nom);
 const jActuelF = nom => { const f = fonction(nom); return !!(f && f.actif && !f.bloqueGuru); };
 const jActuelO = nom => option(nom)?.actuelle;
 const jF = nom => (nom in brJ.f ? brJ.f[nom] : jActuelF(nom));
-const jO = nom => (nom in brJ.o ? brJ.o[nom] : jActuelO(nom));
+// valeur choisie par le joueur (gardée même sous la fiche du skin de base) ; jO = valeur qui compte (aperçu, conditions)
+const jOChoix = nom => (nom in brJ.o ? brJ.o[nom] : jActuelO(nom));
+// 2026-11-19 (le joueur) : « Fiche du skin de base » : ses valeurs passent devant celles du joueur (options.FICHE_BASE),
+// sauf vue FM Guru / fiche de Kinito
+const jBase = () => jOChoix("fiche_skin_base") === "oui" && !jGuru() && !E.joueur.kinito_fiche;
+const jParBase = nom => jBase() && E.joueur.fiche_base && nom in E.joueur.fiche_base;
+const jO = nom => (jParBase(nom) ? E.joueur.fiche_base[nom] : jOChoix(nom));
 // vue FM Guru / fiche Kinito 1080p : exclusives, réglées dans Features additionnelles (le joueur), seulement signalées ici
 const jGuru = () => jActuelO("fiche_fmguru") === "guru";
 // mode Guru choisi : seulement ce que la vue garde (AVEC_GURU) se règle ici, options de l'en-tête comprises bloquées
-const jVerrou = nom => jGuru() && (nom.startsWith("o:") || !E.joueur.avec_guru.includes(nom));
+const jVerrou = nom => (jGuru() && (nom.startsWith("o:") || !E.joueur.avec_guru.includes(nom)))
+  || jVerrouBase(nom);
+// 2026-11-19 (le joueur) : fiche du skin de base active = pas de réglage perso (tout verrouillé dessous)
+const jVerrouBase = nom => nom !== "o:fiche_skin_base" && jOChoix("fiche_skin_base") === "oui" && !jGuru() && !E.joueur.kinito_fiche;
 const jV = nom => (jGuru() ? E.joueur.avec_guru.includes(nom) && jF(nom) : jF(nom));   // valeur vue (maquette)
 
 // fiches préfaites (une pour l'instant)
@@ -2546,7 +2560,7 @@ const ORDRE_FM_J = ["esprit", "condition", "forme", "entr", "saison", "carriere"
 const jOrdreActuel = () => (E.joueur.ordre_tuiles ? E.joueur.ordre_tuiles.map(n => Object.keys(TUILE_FM).find(k => TUILE_FM[k] === n)) : ORDRE_SKIN_J);
 const jOrdre = () => brJ.ordre || jOrdreActuel();
 const memeOrdre = (a, b) => a.join() === b.join();
-const jGlisser = () => jV("fiche_ordre_tuiles") && !jGuru();
+const jGlisser = () => jV("fiche_ordre_tuiles") && !jGuru() && !jVerrouBase("fiche_ordre_tuiles");
 function jDeposer(de, sur, apres) {
   const o = jOrdre().filter(k => k !== de);
   o.splice(o.indexOf(sur) + (apres ? 1 : 0), 0, de);
@@ -2604,15 +2618,32 @@ function pageJoueur() {
   const pa = presetActuel();
   // Guru / Kinito : réglés ailleurs, juste dits ici (bouton vers Features additionnelles)
   const ailleurs = [jGuru() ? ["Mode FM Guru actif : ici, seulement ce que sa vue garde. Il se règle dans Features additionnelles.", "FM Guru mode on: only what its view keeps can be set here. It is set in Additional features."] : null,
-    jActuelF("kinito_entete_large") ? ["Fiche Kinito 1080p active : en 1080p et affichage Large, elle remplace cette fiche. Elle se règle dans Features additionnelles.", "Kinito 1080p profile on: in 1080p and Large display, it replaces this profile. It is set in Additional features."] : null].filter(Boolean)
+    jActuelF("kinito_entete_large") ? ["Fiche de Kinito active : elle remplace cette fiche (Grand, Moyen et Petit ; une fenêtre plus petite que 1080p garde celle-ci). Elle se règle dans Features additionnelles.", "Kinito's profile on: it replaces this profile (Large, Medium and Small; a window smaller than 1080p keeps this one). It is set in Additional features."] : null].filter(Boolean)
     .map(x => el("div", { class: "jr-barre", style: "border-color:var(--violet)" }, el("span", { class: "txt" }, tr(x)),
       el("button", { class: "bouton discret", onclick: () => aller({ page: "options" }) }, t("pageOptions"))));
-  const presets = el("div", { class: "jr-presets" }, PRESETS_J.map(p => el("button", {
-    class: "jr-preset" + (pa === p.id ? " choisi" : ""), disabled: jGuru(), onclick: () => choisirPreset(p.id),
-  }, el("b", {}, tr(p.titre)), el("span", {}, tr(p.txt)),
-    p.id === "base" ? el("span", { class: "badge gris", style: "align-self:flex-start" }, t("deBase")) : null)),
-  pa ? null : el("div", { class: "jr-preset choisi", style: "cursor:default" }, el("b", {}, tr(["Personnalisée", "Custom"])),
-    el("span", {}, tr(["Tes réglages, en dessous.", "Your settings, below."]))));
+  // 2026-11-19 (le joueur : l'interrupteur « Fiche du skin de base » tout en haut) : les 2 grandes cartes = l'option
+  // fiche_skin_base (oui : la fiche du skin ; non : tes réglages, gardés en dessous)
+  // (le joueur : « beaucoup plus clair, en haut, vraiment ÉVIDENT ; tant que c'est coché, pas de custom ») : grand
+  // interrupteur ; activé = tous les réglages dessous verrouillés (jVerrou)
+  const base = jOChoix("fiche_skin_base") === "oui", sansBase = jGuru() || E.joueur.kinito_fiche;
+  const aAppliquer = "fiche_skin_base" in brJ.o;
+  const interrupteur = el("button", {
+    disabled: sansBase, role: "switch", "aria-checked": String(base),
+    style: `flex-shrink:0;width:64px;height:34px;border-radius:17px;border:none;cursor:pointer;position:relative;background:${base ? "var(--violet)" : "#444"}`,
+    onclick: () => jMettre("o:fiche_skin_base", base ? "non" : "oui"),
+  }, el("span", { style: `position:absolute;top:4px;${base ? "right" : "left"}:4px;width:26px;height:26px;border-radius:13px;background:#fff` }));
+  const presets = el("div", {
+    style: `display:flex;align-items:center;gap:18px;padding:18px 22px;margin:8px 0 18px;border-radius:14px;border:2px solid ${base ? "var(--violet)" : "#555"};background:${base ? "rgba(140,90,255,.12)" : "rgba(255,255,255,.03)"};${sansBase ? "opacity:.55" : ""}`,
+  }, interrupteur,
+    el("div", { style: "display:flex;flex-direction:column;gap:4px" },
+      el("b", { style: "font-size:20px;letter-spacing:.5px" }, base ? tr(["FICHE DU SKIN DE BASE : ACTIVÉE", "SKIN'S DEFAULT PROFILE: ON"]) : tr(["FICHE DU SKIN DE BASE : DÉSACTIVÉE", "SKIN'S DEFAULT PROFILE: OFF"])),
+      el("span", {}, base
+        ? tr(["Tu as la fiche joueur du skin (en-tête en 3 tuiles, Pour / Contre en haut, polygone et Projets à droite d'Infos). Les réglages en dessous sont verrouillés : désactive l'interrupteur pour faire ta fiche à toi (tes anciens réglages sont gardés).",
+              "You have the skin's player profile (header in 3 tiles, Pros / Cons on top, polygon and Plans right of Info). The settings below are locked: turn the switch off to make your own profile (your previous settings are kept)."])
+        : tr(["Ta fiche à toi : règle-la en dessous. Réactive l'interrupteur pour revenir à la fiche du skin.",
+              "Your own profile: set it below. Turn the switch back on to return to the skin's profile."])),
+      sansBase ? el("span", { class: "badge gris", style: "align-self:flex-start" }, tr(["Sans effet avec la vue FM Guru ou la fiche de Kinito", "No effect with the FM Guru view or Kinito's profile"])) : null,
+      aAppliquer ? el("span", { class: "badge ambre", style: "align-self:flex-start" }, tr(["À appliquer (bouton Appliquer)", "To apply (Apply button)"])) : null));
   const onglets = el("div", { class: "jr-onglets" },
     el("div", { class: "segments" }, [["fiche", ["Fiche", "Profile"]], ["bulle", ["Infobulle", "Tooltip"]], ["dev", ["Développement", "Development"]]].map(([id, lib]) =>
       el("button", { class: ongletJ === id ? "choisi" : "", onclick: () => { ongletJ = id; dessiner(); } }, tr(lib)))),
@@ -2678,14 +2709,18 @@ function carteJ([nom, onglet, zones, titre, aide]) {
     // options qui ne servent qu'avec l'en-tête de FM : grisées avec la grande tuile
     const sansEffet = (n === "pour_contre_lignes" || n === "fiche_large_colonne") && jO("entete_vue") === "tuile";
     corps = el("div", { class: "segments", role: "radiogroup" }, x.valeurs.map(([v, lib]) => el("button", {
-      class: jO(n) === v ? "choisi" : "", role: "radio", "aria-checked": String(jO(n) === v), disabled: verrou,
+      class: jOChoix(n) === v ? "choisi" : "", role: "radio", "aria-checked": String(jOChoix(n) === v), disabled: verrou,
       onclick: () => jMettre(nom, v),
     }, el("span", { class: "coche" }), tr(lib), v === x.defaut ? el("span", { class: "de-base" }, t("deBase")) : null)));
     // fiche_medium_colonne (2026-11-14) : l'inverse, seulement avec l'en-tête en cartes (pas la vue FM Guru)
-    const sansEffetFM = (n === "fiche_medium_colonne" || n === "fiche_large_tuile") && (jO("entete_vue") !== "tuile" || jGuru());
+    const sansEffetFM = (n === "fiche_medium_colonne" || n === "fiche_large_tuile" || n === "entete_style" || n === "entete_couleur_club") && (jO("entete_vue") !== "tuile" || jGuru());
     if (sansEffet) sous.push(el("span", { class: "badge gris" }, tr(["Sans effet avec l'en-tête en cartes", "No effect with the card header"])));
     if (sansEffetFM) sous.push(el("span", { class: "badge gris" }, tr(["Seulement avec l'en-tête en cartes", "Only with the card header"])));
-    if (sansEffet || sansEffetFM) corps.style.opacity = ".55";
+    // réglage du joueur gardé mais remplacé par la fiche du skin de base (2026-11-19)
+    const parBase = jParBase(n);
+    if (parBase) sous.push(el("span", { class: "badge gris" }, tr(["Sans effet avec la Fiche du skin de base", "No effect with the skin's default profile"])));
+    if (n === "fiche_skin_base" && (jGuru() || E.joueur.kinito_fiche)) sous.push(el("span", { class: "badge gris" }, tr(["Sans effet avec la vue FM Guru ou la fiche de Kinito", "No effect with the FM Guru view or Kinito's profile"])));
+    if (sansEffet || sansEffetFM || parBase) corps.style.opacity = ".55";
   } else {
     if (x.facultatif) sous.push(el("span", { class: "badge gris" }, t("facultatif")));
     if (x.reinstaller) sous.push(boutonReinstaller(n));
@@ -2694,7 +2729,8 @@ function carteJ([nom, onglet, zones, titre, aide]) {
       el("button", { class: "lien", onclick: () => { if (memeOrdre(jOrdreActuel(), ORDRE_SKIN_J)) delete brJ.ordre; else brJ.ordre = ORDRE_SKIN_J; jFlash("tuiles"); dessiner(); } }, tr(["Ordre du skin", "Skin's order"])));
     if (n === "fiche_ordre_tuiles" && brJ.ordre) sous.push(el("span", { class: "badge ambre" }, tr(["À appliquer", "To apply"])));
   }
-  if (verrou) sous.push(el("span", { class: "badge rouge" }, tr(["Pas dans la vue FM Guru", "Not in the FM Guru view"])));
+  if (verrou) sous.push(jVerrouBase(nom) ? el("span", { class: "badge gris" }, tr(["Verrouillé : Fiche du skin de base activée", "Locked: skin's default profile on"]))
+    : el("span", { class: "badge rouge" }, tr(["Pas dans la vue FM Guru", "Not in the FM Guru view"])));
   if (change) sous.push(el("span", { class: "badge ambre" }, tr(["À appliquer", "To apply"])));
   // bloc 2 : ce que la désactivation change ailleurs ; confirmation avant de couper (2026-11-12, le joueur)
   const touche = estO ? null : jTouche(n);
@@ -2768,8 +2804,11 @@ function mqEntete() {
     const fin = rienHaut ? "" : pcHaut ? mqCarte("", `<div class="rang" style="gap:4px;align-items:stretch">${cadrePC(mqT("Pour", "Pros"), ["#0A5A26", "#56A626", "#86A31E"])}${cadrePC(mqT("Contre", "Cons"), ["#B81F2E", "#D8452B", "#E0692C"])}</div>`, "entete pc", "flex:1.3")
       : S ? mqCarte("Progression", `<div class="val" style="color:#35c07a">⌃ ${mqT("A beaucoup progressé", "Has improved a lot")}</div><svg viewBox="0 0 100 30" style="width:100%;height:34px"><polyline points="5,22 30,20 55,19 80,16 95,15" fill="none" stroke="#D99FF4" stroke-width="1.5"/></svg>`, "entete", "flex:1.3")
       : `<div class="bloc" style="flex:1.3;padding:2px">${mqPolygone(jV("couleurs_polygone"), true)}</div>`;
-    return `<div class="rang entete-cartes" data-z="entete">
-      <div style="flex:2;display:flex;align-items:center">${ident}<div class="doux">${mqT("Taille", "Height")} 1,82 m</div><span class="btn" style="background:#f0a53a;color:#111">Actions ▾</span></div></div></div>
+    // entete_style numero (2026-11-19) : grand numéro derrière la photo, nom plus gros, sans cases, trait doré
+    const num = jO("entete_style") === "numero";
+    const identN = num ? ident.replace('<div class="photo" style="', '<span class="numero">37</span><div class="photo" style="').replace('class="nom"', 'class="nom" style="font-size:1.25em"') : ident;
+    return `<div class="rang entete-cartes${num ? " sans-cases" : ""}" data-z="entete">
+      <div style="flex:2;display:flex;align-items:center;position:relative">${identN}<div class="doux">${mqT("Taille", "Height")} 1,82 m</div><span class="btn" style="background:#f0a53a;color:#111">Actions ▾</span></div></div></div>
       ${col(mqCarte("", `<div class="val" style="text-align:center">23 ${mqT("ans", "y.o.")} (12/03/2003)</div>`), mqCarte("", `<div style="text-align:center">25 K€ p/s 30/06/2029<br><span class="doux">${mqT("Titulaire", "Regular starter")}</span></div>`))}
       ${col(mqCarte("", `<div style="text-align:center">${nation}</div>`), mqCarte("", `<div style="text-align:center"><span class="btn">18 M€ - 24 M€</span></div>`))}
       ${mqCarte("", `<div style="text-align:center;margin-top:14px"><div class="val">FC Exemple</div><div class="doux">Ligue 1</div></div>`, "", "flex:0.9")}
@@ -4935,7 +4974,7 @@ var KN_PLUS = [   // thèmes de nos ajouts qu'Alex n'a pas encore rangés
 var KN_COURTS = {   // nom court sur la ligne ; la description entière passe sous « Description » / « N choix »
   kinito_calendrier_rencontres: ["Le calendrier s'ouvre sur Rencontres", "Calendar opens on Fixtures"],
   kinito_vacances_jour: ["Icône vacances sur chaque jour", "Holiday icon on each day"],
-  kinito_entete_large: ["Fiche joueur en Large (1080p)", "Player profile in Large (1080p)"],
+  kinito_entete_large: ["Fiche joueur", "Player profile"],
   kinito_capitaines_vues: ["Capitaines : vues", "Captains: views"],
   kinito_enregistrement: ["Enregistrement de l'effectif", "Squad registration"],
   kinito_cartes_jeunes: ["Arrivée des jeunes : cartes et révélation", "Youth intake: cards and reveal"],

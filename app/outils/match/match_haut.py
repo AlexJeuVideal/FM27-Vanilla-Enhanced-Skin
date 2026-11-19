@@ -58,14 +58,19 @@ DECALAGES = {"barre": -2, "stats": -2, "lecture": 2}
 # réglages / … / lecture. Les onglets Tactiques / Coups de pied arrêtés (#TacticsOpened) ne bougent PAS (c'étaient
 # eux qui ne prenaient plus le clic une fois descendus). Mesure capture : centres score 48 / barre 21 px écran
 # (~0,75 px écran par px FM) -> 36. 0 = coupé
-DESCENTE = 36
+# 2026-11-19 (« calibre parfaitement le scoreboard sur la même ligne que la barre ») : capture : score 33-62 (centre
+# ~47), barre / stats / pause 41-69 (centre ~55) = 8 px écran trop bas ; ~0,75 px écran / px FM -> -11
+# descente-v3 (captures Petit / Moyen / Grand du joueur avec 25) : barre 6 / 6 / 9 px écran TROP HAUT ; score 32 px FM
+# = 21 / 26 / 32 px écran -> ~8 px FM partout -> 33
+DESCENTE = 33
 # Bandeau Replay / But / Passer (ralenti, buts) : FM le met à 56 px du haut, par-dessus les 3 boutons réglages… ;
 # descendu juste dessous (mesuré sur capture : il commençait 12 px écran trop haut + écart de 6)
 # 2026-11-14 : 76 -> 84 (barre descendue de DESCENTE : Ralenti collé aux boutons, « on descend légèrement »)
-BANNIERE_HAUT = 84
+# 2026-11-19 : 84 -> 73 (suit DESCENTE -11) -> 81 (descente-v3, +8)
+BANNIERE_HAUT = 81
 # Menu des « … » (MatchController : précédent / -10 s / Direct / +10 s…) : FM margin-top 46, il passait par-dessus la
 # barre -> même hauteur que le bandeau Ralenti (validé)
-CONTROLEUR_HAUT = 84   # 2026-11-14 : suit BANNIERE_HAUT
+CONTROLEUR_HAUT = 81   # 2026-11-14 : suit BANNIERE_HAUT (2026-11-19 : 84 -> 73 -> 81)
 # Mi-temps / fin de match : FM affiche un autre bandeau (ContinuePanel) où le score est recentré -> même place que
 # pendant le match : gauche = 16 (marge .match-header) + 64 - 8 (marge du bandeau) ; haut = 12 + 24 - 4 - 6
 SCORE_PAUSE = {"margin-left": 72, "top": 34}   # 2026-11-12 : 18 -> 34 (comme margin-top-32 pendant le match)
@@ -217,7 +222,7 @@ def decaler(t):
     return ["décalages fins : " + ", ".join(f"{k} {v:+g} px" for k, v in DECALAGES.items())]
 
 
-MARQUE_DESCENTE = "uipicker-match-descente-v1"   # changer DESCENTE -> augmenter le numéro
+MARQUE_DESCENTE = "uipicker-match-descente-v3"   # changer DESCENTE -> augmenter le numéro
 
 
 def descendre(t):
@@ -240,7 +245,7 @@ def descendre(t):
     return [f"barre Tactiques…, stats et boutons de droite à la hauteur du score (+{DESCENTE} px ; onglets de la tactique ouverte inchangés)"]
 
 
-MARQUE_BANNIERE = "uipicker-match-banniere-v2"   # changer BANNIERE_HAUT -> augmenter le numéro
+MARQUE_BANNIERE = "uipicker-match-banniere-v4"   # changer BANNIERE_HAUT -> augmenter le numéro
 
 
 def banniere(t):
@@ -258,7 +263,7 @@ def banniere(t):
 
 
 CONTROLEUR = "MatchController"
-MARQUE_CONTROLEUR = "uipicker-match-controleur-v2"   # changer CONTROLEUR_HAUT -> augmenter le numéro
+MARQUE_CONTROLEUR = "uipicker-match-controleur-v4"   # changer CONTROLEUR_HAUT -> augmenter le numéro
 
 
 def controleur(t):
