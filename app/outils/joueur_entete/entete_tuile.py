@@ -107,7 +107,7 @@ PREFIXE = "UIPickerEnteteTuile"
 # v42 (2026-11-19, le joueur : clic sur les étoiles = rapport vide) : bloc Niveau / Potentiel dans un remapper
 # player / team / human (scout_lie), tous les styles
 # v43 (2026-11-19, le joueur) : trait fin sous l'en-tête retiré (trait_bas) ; option entete_couleur_club
-VERSION = 44   # v44 : trait du bas de notre tuile transparent
+VERSION = 45   # v44 : trait du bas de notre tuile transparent ; v45 : photo cartes plus coupée
 CONTENEUR = "report-player-full-header-max"   # élément de FM qui porte la classe à hauteur fixe
 AUTO = (1, 2)                                  # mot-clé Auto (style intégré)
 CL_CARTE = "uipicker-entete-carte"     # classe fixe (sans version) : couleurs_interface.ENTETE_CARTE la vise
@@ -1250,8 +1250,10 @@ def construire(t, parent, index, dims, src, p, txt, photo, haut_src, poly_src, r
     t.sd(ph)["name"] = ""
     t.elem(ph)["m_Classes"] = ["row-direction-normal", "align-items-center", "justify-content-center"]
     if ENTETE_PLUS:   # tuile en hauteur auto : photo bornée à la hauteur Large (avant : coupée par la tuile, pareil)
+        # v45 (le joueur, style cartes : « tête du joueur crop », retrouver comme avant) : cartes = cadre borné mais
+        # photo qui déborde (overflow visible de UI Toolkit, comme avant gom18) ; numero inchangé
         ph_max = dims["haut"] - 2 * MARGE[0] - 1
-        t.styles.style(t, ph, {"max-height": ph_max, "overflow": "hidden"})
+        t.styles.style(t, ph, {"max-height": ph_max} if not STYLE_NUMERO else {"max-height": ph_max, "overflow": "hidden"})
     # identité
     ident = part(carte, POIDS["ident"], ["column-direction-normal", "justify-content-center"])
     for k in ("nom", "poste"):

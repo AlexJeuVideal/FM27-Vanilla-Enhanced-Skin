@@ -6,6 +6,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.10 (20 novembre 2026)
+
+**Fiche joueur**
+- **Correctif : la photo du joueur n'est plus coupée** dans l'en-tête en cartes (style choisi quand la fiche du skin est désactivée) : le menton et les épaules étaient rognés. La fiche du skin n'est pas touchée.
+
 ### v2.09 (19 novembre 2026)
 
 **Fiche joueur**
@@ -1232,6 +1237,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.10 (20 November 2026)
+
+**Player profile**
+- **Fix: the player photo is no longer cropped** in the card-style header (the style used when the skin's profile is turned off): the chin and shoulders were cut off. The skin's profile is unchanged.
 
 ### v2.09 (19 November 2026)
 
