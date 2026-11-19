@@ -6,6 +6,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.09 (19 novembre 2026)
+
+**Fiche joueur**
+- **Correctif : les tuiles du haut à droite de l'en-tête de nouveau bien placées** (Progression, Efficacité tactique, Recrutement) : la v2.08 les avait tassées et décalées pour tous les joueurs. Le joueur libre garde ses tuiles Recrutement et Attentes.
+
 ### v2.08 (19 novembre 2026)
 
 **Fiche joueur**
@@ -1227,6 +1232,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.09 (19 November 2026)
+
+**Player profile**
+- **Fix: the top-right header tiles are back in place** (Progression, Tactical Effectiveness, Recruitment): v2.08 had squashed and shifted them for every player. Free agents keep their Recruitment and Expectations tiles.
 
 ### v2.08 (19 November 2026)
 

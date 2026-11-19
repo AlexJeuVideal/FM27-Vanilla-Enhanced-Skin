@@ -263,7 +263,7 @@ NUMERO = {"report-player-banner-max": dict(police=88, nom=24),
           "report-player-banner-mid": dict(police=80, nom=22),
           "report-player-banner-min": dict(police=66, nom=21)}   # nom de FM : 20 px (fm-universe-20px)
 NOM = f"{PREFIXE}-v{VERSION}" + ("-mpc7" if MEDIUM_PC else "") \
-    + {"pastilles": "-lpc3", "dessous": "-lrien1"}.get(LARGE_TUILE, "") + ("-num4" if STYLE_NUMERO else "") + ("-gom70pc4" if STYLE_GOMEZ else "") \
+    + {"pastilles": "-lpc3", "dessous": "-lrien1"}.get(LARGE_TUILE, "") + ("-num4" if STYLE_NUMERO else "") + ("-gom72pc4" if STYLE_GOMEZ else "") \
     + (f"-hmode{ENTETE_PLUS}m{ENTETE_PLUS + 30}" if ENTETE_PLUS else "") \
     + ("" if COULEUR_CLUB else "-sanscoul2")   # + N px Small, N + 30 Medium ; option entete_couleur_club
 # num2 : cases fondues (dégradé du club au fond), plus de traits ; num3 : halo (HALO), numéro à côté de la photo
@@ -671,24 +671,9 @@ def si_club(t, s_vis, vis, bv, parent, club, chemin=None):
     """gom32 : conteneur affiché seulement pour un joueur de ton club (club=True, person.Team.IsHuman, comme
     hors_defaut) ou seulement pour les autres (club=False : inversé ; sans club = autres) ; chemin : autre condition"""
     import notes_installations as ni
-    css = {"flex-grow": 1, "flex-shrink": 1, "min-height": 0, "min-width": 0, "overflow": "hidden",
-           "align-self": "stretch"}
-    if chemin is None:
-        # gom70 (le joueur : joueur LIBRE = 2 cartes de droite vides) : person.Team nul -> SIVisible sur
-        # person.Team.IsHuman caché dans les 2 sens. Comme fiche_contexte_equipe v5 : BindingSetter de FM (variable
-        # Bool, défaut faux) « équipes du club du manager contient person.Team » : sans club = faux = hors club
-        import entrainement_equipes as ee
-        r = ee.visible_equipe_geree(t, parent, len(t.children(parent)), PREFIXE + "ClubCalcul",
-                                    ["column-direction-normal", "align-items-stretch"],
-                                    liste="game.GameCurrentManager.Club.Teams", equipe="person.Team")
-        if r is not None:
-            haut, v = r
-            t.elem(haut)["m_Classes"] = ["column-direction-normal", "align-items-stretch"]
-            t.styles.style(t, haut, dict(css))
-            t.sd(v)["InvertDirectBinding"], t.sd(v)["InvertDirectBinding_UxmlAttributeFlags"] = (0 if club else 1), 1
-            t.elem(v)["m_RuleIndex"] = -1
-            t.styles.style(t, v, dict(css))
-            return v
+    # gom70 / gom71 (BindingSetter « équipes du club contient person.Team » autour des cartes) RETIRÉS : l'enveloppe
+    # tassait / décalait Progression, Efficacité et Recrutement chez tous les joueurs (vu en jeu, v2.08). Structure
+    # d'avant remise ; joueur libre = si_libre (à côté, rien autour)
     b = copy.deepcopy(bv)
     b["m_kind"] = 1
     b["m_direct"] = {"Path": {"m_path": chemin or CHEMIN_CLUB}, "Nullable": 0}
@@ -699,6 +684,15 @@ def si_club(t, s_vis, vis, bv, parent, club, chemin=None):
     t.styles.style(t, v, {"flex-grow": 1, "flex-shrink": 1, "min-height": 0, "min-width": 0, "overflow": "hidden",
                           "align-self": "stretch"})
     return v
+
+
+def si_hors(t, s_vis, vis, bv, parent):
+    """gom72 : conteneurs « hors club » : autre club (person.Team.IsHuman faux, gom32 tel quel) + joueur LIBRE
+    (person.Team nul : liaison directe sur l'objet, inversée, comme CityOfBirthVisible de FM = « visible si pas nul »).
+    Le contenu est posé dans les deux ; un seul est visible (club / autre club / libre s'excluent)"""
+    autres = si_club(t, s_vis, vis, bv, parent, False)
+    libre = si_club(t, s_vis, vis, bv, parent, False, chemin="person.Team")
+    return [autres, libre]
 
 
 def agent_hors_club(t, dans, rm_model, txt, msgs):
@@ -1479,7 +1473,8 @@ def zone_droite(t, carte, dims, poly_src, rm_model, s_vis, vis, txt, habille, se
             # rapport, demandes de l'agent une fois contacté)
             if AGENT_HORS_CLUB:
                 cpp_club = si_club(t, s_vis, vis, bv, cpp, True)
-                agent_hors_club(t, si_club(t, s_vis, vis, bv, cpp, False), rm_model, txt, msgs)
+                for i_h, h_ in enumerate(si_hors(t, s_vis, vis, bv, cpp)):
+                    agent_hors_club(t, h_, rm_model, txt, msgs if i_h == 0 else [])
             else:
                 cpp_club = cpp
             m = tuile_fm(t, cpp_club, rm_model, MODELE_PROGRESSION,
@@ -1503,8 +1498,8 @@ def zone_droite(t, carte, dims, poly_src, rm_model, s_vis, vis, txt, habille, se
                                             "overflow": "hidden", **hors_flux_c}),
                             ["column-direction-normal", "align-items-stretch", "justify-content-flex-start"])
                 if AGENT_HORS_CLUB:
-                    attentes_hors_club(t, si_club(t, s_vis, vis, bv, cpe, False), rm_model, txt, msgs,
-                                       (s_vis, vis, bv))
+                    for i_h, h_ in enumerate(si_hors(t, s_vis, vis, bv, cpe)):
+                        attentes_hors_club(t, h_, rm_model, txt, msgs if i_h == 0 else [], (s_vis, vis, bv))
                     cpe = si_club(t, s_vis, vis, bv, cpe, True)
                 ts_, tr_ = txt
                 if tr_ is not None:
