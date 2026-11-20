@@ -88,7 +88,8 @@ CONFIGS = "<Configurations>k__BackingField"
 TUILES_BUNDLE = os.path.join(nb.AA, "ui-tileslayouts_assets_all.bundle")
 PREFIXE = "UIPickerHistoire"
 NOM = f"{PREFIXE}-v{VERSION}"
-MARKER = os.path.join(backup.BACKUP_DIR, "club_histoire.actif")
+# 2026-11-20 : marqueur renommé (catalogue : marqueur), fonction de nouveau de base, donné par la MAJ auto à tous
+MARKER = os.path.join(backup.BACKUP_DIR, "club_histoire_v8.actif")
 for _k, _v in {"width": (131105, 3), "height": (131087, 3), "min-height": (131096, 3), "flex-direction": (131083, 7),
                "justify-content": (131088, 7), "align-items": (131073, 7), "margin-top": (131093, 3),
                "margin-right": (131092, 3), "margin-bottom": (131090, 3), "padding-left": (131099, 3),

@@ -1015,7 +1015,7 @@ const TXT = {
   fonctionsDe: ["fonctions", "features"],
   // 2026-11-14 : essai pas validé = FR seul (EN + 10 langues à la validation)
   catJeuAvert: ["Ces fonctions modifient les fichiers du jeu lui-même (code de FM, données du moteur de match), pas seulement l'interface. Elles sont désactivées de base : à activer à tes risques. Après une mise à jour de FM, ou si le skin ne se réinstalle plus : ferme l'app, lance « Vérifier l'intégrité des fichiers du jeu » dans Steam, puis rouvre l'app et réinstalle le skin.",
-    "Ces fonctions modifient les fichiers du jeu lui-même (code de FM, données du moteur de match), pas seulement l'interface. Elles sont désactivées de base : à activer à tes risques. Après une mise à jour de FM, ou si le skin ne se réinstalle plus : ferme l'app, lance « Vérifier l'intégrité des fichiers du jeu » dans Steam, puis rouvre l'app et réinstalle le skin."],
+    "These features change the game's own files (FM's code, match engine data), not just the interface. They are off by default: turn them on at your own risk. After an FM update, or if the skin no longer reinstalls: close the app, run « Verify integrity of game files » in Steam, then reopen the app and reinstall the skin."],
   catSous: ["Chaque interrupteur pose ou retire une fonction dans les fichiers du jeu (FM fermé). Le choix 1 remet toutes celles qui sont activées.",
             "Each switch installs or removes one feature in the game files (FM closed). Choice 1 reinstalls all the enabled ones."],
   optionsSous: ["En plus du skin de base. Les options du skin, elles, sont sous chaque fonction, dans sa catégorie (le fond des pages : dans Couleurs).",
@@ -1968,7 +1968,8 @@ async function charger(forcer) {
 // ordre d'affichage de l'app = menus de FM (Portail, Effectif, Tactiques, Recrutement, Entraînement, Club ; le joueur,
 // 2026-11-09) ; catalogue.py garde son ordre et ses catégories (dossiers des scripts, n° du .bat)
 const ORDRE_CATS = ["haut_du_jeu", "calendrier", "effectif", "joueur_entete", "joueur_fiche", "joueur_infobulle",
-  "joueur_progression", "tactiques", "match", "recrutement", "entrainement", "club", "staff", "finances", "tableaux"];
+  "joueur_progression", "tactiques", "match", "recrutement", "entrainement", "club", "staff", "finances",
+  "competition", "tableaux"];
 // rangées ailleurs dans l'app seulement : tout ce qui touche aux vues / colonnes des tableaux dans « tableaux »
 // (vues d'AlexJeuVideal comprises, avant sur la page Features additionnelles), offres / transferts dans Recrutement
 const CAT_APP = { colonnes_separateur: "tableaux", tactiques_forme_valeur: "tableaux", vues_alexjeuvideal: "tableaux",

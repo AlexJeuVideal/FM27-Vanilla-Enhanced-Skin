@@ -1,4 +1,5 @@
-"""ESSAI : Compétition > Vue d'ensemble refaite.
+"""Compétition > Vue d'ensemble refaite (fonction du skin depuis le 2026-11-20 = essai_competition_vue v31 validé ;
+même préfixe UIPickerEssaiComp : ce que l'essai a posé est repris tel quel).
 
 v7 (2026-11-19, capture de référence du joueur) — championnat (CompetitionSiteBlock, #ActiveNoParent) :
   [classement FM] | [bloc stats de FM (CompLeagueStatsDetailBlock recopié : onglets Stats joueurs / Stats équipes /
@@ -55,14 +56,15 @@ Coupe : pas touchée de v7 à v14.
 Historique : v1-v2 rangée étirée ; v3-v5 tuile stats 3x2 maison restée vide en jeu ; v6 tuile stats de FM au milieu
   (mis de côté le 2026-11-12).
 
-Menu Outils FM.bat (jeu fermé) : 124 (125 à blanc). Retiré au début du choix 1 (catalogue.ESSAIS).
-Usage : essai_competition_vue.py appliquer [--dry-run] | retirer [--dry-run] | etat
+Usage (jeu fermé) : competition_vue.py appliquer [--dry-run] | retirer [--dry-run] | etat | si-actif
 """
+import json
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "commun"))
 import chemins  # noqa: E402,F401  (dossiers des catégories : les scripts s'importent entre eux)
+import sauvegarde_originaux as backup  # noqa: E402
 import notes_au_lieu_des_libelles as nb  # noqa: E402
 import hierarchie_pyramide as hp  # noqa: E402
 from hierarchie_pyramide import typ, ouvrir  # noqa: E402
@@ -107,7 +109,8 @@ MODE_AFFICHAGE = "settings.AdaptiveScalingLevelIndex"   # 0 Large, 1 Medium, 2 S
 # =====================================================================================================
 
 VERSION = "31"
-PREFIXE = "UIPickerEssaiComp"
+PREFIXE = "UIPickerEssaiComp"   # gardé de l'essai (fonction = même rendu)
+MARKER = os.path.join(backup.BACKUP_DIR, "competition_vue.actif")
 NOM = f"{PREFIXE}-v{VERSION}"
 LIGUE, COUPE = "CompetitionSiteBlock", "CompetitionSiteBlock_Cup"
 MODELE_ONZE = "CompLeagueStatsBlock"
@@ -658,6 +661,9 @@ def cmd_appliquer():
     # anciennes versions : la coupe (v1-v6) et la ligne (v3-v5) remises d'origine
     retirer((MODELE_LIGNE,))
     nb.save_all()
+    if not nb.DRY_RUN:
+        with open(MARKER, "w", encoding="utf-8") as f:
+            json.dump({"actif": True}, f)
 
 
 def retirer(modeles):
@@ -683,8 +689,10 @@ def retirer(modeles):
 
 
 def cmd_retirer():
+    if os.path.exists(MARKER) and not nb.DRY_RUN:
+        os.remove(MARKER)
     if retirer([m for m, _ in A_RETIRER]):
-        print("essai vue d'ensemble compétition : rien à retirer")
+        print("vue d'ensemble compétition : rien à retirer")
     nb.save_all()
 
 
@@ -700,12 +708,21 @@ def main(argv):
     if "--dry-run" in argv:
         nb.DRY_RUN = True
     argv = [a for a in argv if a != "--dry-run"]
-    fn = {"appliquer": cmd_appliquer, "retirer": cmd_retirer, "etat": cmd_etat}.get(argv[0] if argv else "")
+    op = argv[0] if argv else ""
+    if op == "si-actif":
+        if os.path.exists(MARKER):
+            cmd_appliquer()
+        else:
+            print("vue d'ensemble compétition : non activée, rien à faire")
+        return
+    fn = {"appliquer": cmd_appliquer, "retirer": cmd_retirer, "etat": cmd_etat}.get(op)
     if fn is None:
         sys.exit(__doc__)
     fn()
+    if op == "etat":
+        print("réapplication automatique après mise à jour (menu, choix 1) :", "oui" if os.path.exists(MARKER) else "non")
 
 
 if __name__ == "__main__":
-    sys.modules.setdefault("essai_competition_vue", sys.modules[__name__])
+    sys.modules.setdefault("competition_vue", sys.modules[__name__])
     main(sys.argv[1:])

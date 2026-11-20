@@ -38,6 +38,8 @@ CATEGORIES = [
     # 2026-11-12 : patch du code de FM (GameAssembly.dll), pas des bundles (30). 2026-11-14 (le joueur) : app = toutes
     # les fonctions qui touchent au jeu lui-même (DLL, données du moteur de match : CAT_APP de page.html), facultatives
     ("affichage", "Modifications du jeu (code et données de FM)", "Game changes (FM's code and data)"),
+    # 2026-11-20 : pages des compétitions (31), à la fin pour ne pas décaler les numéros du menu
+    ("competition", "Compétitions", "Competitions"),
 ]
 PREMIER_NUMERO = 11
 
@@ -164,8 +166,10 @@ FONCTIONS = {
     "club_bandeau_installations": dict(cat="club", textes=True,
                                        fr="Bandeau du haut : installations + étoiles, réputation, finances...",
                                        en="Top banner: facilities + stars, reputation, finances..."),
-    # 2026-11-05, liste du 04/11 point 5 ; 2026-11-15 (le joueur) : WIP, facultative (plus activée de base)
-    "club_histoire": dict(cat="club", textes=True, facultatif=True,
+    # 2026-11-05, liste du 04/11 point 5 ; 2026-11-15 (le joueur) : WIP, facultative (plus activée de base) ;
+    # 2026-11-20 (le joueur, v8 validée) : de nouveau de base, marqueur club_histoire_v8 (nom inconnu des versions
+    # d'avant : la MAJ auto le donne aussi à ceux qui l'avaient décochée)
+    "club_histoire": dict(cat="club", textes=True, marqueur="club_histoire_v8",
                           fr="Histoire du club sur un écran : bandeau stade + palmarès, records, meilleur onze, événements, entraîneurs",
                           en="Club history on one screen: stadium banner + honours, records, best XI, landmarks, managers"),
     "club_page_bas": dict(cat="club", textes=True,
@@ -229,6 +233,12 @@ FONCTIONS = {
                            "1 to 3 s). Not on your own team. Depending on the save's database (especially very "
                            "small ones), some clubs may come out wrong (seen with American clubs); in Europe it "
                            "generally works fine"),
+    # --- Compétitions (2026-11-20 : essai_competition_vue v31 validé, devenu fonction) ---
+    "competition_vue": dict(cat="competition",
+                            fr="Vue d'ensemble d'une compétition sur un écran : classement, stats en grille, anciens "
+                               "vainqueurs, classements, records, onze de la semaine",
+                            en="A competition's overview on one screen: table, stats in a grid, past winners, "
+                               "rankings, records, team of the week"),
     # --- Finances ---
     "graphes_finances": dict(cat="finances",
                              fr="Graphiques : un point par mois + valeur au survol",
@@ -580,6 +590,7 @@ OU = {
     "palmares_images": ("Club > Histoire du club, palmarès de la page club",
                         "Club > Club History, honours of the club page"),
     "club_vue_ensemble": ("Club > Vue d'ensemble", "Club > Overview"),
+    "competition_vue": ("Page d'une compétition > Vue d'ensemble", "A competition's page > Overview"),
     "notes_installations": ("Club > Installations", "Club > Facilities"),
     "club_infobulle_offres": ("Offres de transfert / prêt reçues, colonne Club des tableaux",
                               "Transfer / loan offers received, tables' Club column"),
@@ -678,6 +689,8 @@ ORDRE_SKIN = [
     "connaissance_couleurs",   # passe par couleurs_interface.ecrire_styles (même bundles de styles)
     "club_infobulle_offres", "jeunes_candidats_fm24", "club_amical",
     "selection_top50",   # seul sur TopPlayersInTheWorldNewsStoryBlock : n'importe où
+    # seul écrivain de CompetitionSiteBlock(_Cup), CompPlayerStatRow / CompTeamStatRow, modèle de position du 11
+    "competition_vue",
     # Kinito : après toutes les fonctions du skin (kinito_vue_equipes après entrainement_equipes)
     "kinito_calendrier_rencontres", "kinito_contrat_cadenas", "kinito_vacances_jour", "kinito_rapports_vues",
     "kinito_echange_seances", "kinito_vue_equipes", "kinito_capitaines_vues",
@@ -806,11 +819,12 @@ ESSAIS = ["essai_noms_installations", "essai_retour_entrainement", "essai_ids_at
           "essai_salle_trophees",     # 2026-11-09 : bandeau des trophées à la place des Actualités de la page club
           "essai_carte_monde",        # 2026-11-10 : carte de la connaissance du monde, étape 1 (image par sélection féminine)
           "essai_continuer_club",     # 2026-11-11 : bouton Continuer à la couleur du club (comme FM24)
-          "essai_competition_vue",    # 2026-11-12 : Compétition > Vue d'ensemble refaite (v7 : classement | stats en grille | 11 + transferts)
           "essai_selection_top50",    # 2026-11-13 : devenu recrutement\selection_top50 ; gardé pour retirer l'essai
           "essai_salle_honneurs"]     # 2026-11-15 : Honneurs du club = salle des trophées (fond IA + étagères)
 # (essai_echelle_1080p : devenu affichage\echelle_1080p.py le 2026-11-12, script supprimé ; la fonction coupée
 #  enlève au choix 1 un patch de GameAssembly.dll resté ; ses v1 / v2 (boutons, scène) déjà remises chez le joueur)
+# (essai_competition_vue : devenu competition\competition_vue.py le 2026-11-20 (v31), script supprimé ; même préfixe
+#  UIPickerEssaiComp : la fonction reprend ce que l'essai a posé)
 # (essai_club_vue_ensemble : devenu club\club_vue_ensemble.py le 2026-11-09, script supprimé ; même préfixe
 #  UIPickerVueClub : la fonction refait les modèles posés par l'essai)
 # (essai_repos_diag : devenu effectif\repos_diag.py, option « repos_bouton » du bouton repos, le 2026-11-01)

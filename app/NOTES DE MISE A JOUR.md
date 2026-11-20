@@ -8,11 +8,15 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ### v2.11 (20 novembre 2026)
 
+**Compétitions (nouveau)**
+- **La vue d'ensemble d'une compétition refaite, sur un écran** : en championnat, le classement, les stats joueurs et équipes en grille (buts, passes D, note, homme du match, tirs...), les anciens vainqueurs et les classements de réputation, avec les transferts à droite en Grand ; en Petit, le onze de la semaine (petit « i » à gauche des noms). En coupe nationale : classement, stats, anciens vainqueurs, classements et records. En coupe continentale : anciens vainqueurs et 10 records. Grand, Moyen et Petit. Activée de base.
+
 **Club**
-- **Histoire du club refaite et finie** (facultative, à cocher dans l'app) : en haut, un bandeau avec la photo du stade, le club et son palmarès (trophées centrés, bien espacés) ; en dessous, les Records, le vrai meilleur onze de tous les temps (sur un terrain, avec le choix des saisons) et les Événements + Entraîneurs. Grand, Moyen et Petit.
+- **Histoire du club refaite et finie, activée pour tout le monde** (même si tu l'avais décochée) : en haut, un bandeau avec la photo du stade, le club et son palmarès (trophées centrés, bien espacés) ; en dessous, les Records, le vrai meilleur onze de tous les temps (sur un terrain, avec le choix des saisons) et les Événements + Entraîneurs. Grand, Moyen et Petit.
 
 **App**
 - **L'option « couleur du club dans l'en-tête »** passe de la page Fiche joueur à la page Couleurs (sous Panneaux / tuiles).
+- **App en anglais : textes restés en français corrigés** (avertissement de « Modifications du jeu », retouches de l'en-tête) et traduits dans les 10 langues.
 
 ### v2.10 (20 novembre 2026)
 
@@ -1248,11 +1252,15 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ### v2.11 (20 November 2026)
 
+**Competitions (new)**
+- **A competition's overview redone, on one screen**: in a league, the table, player and team stats in a grid (goals, assists, rating, player of the match, shots...), past winners and reputation rankings, with transfers on the right in Large; in Small, the team of the week (small "i" left of the names). In a domestic cup: table, stats, past winners, rankings and records. In a continental cup: past winners and 10 records. Large, Medium and Small. On by default.
+
 **Club**
-- **Club History redone and finished** (optional, tick it in the app): at the top, a banner with the stadium photo, the club and its honours (trophies centred, evenly spaced); below, the Records, the real all-time best XI (on a pitch, with the season picker) and the Landmarks + Managers. Large, Medium and Small.
+- **Club History redone and finished, turned on for everyone** (even if you had unticked it): at the top, a banner with the stadium photo, the club and its honours (trophies centred, evenly spaced); below, the Records, the real all-time best XI (on a pitch, with the season picker) and the Landmarks + Managers. Large, Medium and Small.
 
 **App**
 - **The "club colour in the header" option** moves from the Player profile page to the Colours page (under Panels / tiles).
+- **App in English: texts left in French fixed** (the « Game changes » warning, header tweaks) and translated into the 10 languages.
 
 ### v2.10 (20 November 2026)
 
