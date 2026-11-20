@@ -2341,7 +2341,7 @@ function ligneEcart(x) {
   bouton = el("button", { class: "bouton", disabled: bloque(), onclick: () => faire({ type: "option", nom: o.nom, valeur: o.defaut }) }, t("remettre"));
   if (o.kinito || o.fmguru) return ecartEl(`${t("pageOptions")} · ${t(o.kinito ? "kinito" : "fmguru")}`, tr(o.titre), actuel, libelleValeur(o, o.defaut), bouton, { page: "options" });
   return ecartEl(f ? `${titreCat(f.cat)} · ${t("options")}` : t("options"), tr(o.titre), actuel, libelleValeur(o, o.defaut), bouton,
-    !f ? { page: "accueil" } : f.cat === "theme" ? { page: "fond" } : { page: "cat", cat: f.cat });
+    !f ? { page: "accueil" } : f.cat === "theme" || o.nom === "entete_couleur_club" ? { page: "fond" } : { page: "cat", cat: f.cat });
 }
 
 function ecartEl(ou, titre, actuel, base, bouton, cible) {
@@ -2458,7 +2458,7 @@ const REGLAGES_J = [
   [["En-tête", "Header"], [
     ["o:entete_vue", "fiche", "entete", ["Forme de l'en-tête", "Header layout"], null],
     ["o:entete_style", "fiche", "entete", ["Style de l'en-tête en cartes", "Card header style"], null],
-    ["o:entete_couleur_club", "fiche", "entete", ["Couleur du club derrière l'en-tête", "Club colour behind the header"], ["Le dégradé aux couleurs du club derrière les cartes de l'en-tête (comme FM), ou rien (fond du skin).", "The club colour gradient behind the header cards (like FM), or nothing (skin background)."]],
+    // (o:entete_couleur_club : page Couleurs depuis le 2026-11-20, le joueur)
     ["entete_fiche", "fiche", "entete", ["Retouches de l'en-tête", "Header tweaks"], ["2e nationalité, bouton Actions sous l'âge, nations en 3 lettres, Niveau / Potentiel serrés.", "2nd nationality, Actions button under the age, 3-letter nations, tighter Ability / Potential."]],
     ["o:fiche_large_colonne", "fiche", "colonne entete", ["À droite d'Infos", "Right of Info"], null],
     ["o:fiche_medium_colonne", "fiche", "colonne entete", ["Affichage Moyen seulement : polygone ou Pour / Contre", "Medium display only: polygon or Pros / Cons"], ["Seulement en affichage Moyen (Medium), rien ne change en Large / Petit. Les deux s'échangent ensemble (en-tête en cartes).", "Only in Medium display, nothing changes in Large / Small. Both swap together (card header)."]],
@@ -3086,6 +3086,11 @@ function pageFond() {
   const corpsFond = [el("div", { class: "fond-grille" }, el("div", {}, el("label", { class: "etiquette" }, t("apercuTitre")), apercu), reglages)];
   if (opt) { const c = el("div", { class: "carte", style: "margin-top:18px" }); const b = blocOption(opt, f.actif); b.style.cssText = "border:0;padding:14px 16px"; c.append(b); corpsFond.push(c); }
   const barres = blocBarres();   // { themes, barres, tactiques } (sections de couleurs_interface)
+  // 2026-11-20 (le joueur : « mets-moi ça dans les réglages de couleur », avant dans la section Joueur) : couleur du
+  // club derrière l'en-tête de la fiche, sous les tuiles ; réglable à tout moment (posé par entete_fiche)
+  const optClub = option("entete_couleur_club");
+  if (barres.tuiles && optClub) { const c = el("div", { class: "carte", style: "margin-top:18px" });
+    const b = blocOption(optClub, !!fonction("entete_fiche")?.actif); b.style.cssText = "border:0;padding:14px 16px"; c.append(b); barres.tuiles.push(c); }
   // du plus visible partout au plus ciblé (2026-11-09) : barres du haut, fond, tuiles, puis Tactiques, Match ;
   // thèmes complets en dernier (demande du joueur)
   const sections = [

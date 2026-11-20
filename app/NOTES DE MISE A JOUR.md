@@ -6,6 +6,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.11 (20 novembre 2026)
+
+**Club**
+- **Histoire du club refaite et finie** (facultative, à cocher dans l'app) : en haut, un bandeau avec la photo du stade, le club et son palmarès (trophées centrés, bien espacés) ; en dessous, les Records, le vrai meilleur onze de tous les temps (sur un terrain, avec le choix des saisons) et les Événements + Entraîneurs. Grand, Moyen et Petit.
+
+**App**
+- **L'option « couleur du club dans l'en-tête »** passe de la page Fiche joueur à la page Couleurs (sous Panneaux / tuiles).
+
 ### v2.10 (20 novembre 2026)
 
 **Fiche joueur**
@@ -1237,6 +1245,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.11 (20 November 2026)
+
+**Club**
+- **Club History redone and finished** (optional, tick it in the app): at the top, a banner with the stadium photo, the club and its honours (trophies centred, evenly spaced); below, the Records, the real all-time best XI (on a pitch, with the season picker) and the Landmarks + Managers. Large, Medium and Small.
+
+**App**
+- **The "club colour in the header" option** moves from the Player profile page to the Colours page (under Panels / tiles).
 
 ### v2.10 (20 November 2026)
 

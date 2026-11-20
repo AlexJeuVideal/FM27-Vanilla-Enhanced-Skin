@@ -702,7 +702,9 @@ def etat():
         fonctions.append({"nom": nom, "cat": f["cat"], "fr": f["fr"], "en": f["en"], "actif": actif,
                           "facultatif": bool(f.get("facultatif")),
                           # + options d'une autre fonction affichées aussi ici (afficher_aussi, 2026-11-07)
-                          "options": lancer.options_de(nom) + [o for o, d in options.OPTIONS.items()
+                          # (COULEURS_OPTIONS : page Couleurs seulement)
+                          "options": [o for o in lancer.options_de(nom) if o not in COULEURS_OPTIONS]
+                                     + [o for o, d in options.OPTIONS.items()
                                                                if d.get("afficher_aussi") == nom],
                           "aide": f.get("aide"), "ou": cat.OU.get(nom), "bloqueGuru": bloque_guru(nom),
                           "avecGuru": nom in cat.AVEC_GURU and options.get("fiche_fmguru") == "guru",
@@ -1064,7 +1066,8 @@ ECRIT = {"skin", "desinstaller", "appliquer", "reinstaller", "retirer", "option"
 JOUEUR_CATS = ("joueur_entete", "joueur_fiche", "joueur_infobulle", "joueur_progression")
 # (vue FM Guru et fiche Kinito 1080p : exclusives, restent dans Features additionnelles, pas ici — le joueur)
 JOUEUR_FONCTIONS = [n for n, f in cat.FONCTIONS.items() if f["cat"] in JOUEUR_CATS]
-JOUEUR_OPTIONS = ["fiche_skin_base", "entete_vue", "entete_style", "entete_couleur_club", "pour_contre_lignes", "fiche_large_colonne",
+COULEURS_OPTIONS = {"entete_couleur_club"}   # 2026-11-20 (le joueur) : réglée dans la page Couleurs, pas ailleurs
+JOUEUR_OPTIONS = ["fiche_skin_base", "entete_vue", "entete_style", "pour_contre_lignes", "fiche_large_colonne",
                   "fiche_medium_colonne", "fiche_large_tuile"]
 # tuiles du bas de la fiche (noms de FM, = fiche_ordre_tuiles.ORDRE) : ordre au glisser-déposer (options.ordre_tuiles)
 TUILES_BAS = ["Happiness", "FItness", "PlayerSeasonStats", "CareerStats", "PlayerForm", "PlayerTrainingOverview"]

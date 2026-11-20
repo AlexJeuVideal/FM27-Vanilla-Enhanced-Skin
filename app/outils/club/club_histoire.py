@@ -30,6 +30,7 @@ import sauvegarde_originaux as backup  # noqa: E402
 import hierarchie_pyramide as hp  # noqa: E402  (ouverture des modèles depuis les originaux)
 from hierarchie_pyramide import typ, ouvrir  # noqa: E402
 from notes_installations import first  # noqa: E402
+from elements import move  # noqa: E402
 from langue import texte as L, SUFFIXE  # noqa: E402
 import arbre as sm  # noqa: E402
 
@@ -37,30 +38,37 @@ import arbre as sm  # noqa: E402
 #  RÉGLAGES
 # =====================================================================================================
 ECART = 12                  # px entre les blocs
-PARTS = (1.0, 1.25, 1.0)    # largeurs des 3 colonnes (stade + records | onze | événements + entraîneurs) ; le
-                            # club est au-dessus de la 1re colonne, le palmarès au-dessus des 2 autres
-PART_REPERES = 1.3          # colonne de droite : événements / entraîneurs
-PART_ENTRAINEURS = 1.0
-HAUTEUR_STADE = {0: 170, 1: 270, 2: 270}   # px de la photo du stade par mode d'affichage (0 = Défaut « Large ») ;
-                                            # v5 : 220 -> 270 hors Large (Records plus bas)
-MAILLOTS_LARGE = False      # v5 : maillots à droite du club seulement hors Large (en Large : comme avant)
+# v6 : bandeau du haut = photo du stade voilée en fond, club (logo, nom, nation, 3 infos) | palmarès ; dessous 3
+# colonnes égales. v8 : Records | VRAI meilleur onze (terrain de la page Meilleur onze, sans le tableau) |
+# Événements marquants + Entraîneurs (joueurs notables retirés : doublon du onze)
+PARTS = (1.0, 1.0, 1.0)     # largeurs des 3 colonnes du bas
+PART_EVENEMENTS, PART_ENTRAINEURS = 1.2, 1.0   # colonne de droite
+PART_CLUB, PART_TROPHEES = 1.0, 2.2          # bandeau du haut
+VOILE_BANDEAU = (0.0, 0.0, 0.0, 0.70)        # voile sombre sur la photo du stade (lisibilité)
+PADDING_BANDEAU = 16
+INFOS_GARDEES = ("year-founded-frame", "division-frame", "region-frame")   # lignes de ClubInfoDetailsFrame
+LARGEUR_INFO = 150          # px par info (libellé au-dessus de la valeur)
 # bandeau des trophées par mode d'affichage (0 Défaut « Large », 1 Détaillé, 2 Condensé) : hauteur du défilement
 # (cartes de salle_trophees : leurs tailles + barre) ; lignes FM (sans salle_trophees) : hauteur de la zone
 BANDEAU_CARTES = {0: 124, 1: 174, 2: 174}
 BANDEAU_LIGNES = {0: 56, 1: 64, 2: 64}
 TITRE_TROPHEES = L("Palmarès", "Honours")
 TITRE_EVENEMENTS = L("Événements marquants", "Club landmarks")
+TITRE_RECORDS = L("Records", "Records")
+TITRE_ENTRAINEURS = L("Entraîneurs", "Managers")
+TITRE_ONZE = L("Meilleur onze", "Best XI")
 TUILES = {   # (modèle FM, GUID)
     # v4 : les vrais blocs des pages Records (menu de catégorie + tableau) et Événements marquants (filtre + liste)
     "records": ("ClubHistoryRecordsAllTimeRecordsCompactBlock", "8ff879af6d8b5674992a1f577d3feecc"),   # club
-    "onze": ("ClubHistoryBestXI_4x4", "22a80cb050802a448939b4aa2650ca50"),                                # team
+    "onze": ("ClubHistoryBestXICardBody", ""),   # v8 : corps de la page Meilleur onze (menu des saisons + terrain)
     "reperes": ("ClubHistoryLandmarksCardBlock", "30fa87d81cb493c49b00cc70817def0b"),                    # teamcontainer
     "entraineurs": ("ClubManagerHistoryTile_4x4", "36ae757685d1dda4aa3ef196af4080aa"),                   # teamcontainer
 }
 # =====================================================================================================
 
-VERSION = f"5{SUFFIXE}"   # v5 : maillots à droite du club + stade plus haut (hors Large)   # v3 : grille étirée (maximum 100 x 100) ; v4 : club | palmarès en haut, stade + vrais
-                          # Records, vrais Événements marquants
+VERSION = f"8{SUFFIXE}"   # v8 : vrai meilleur onze (terrain) au milieu ; v7 : trophées centrés, division alignée ; v3 : grille étirée (maximum 100 x 100) ; v4 : club | palmarès en haut, stade + vrais
+                          # Records, vrais Événements marquants ; v5 : maillots (hors Large) ; v6 : refonte (bandeau
+                          # sur le stade, 3 colonnes égales, blocs recopiés sans cadre en double, même titre partout)
 TYPE_TEAMCONTAINER = 1380935244
 STADE_PAGE = "UIPickerClubBasStade"     # stade photo de club_page_bas (dans ClubSiteBlock)
 MODELE = "ClubSiteFacilitiesCard"
@@ -87,7 +95,9 @@ for _k, _v in {"width": (131105, 3), "height": (131087, 3), "min-height": (13109
                "padding-right": (131100, 3), "padding-top": (131101, 3), "padding-bottom": (131098, 3),
                "flex-grow": (131084, 2), "flex-shrink": (131085, 2), "overflow": (458768, 7),
                "flex-basis": (131082, 3), "min-width": (131097, 3), "max-height": (131094, 3),
-               "flex-wrap": (131086, 7), "margin-left": (131091, 3), "align-self": (131074, 7)}.items():
+               "flex-wrap": (131086, 7), "margin-left": (131091, 3), "align-self": (131074, 7),
+               "position": (131102, 7), "left": (131089, 3), "top": (131104, 3), "right": (131103, 3),
+               "bottom": (131080, 3)}.items():
     sm.PROPRIETES.setdefault(_k, _v)
 CENT = {"unit": 2, "value": 100.0}
 
@@ -168,18 +178,26 @@ def salle_trophees_active():
 def construire(t):
     hon, profil, page = Originale(HONNEURS), Originale(PROFIL), Source(PAGE_CLUB)
     reunion = Source(SOURCE_LISTE[0])
-    if None in (hon.t, profil.t, page.t, reunion.t):
-        return None, "modèles FM introuvables (tuile Honneurs, profil du club, page club, réunion d'équipe)"
+    srcs = {k: Originale(m) for k, (m, _) in TUILES.items()}
+    if None in (hon.t, profil.t, page.t, reunion.t) or any(s.t is None for s in srcs.values()):
+        return None, "modèles FM introuvables (tuile Honneurs, profil du club, page club, réunion d'équipe, tuiles)"
     be = first(hon.t, lambda r: typ(hon.t, r) == "BindingExpect")
     inst = first(hon.t, lambda r: hon.t.elem(r).get("m_TemplateAlias") == "tile-square-4x4")
     boite = hon.nom("body-area-frame")
     remap = first(profil.t, lambda r: typ(profil.t, r) == "BindingRemapper")
-    morceaux = {n: profil.nom(n) for n in ("ClubInfoHeaderFrame", "ClubInfoDetailsFrame", "KitsTitleText")}
+    morceaux = {n: profil.nom(n) for n in ("ClubInfoHeaderFrame", "ClubInfoDetailsFrame")}
     defile_src = first(page.t, lambda r: typ(page.t, r) == "SIScrollView")
     liste_src = first(reunion.t, lambda r: reunion.t.name(r) == SOURCE_LISTE[1]
                       and typ(reunion.t, r) == "WrappedObjectList")
-    if None in (be, inst, boite, remap, defile_src, liste_src, *morceaux.values()):
-        return None, "morceaux FM introuvables (profil du club, tuile Honneurs, défilement ou liste)"
+    rec, lm, onze, ent = (srcs[k].t for k in ("records", "reperes", "onze", "entraineurs"))
+    rec_racine = first(rec, lambda r: typ(rec, r) == "ComponentElement")
+    rec_titre = first(rec, lambda r: rec.name(r) == "text" and rec.name(rec.parent[r]) == "Header")
+    lm_racine = first(lm, lambda r: typ(lm, r) == "ComponentElement")
+    onze_racine = first(onze, lambda r: typ(onze, r) == "ComponentElement")
+    ent_contenu = first(ent, lambda r: typ(ent, r) == "BindableSwitchElement")
+    if None in (be, inst, boite, remap, defile_src, liste_src, rec_racine, rec_titre, lm_racine, onze_racine,
+                ent_contenu, *morceaux.values()):
+        return None, "morceaux FM introuvables (profil, Honneurs, défilement, liste, Records, Événements, onze, entraîneurs)"
     racine_vt = t.tt["m_VisualTree"]["rid"]
     for k in list(t.children(racine_vt)):
         t.remove(k)
@@ -198,46 +216,78 @@ def construire(t):
     for k in list(t.children(tu.modele_remap)):
         t.remove(k)
     modeles = [tu.modele_boite, tu.modele_instance, tu.modele_remap]
+    recs = srcs["records"]
 
     tout = tu.boite(racine, {"flex-grow": 1, "flex-shrink": 1, "min-height": 0, "overflow": "hidden"}, NOM)
 
-    def titre(parent, texte):
-        txt = t.clone(morceaux["KitsTitleText"], parent, src=profil.t)
-        st.copy_from(profil.t.styles, t, txt)
+    def titre(parent, texte, index=None):
+        """même titre partout : celui du bloc Records de FM (heading-md), texte fixe"""
+        txt = t.clone(rec_titre, parent, index, src=rec)
+        st.copy_from(rec.styles, t, txt)
         d = t.sd(txt)
         d["text"], d["text_UxmlAttributeFlags"], d["DebugDisplay"] = texte, 1, texte
-        d["TextBinding"] = copy.deepcopy(d["TextBinding"])
-        d["TextBinding"]["m_kind"] = 0
-        d["TextBinding"]["m_direct"]["Path"]["m_path"] = ""
+        if isinstance(d.get("TextBinding"), dict):
+            d["TextBinding"] = copy.deepcopy(d["TextBinding"])
+            d["TextBinding"]["m_kind"] = 0
+            d["TextBinding"]["m_direct"]["Path"]["m_path"] = ""
         d["name"], d["name_UxmlAttributeFlags"] = "", 0
+        st.style(t, txt, {"flex-shrink": 0, "margin-bottom": 8})
         return txt
 
-    # 1. en haut : club (logo, nom, nation + infos) | palmarès (bandeau, un SIVisible par mode d'affichage)
+    def cadre(parent, css):
+        return tu.boite(parent, {"flex-shrink": 1, "min-height": 0, "min-width": 0, "overflow": "hidden", **css},
+                        classes=["siblock-padding", "siblock-border"])
+
+    plein = {"position": "absolute", "left": 0, "top": 0, "right": 0, "bottom": 0}
+
+    # 1. bandeau du haut : photo du stade voilée en fond ; club | palmarès
     cartes, stro = salle_trophees_active()
-    haut = tu.boite(tout, {"flex-direction": "row", "flex-shrink": 0, "flex-grow": 0, "align-items": "stretch"})
-    infos = tu.boite(haut, {"flex-grow": PARTS[0], "flex-shrink": 1, "flex-basis": 0, "min-width": 0,
-                            "overflow": "hidden"}, classes=["siblock-padding", "siblock-border"])
-    rm = tu.remapper(infos, "club", CHEMIN_CLUB, TYPE_CLUB, {"flex-shrink": 0, "flex-direction": "row",
-                                                             "justify-content": "space-between"})
-    gauche = tu.boite(rm, {"flex-shrink": 1, "min-width": 0})
-    copier(t, profil, morceaux["ClubInfoHeaderFrame"], gauche)
-    d = copier(t, profil, morceaux["ClubInfoDetailsFrame"], gauche)
-    st.style(t, d, {"margin-top": 8})
-    # v5 : maillots à droite (hors Large sauf MAILLOTS_LARGE)
-    kits = first(profil.t, lambda r: profil.t.name(r) == "KitsFrame" and profil.t.name(profil.t.parent[r]) == "RHS")
-    if kits is not None:
-        vm = rm if MAILLOTS_LARGE or stro is None else stro.visible(t, rm, stro.MODE_AFFICHAGE, stro.OP_SUPERIEUR, 0,
-                                                                     f"{PREFIXE}Maillots")
-        if vm is not None:
-            st.style(t, vm, {"flex-shrink": 0, "margin-left": ECART})
-            copier(t, profil, kits, vm)
-    bande = tu.boite(haut, {"flex-grow": PARTS[1] + PARTS[2], "flex-shrink": 1, "flex-basis": 0, "min-width": 0,
-                            "margin-left": ECART, "overflow": "hidden"}, classes=["siblock-padding", "siblock-border"])
-    titre(bande, TITRE_TROPHEES)
+    if stro is None:
+        return None, "salle_trophees introuvable (comparaisons du mode d'affichage)"
+    haut = tu.boite(tout, {"flex-direction": "row", "flex-shrink": 0, "flex-grow": 0, "align-items": "center",
+                           "overflow": "hidden", "padding-left": PADDING_BANDEAU, "padding-right": PADDING_BANDEAU,
+                           "padding-top": PADDING_BANDEAU, "padding-bottom": PADDING_BANDEAU},
+                    classes=["siblock-border"])
+    stade = page.nom(STADE_PAGE)
+    images = [k for k in page.t.children(stade) if typ(page.t, k) == "SIImage"] if stade is not None else []
+    if images:
+        fond = tu.remapper(haut, "club", "teamcontainer", TYPE_TEAMCONTAINER, plein)
+        for k in images:
+            copier(t, page, k, fond)
+        tu.boite(haut, {**plein, "background-color": VOILE_BANDEAU})
+        quel_stade = "photo du stade en fond"
+    else:
+        quel_stade = "sans photo (club_page_bas pas actif)"
+    rm = tu.remapper(haut, "club", CHEMIN_CLUB, TYPE_CLUB, {"flex-grow": PART_CLUB, "flex-shrink": 1, "flex-basis": 0,
+                                                            "min-width": 0, "overflow": "hidden"})
+    copier(t, profil, morceaux["ClubInfoHeaderFrame"], rm)
+    d = copier(t, profil, morceaux["ClubInfoDetailsFrame"], rm)
+    st.style(t, d, {"flex-direction": "row", "margin-top": 12, "align-items": "flex-start"})
+    for k in list(t.children(d)):
+        if t.name(k) not in INFOS_GARDEES:
+            t.remove(k)
+            continue
+        st.style(t, k, {**sm.SANS_CADRE, "width": LARGEUR_INFO, "min-width": 0, "flex-shrink": 1,
+                        "padding-left": 0, "padding-right": 0, "padding-top": 0, "padding-bottom": 0,
+                        "margin-right": ECART})
+        paire = k if len(t.children(k)) >= 2 else t.children(k)[0]   # #YearFounded : un niveau de plus
+        st.style(t, paire, {"flex-direction": "column", "align-items": "flex-start", **sm.SANS_CADRE})
+        for c in t.children(paire):
+            st.style(t, c, {"margin-right": 0, "margin-bottom": 2})
+        # v7 : division = le nom seul (la cellule de FM avec son icône vide était plus haute : infos décalées)
+        nom_div = first(t, lambda r: t.name(r) == "DivisionNameText", k)
+        case_div = first(t, lambda r: t.name(r) == "DivisionNameTextFrame", k)
+        switch_div = first(t, lambda r: t.name(r) == "HasDivision", k)
+        if None not in (nom_div, case_div, switch_div):
+            move(t, nom_div, case_div)
+            t.remove(switch_div)
+            st.style(t, nom_div, {"margin-right": 0})
+    tu.boite(haut, {"width": 1, "align-self": "stretch", "margin-left": PADDING_BANDEAU,
+                    "margin-right": PADDING_BANDEAU, "background-color": (1.0, 1.0, 1.0, 0.15), "flex-shrink": 0})
+    bande = tu.boite(haut, {"flex-grow": PART_TROPHEES, "flex-shrink": 1, "flex-basis": 0, "min-width": 0,
+                            "overflow": "hidden"})
     for k in (0, 1, 2):
-        vk = None
-        if stro is not None:
-            vk = stro.visible(t, bande, stro.MODE_AFFICHAGE, stro.OP_EGAL, k, f"{PREFIXE}Trophees-mode{k}")
+        vk = stro.visible(t, bande, stro.MODE_AFFICHAGE, stro.OP_EGAL, k, f"{PREFIXE}Trophees-mode{k}")
         if vk is None:
             return None, "modèle de comparaison FM introuvable (mode d'affichage)"
         st.style(t, vk, {"width": CENT})
@@ -261,10 +311,12 @@ def construire(t):
         sd["VisualFuncBinding"] = stro.path_arg(sd["VisualFuncBinding"], CHEMIN_HONNEURS)
         sd["ItemParamName"] = "row"
         t.elem(w)["m_Classes"] = []
-        st.style(t, w, {"flex-direction": "row", "flex-wrap": "nowrap", "flex-shrink": 0,
-                        **({} if cartes else {"align-items": "center"})})
+        st.style(t, w, {"flex-direction": "row", "flex-wrap": "nowrap", "flex-shrink": 0, "flex-grow": 1,
+                        "justify-content": "center", **({} if cartes else {"align-items": "center"})})
+        # v7 : centré, écart fixe de la carte (space-around donnait une part de vide aux trophées à 0, cachés mais
+        # présents : écarts irréguliers) ; trop de trophées = la liste dépasse -> défilement horizontal vers la droite
 
-    # 2. trois colonnes
+    # 2. trois colonnes égales
     rang = tu.boite(tout, {"flex-direction": "row", "flex-grow": 1, "flex-shrink": 1, "min-height": 0,
                            "margin-top": ECART})
 
@@ -272,49 +324,71 @@ def construire(t):
         return tu.boite(rang, {"flex-grow": part, "flex-shrink": 1, "flex-basis": 0, "min-width": 0, "min-height": 0,
                                **({} if gauche else {"margin-left": ECART})})
 
-    def case(col, part, haut, css=None):
-        return tu.boite(col, {"flex-grow": part, "flex-shrink": 1, "flex-basis": 0, "min-height": 0, "min-width": 0,
-                              **({} if haut else {"margin-top": ECART}), **(css or {})})
-
-    # 2a. photo du stade (page club de club_page_bas), puis le vrai bloc Records (club = teamcontainer)
+    # 2a. Records : le bloc de FM recopié ; son cadre sert de cadre, titre fixe « Records », menu de catégorie
+    #     remonté dans l'en-tête (avant : bouton seul au-dessus du cadre + titre = même mot)
     g = colonne(PARTS[0], True)
-    stade = page.nom(STADE_PAGE)
-    while stade is not None and typ(page.t, stade) != "ComponentElement":
-        stade = page.t.parent.get(stade)
-    if stade is not None:
-        rs = tu.remapper(g, "club", "teamcontainer", TYPE_TEAMCONTAINER, {"flex-shrink": 0, "flex-grow": 0})
-        s = copier(t, page, stade, rs)
-        st.style(t, s, {"flex-grow": 0, "flex-shrink": 0})
-        for v in t.walk(s):
-            if t.name(v) == STADE_PAGE:   # 2 copies de club_page_bas : …Mode2 = Large, l'autre = Medium / Small
-                h = HAUTEUR_STADE[0 if t.name(t.parent[v]) == f"{STADE_PAGE}Mode2" else 1]
-                st.style(t, v, {"height": h, "min-height": h, "max-height": h, "flex-shrink": 0})
-        try:
-            import club_vue_ensemble as cve   # cases du bas du stade : capacité + année seulement (comme la page club)
-            cve.cases_retirees(t, s)
-        except Exception:
-            pass
-        quel_stade = "photo de la page club"
-    else:
-        quel_stade = "pas de stade (club_page_bas pas actif)"
-    tu.instance(tu.remapper(case(g, 1, False), "club", "teamcontainer", TYPE_TEAMCONTAINER,
-                            {"flex-grow": 1, "min-height": 0}), *TUILES["records"])
-    # 2b. meilleur onze (la tuile attend team = équipe première)
-    m = colonne(PARTS[1], False)
-    tu.instance(tu.remapper(m, "team", CHEMIN_EQUIPE, TYPE_EQUIPE, {"flex-grow": 1, "min-height": 0}),
-                *TUILES["onze"])
-    # 2c. repères historiques, puis entraîneurs
+    rr = tu.remapper(g, "club", "teamcontainer", TYPE_TEAMCONTAINER, {"flex-grow": 1, "min-height": 0})
+    r0 = copier(t, recs, rec_racine, rr)
+    st.style(t, r0, {"flex-grow": 1, "min-height": 0})
+    menu = first(t, lambda r: typ(t, r) == "ComponentElement" and any(typ(t, c) == "SIDropdown"
+                                                                       for c in t.children(r)), r0)
+    tete = first(t, lambda r: t.name(r) == "Header", r0)
+    if menu is None or tete is None:
+        return None, "Records : menu ou en-tête introuvable"
+    for x in t.walk(tete):
+        if t.name(x) == "text" and typ(t, x) == "SIText":
+            d = t.sd(x)
+            d["text"], d["text_UxmlAttributeFlags"], d["DebugDisplay"] = TITRE_RECORDS, 1, TITRE_RECORDS
+            if isinstance(d.get("TextBinding"), dict):
+                d["TextBinding"]["m_kind"] = 0
+                d["TextBinding"]["m_direct"]["Path"]["m_path"] = ""
+            break
+    move(t, menu, tete, 1)
+    st.style(t, menu, {"margin-bottom": 0, "margin-right": ECART, "flex-shrink": 1, "min-width": 0})
+    st.style(t, tete, {"align-items": "center", "margin-bottom": 8, "flex-shrink": 0})
+
+    # 2b. v8 : VRAI meilleur onze = corps de la page Meilleur onze (teamcontainer), sans le tableau : menu des
+    #     saisons + terrain ; notre titre à la place de « De tous les temps »
+    mo = cadre(colonne(PARTS[1], False), {"flex-grow": 1})
+    o0 = copier(t, srcs["onze"], onze_racine, mo)
+    st.style(t, o0, {"flex-grow": 1, "min-height": 0, "min-width": 0})
+    trouve = lambda n: first(t, lambda r: t.name(r) == n, o0)  # noqa: E731
+    tableau, ligne_titre, ancien_titre = trouve("table"), trouve("Frame"), trouve("all-time-text")
+    terrain = first(t, lambda r: typ(t, r) == "FMTacticsPanel", o0)
+    if None in (tableau, ligne_titre, ancien_titre, terrain):
+        return None, "meilleur onze : tableau, titre ou terrain introuvable"
+    t.remove(tableau)
+    t.remove(ancien_titre)
+    tt_onze = titre(ligne_titre, TITRE_ONZE, 0)
+    st.style(t, tt_onze, {"margin-bottom": 0})
+    for n in ("main-content-frame", "main-frame"):
+        x = trouve(n)
+        if x is not None:
+            st.style(t, x, {**sm.SANS_CADRE, "flex-grow": 1, "flex-shrink": 1, "min-height": 0, "min-width": 0})
+    st.style(t, t.parent[terrain], {"flex-grow": 1, "flex-shrink": 1, "min-height": 0, "min-width": 0,
+                                    "align-self": "stretch"})
+    st.style(t, terrain, {"flex-grow": 1, "flex-shrink": 1, "min-height": 0, "min-width": 0})
+
+    # 2c. Événements marquants (notre cadre + titre, le bloc FM sans son cadre intérieur) + entraîneurs (contenu de
+    #     la tuile FM sans la tuile)
     dr = colonne(PARTS[2], False)
-    ev = case(dr, PART_REPERES, True)   # vrai bloc (filtre + liste), sans cadre ni titre : on les met
-    t.elem(ev)["m_Classes"] = ["siblock-padding", "siblock-border"]
+    ev = cadre(dr, {"flex-grow": PART_EVENEMENTS, "flex-basis": 0})
     titre(ev, TITRE_EVENEMENTS)
-    tu.instance(tu.boite(ev, {"flex-grow": 1, "flex-shrink": 1, "min-height": 0}), *TUILES["reperes"])
-    tu.instance(case(dr, PART_ENTRAINEURS, False), *TUILES["entraineurs"])
+    e0 = copier(t, srcs["reperes"], lm_racine, ev)
+    st.style(t, e0, {"flex-grow": 1, "min-height": 0})
+    for x in t.walk(e0):
+        if "border-color-layout-modules-block-border-colour" in (t.elem(x).get("m_Classes") or []):
+            st.style(t, x, {**sm.SANS_CADRE, "padding-left": 0, "padding-right": 0, "padding-top": 0,
+                            "padding-bottom": 0})
+    ce = cadre(dr, {"flex-grow": PART_ENTRAINEURS, "flex-basis": 0, "margin-top": ECART})
+    titre(ce, TITRE_ENTRAINEURS)
+    c0 = copier(t, srcs["entraineurs"], ent_contenu, ce)
+    st.style(t, c0, {"flex-grow": 1, "min-height": 0})
 
     for x in modeles:
         t.remove(x)
-    return (f"{MODELE} : club | palmarès ({'cartes de salle_trophees' if cartes else 'lignes FM'}) ; stade "
-            f"({quel_stade}) + Records | onze | Événements + entraîneurs"), None
+    return (f"{MODELE} : bandeau club | palmarès ({'cartes de salle_trophees' if cartes else 'lignes FM'}, "
+            f"{quel_stade}) ; Records | meilleur onze (terrain) | Événements + entraîneurs"), None
 
 
 # ---------- grille + description de la tuile Honneurs ----------
