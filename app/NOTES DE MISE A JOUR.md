@@ -6,6 +6,13 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.12 (24 novembre 2026)
+
+**Match**
+- **Tableau de score : les drapeaux des sélections ont la taille des logos de clubs** (ils étaient tout petits).
+- **Tableau de score : le score cumulé aller-retour (« 2 - 1 Cmb ») bien aligné** : centré dans sa case, à la taille du score du match.
+- **Barre des joueurs en bas, réduite : le poste passe en jaune quand le joueur a pris un carton jaune** (MC, DC, BTC...).
+
 ### v2.11 (20 novembre 2026)
 
 **Compétitions (nouveau)**
@@ -1249,6 +1256,13 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.12 (24 November 2026)
+
+**Match**
+- **Scoreboard: national team flags are now the same size as club badges** (they were tiny).
+- **Scoreboard: the two-leg aggregate score ("2 - 1 Cmb") is properly aligned**: centred in its box, same size as the match score.
+- **Collapsed player bar at the bottom: the position turns yellow when the player has been booked** (CM, CB, ST...).
 
 ### v2.11 (20 November 2026)
 

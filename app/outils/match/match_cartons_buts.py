@@ -22,14 +22,15 @@ import notes_au_lieu_des_libelles as nb  # noqa: E402
 import sauvegarde_originaux as backup  # noqa: E402
 import arbre as sm  # noqa: E402
 from arbre import make_visible  # noqa: E402
-from elements import first, typ, plain, visible_model  # noqa: E402
+from elements import first, typ, plain, visible_model, move  # noqa: E402
+from club_page_bas import original  # noqa: E402  (sauvegarde d'origine d'un modèle)
 import moteur_photos as mp  # noqa: E402  (ouvrir : modèle actuel + sa feuille de style ; propriétés de position)
 import notes_installations as ni  # noqa: E402  (SIVisible « entier > 0 » de FM, textes liés)
 
 for k, v in {"border-top-right-radius": (458765, 3), "border-bottom-right-radius": (458760, 3),
              "border-top-left-radius": (458764, 3), "border-bottom-left-radius": (458759, 3),
              "margin-top": (131093, 3), "align-self": (131074, 7), "padding-left": (131099, 3),
-             "padding-right": (131100, 3), "font-size": (65537, 3)}.items():
+             "padding-right": (131100, 3), "font-size": (65537, 3), "color": (65536, 4)}.items():
     sm.PROPRIETES.setdefault(k, v)
 
 # =====================================================================================================
@@ -53,14 +54,19 @@ CIBLES = [
     ("TacticsMatchPositionFilled", "Position.MatchPlayer"),
     ("FormationPositionFilled", "Position.MatchPlayer"),
 ]
+# barre du bas du match RÉDUITE (poste | cœur | note, un bloc par joueur) : texte du poste en jaune après un carton
+# (v8, le joueur 2026-11-24). Seul propriétaire : repart de l'original, retirer le remet.
+BARRE = "SquadOverviewPlayerBlock-Compact"
+JAUNE_TEXTE = (1.0, 0.82, 0.10, 1.0)   # couleur du poste après un jaune
 # =====================================================================================================
 
 NOM = "UIPickerCartonsButs"
-VERSION = "uipicker-cartons-buts-v7"   # v2 : buts / passes D en pastilles sombres posées par-dessus (v1 cachés) ;
+VERSION = "uipicker-cartons-buts-v8"   # v2 : buts / passes D en pastilles sombres posées par-dessus (v1 cachés) ;
                                        # v3 : à gauche / à droite du nom, hors de la carte, sans fond ;
                                        # v4 : un peu plus petits (11 px), rentrés de 8 px ; v5 : 10 px ;
                                        # v6 : remontés, collés à gauche / à droite de la pastille note | poste ;
-                                       # v7 : nombre au-dessus de l'icône (moins large, plus de chevauchement)
+                                       # v7 : nombre au-dessus de l'icône (moins large, plus de chevauchement) ;
+                                       # v8 : + barre du bas réduite, poste en jaune après un carton
 MARKER = os.path.join(backup.BACKUP_DIR, "match_cartons_buts.actif")
 GAUCHE = sm.PROPRIETES["left"][0]
 
@@ -147,6 +153,75 @@ def poser(t, joueur, s_int, v_int):
     return "jaune (pastille du poste), buts (gauche de la pastille), passes D (droite de la pastille)"
 
 
+def poser_barre(t):
+    """barre du bas réduite : #PlayerPositionLabel (1er enfant de #PosTitleSwitch, l'autre = « Remp. ») remplacé par
+    [SIVisible pas de jaune -> le poste de FM | SIVisible jaune -> copie du poste en JAUNE_TEXTE]"""
+    poste = first(t, lambda r: t.name(r) == "PlayerPositionLabel")
+    modele_vis = visible_model(t)
+    if poste is None or modele_vis is None or t.name(t.parent[poste]) != "PosTitleSwitch":
+        return "repère introuvable (#PlayerPositionLabel dans #PosTitleSwitch)"
+    switch = t.parent[poste]
+    i = t.children(switch).index(poste)
+    boite = plain(t, switch, i, ["flex-grow-class", "justify-content-center"])
+    t.elem(boite)["m_RuleIndex"] = -1
+    nommer(t, boite, "poste")
+    for jaune in (False, True):
+        vis = make_visible(t, modele_vis, boite, None, "playerinfo.YellowCardedInMatch", "", ["justify-content-center"])
+        t.sd(vis)["InvertDirectBinding"] = 0 if jaune else 1
+        t.elem(vis)["m_RuleIndex"] = -1
+        nommer(t, vis, "poste-jaune" if jaune else "poste-blanc")
+        if jaune:
+            copie = t.clone(poste, vis)
+            t.sd(copie)["name"] = f"{NOM}-poste-texte"
+            t.styles.style(t, copie, {"color": JAUNE_TEXTE})
+        else:
+            move(t, poste, vis)
+    return "poste en jaune après un carton (barre du bas réduite)"
+
+
+def cmd_appliquer_barre():
+    actuel = mp.ouvrir(BARRE)
+    if actuel is None:
+        print(f"{BARRE} : introuvable, ignoré")
+        return
+    if any(VERSION in (actuel[3].elem(r).get("m_Classes") or []) for r in nos(actuel[3])):
+        print(f"{BARRE} : déjà appliqué")
+        return
+    o = mp.ouvrir(BARRE, depart_original=True)
+    bundle, obj, tt, t = o
+    if nos(t):
+        print(f"{BARRE} : pas de sauvegarde d'origine propre, ignoré")
+        return
+    msg = poser_barre(t)
+    print(f"{BARRE} : {msg}")
+    if "introuvable" in msg:
+        return
+    t.finish()
+    t.styles.save()
+    obj.save_typetree(tt)
+    nb._dirty.add(bundle)
+    return True
+
+
+def cmd_retirer_barre():
+    o = mp.ouvrir(BARRE)
+    if o is None or not nos(o[3]):
+        return False
+    bundle, obj, tt, t = o
+    orig = original(bundle, obj)
+    if orig is None:
+        print(f"{BARRE} : pas de sauvegarde d'origine, rien fait (utiliser la vérification des fichiers Steam)")
+        return False
+    obj.save_typetree(orig)
+    sheet = original(bundle, obj, orig["inlineSheet"]["m_PathID"])
+    if sheet is not None:
+        t.styles.sh, t.styles.changed = sheet, True
+        t.styles.save()
+    nb._dirty.add(bundle)
+    print(f"{BARRE} : remis d'origine")
+    return True
+
+
 def chemin_de_texte(t, r):
     return (((t.sd(r).get("TextBinding") or {}).get("m_direct") or {}).get("Path") or {}).get("m_path") or ""
 
@@ -180,7 +255,7 @@ def cmd_appliquer():
         t.styles.save()
         obj.save_typetree(tt)
         nb._dirty.add(bundle)
-    if a_enregistrer:
+    if cmd_appliquer_barre() or a_enregistrer:
         nb.save_all()
     if not nb.DRY_RUN:
         with open(MARKER, "w", encoding="utf-8") as f:
@@ -204,6 +279,7 @@ def cmd_retirer():
         nb._dirty.add(bundle)
         fait = True
         print(f"{modele} : cartons / buts / passes D retirés")
+    fait = cmd_retirer_barre() or fait
     if fait:
         nb.save_all()
     else:
@@ -211,7 +287,7 @@ def cmd_retirer():
 
 
 def cmd_etat():
-    for modele, _ in CIBLES:
+    for modele, _ in CIBLES + [(BARRE, None)]:
         o = mp.ouvrir(modele)
         if o is None:
             print(f"{modele} : introuvable")

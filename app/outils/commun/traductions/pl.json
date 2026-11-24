@@ -172,6 +172,7 @@
 "1064": "Narzędzia skina wymagają Pythona od 3.8 do 3.14 (nie 3.15, za nowy): zainstaluj python3.14 i python3.14-venv menedżerem pakietów swojej dystrybucji (drugi możesz zostawić), a potem spróbuj ponownie.",
 "1065": "Mecz na żywo (ustawienia)",
 "1066": "Boisko meczu: plakietka pozycji robi się żółta po kartce, gole i asysty obok nazwiska",
+"1603": "Boisko meczu: plakietka pozycji robi się żółta po kartce, gole i asysty obok nazwiska; zwinięty dolny pasek: pozycja robi się żółta po kartce",
 "1067": "Kliknij pozycję, aby wybrać jej kolor (boisko i pola tabel). « ↺ FM » przywraca kolor FM. Nie należy do motywów: zostają bez zmian, dopóki nie zmienisz ich tutaj.",
 "1068": "Klub > Historia klubu, osiągnięcia na stronie klubu",
 "1069": "Osiągnięcia: obraz trofeum nad każdymi rozgrywkami (pakiet FMVE Trophies, jak w Sali trofeów)",

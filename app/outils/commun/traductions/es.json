@@ -172,6 +172,7 @@
 "1064": "Las herramientas del skin necesitan Python 3.8 a 3.14 (no 3.15, demasiado nuevo): instala python3.14 y python3.14-venv con el gestor de paquetes de tu distribución (puedes conservar el otro) y vuelve a intentarlo.",
 "1065": "Partido en directo (alineaciones)",
 "1066": "Campo del partido: la etiqueta de la posición se vuelve amarilla tras una tarjeta, goles y asistencias junto al nombre",
+"1603": "Campo del partido: la etiqueta de la posición se vuelve amarilla tras una tarjeta, goles y asistencias junto al nombre; barra inferior reducida: la posición se vuelve amarilla tras una tarjeta",
 "1067": "Haz clic en una posición para elegir su color (campo y casillas de las tablas). « ↺ FM » vuelve a poner el de FM. No forma parte de los temas: se quedan como están hasta que los cambies aquí.",
 "1068": "Club > Historia del club, palmarés de la página del club",
 "1069": "Palmarés: la imagen del trofeo encima de cada competición (pack FMVE Trophies, como la Sala de trofeos)",

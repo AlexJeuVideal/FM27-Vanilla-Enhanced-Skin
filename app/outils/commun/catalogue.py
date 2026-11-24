@@ -351,9 +351,9 @@ FONCTIONS = {
     # 2026-11-09 (le joueur) : validé en jeu (v5), pour la release v1.71
     "match_cartons_buts": dict(cat="match",
                                fr="Terrain du match : pastille du poste en jaune après un carton, buts et passes D "
-                                  "à côté du nom",
+                                  "à côté du nom ; barre du bas réduite : poste en jaune après un carton",
                                en="Match pitch: position badge turns yellow after a booking, goals and assists next "
-                                  "to the name"),
+                                  "to the name; collapsed bottom bar: position turns yellow after a booking"),
     # 2026-11-14 (demande Discord) : PAS VU en jeu
     "buteurs_survol": dict(cat="match",
                            fr="WIP Buteurs : fiche du joueur au survol de son nom (autres matchs du jour, résultats, "

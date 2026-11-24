@@ -172,6 +172,7 @@
 "1064": "Skin araçları Python 3.8 ile 3.14 arasını gerektirir (3.15 değil, çok yeni): dağıtımının paket yöneticisiyle python3.14 ve python3.14-venv kur (diğerini tutabilirsin), sonra tekrar dene.",
 "1065": "Canlı maç (dizilişler)",
 "1066": "Maç sahası: kart gören oyuncunun mevki rozeti sarıya döner, goller ve asistler adın yanında",
+"1603": "Maç sahası: kart gören oyuncunun mevki rozeti sarıya döner, goller ve asistler adın yanında; küçültülmüş alt çubuk: kart gören oyuncunun mevkisi sarıya döner",
 "1067": "Rengini seçmek için bir mevkiye tıkla (saha ve tablo kutuları). « ↺ FM », FM'inkini geri getirir. Temalara dahil değil: burada değiştirene kadar oldukları gibi kalırlar.",
 "1068": "Kulüp > Kulüp Tarihi, kulüp sayfasındaki başarılar",
 "1069": "Başarılar: her turnuvanın üstünde kupa görseli (FMVE Trophies paketi, Kupa Odası gibi)",

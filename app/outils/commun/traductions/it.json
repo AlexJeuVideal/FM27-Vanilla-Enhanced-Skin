@@ -172,6 +172,7 @@
 "1064": "Gli strumenti dello skin richiedono Python da 3.8 a 3.14 (non 3.15, troppo recente): installa python3.14 e python3.14-venv con il gestore di pacchetti della tua distribuzione (puoi tenere l'altro), poi riprova.",
 "1065": "Partita in diretta (formazioni)",
 "1066": "Campo della partita: il badge del ruolo diventa giallo dopo un'ammonizione, gol e assist accanto al nome",
+"1603": "Campo della partita: il badge del ruolo diventa giallo dopo un'ammonizione, gol e assist accanto al nome; barra inferiore ridotta: il ruolo diventa giallo dopo un'ammonizione",
 "1067": "Clicca su un ruolo per sceglierne il colore (campo e caselle delle tabelle). « ↺ FM » rimette quello di FM. Non fa parte dei temi: restano come sono finché non li cambi qui.",
 "1068": "Club > Storia del club, palmarès della pagina del club",
 "1069": "Palmarès: l'immagine del trofeo sopra ogni competizione (pack FMVE Trophies, come la Sala dei trofei)",

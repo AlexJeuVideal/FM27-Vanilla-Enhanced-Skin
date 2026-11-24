@@ -129,6 +129,12 @@ CASE_SCORE_B = 64         # px, case unique du score « 2 - 1 »
 LARGEUR_B = 296           # px, bande de la maquette B (noms = (LARGEUR_B - 2 × (LOGO + 12) - CASE_SCORE_B) / 2)
 CUMUL_B = 104             # px, case du cumul aller-retour « 1 - 5 Cmb » à droite de la bande (v29)
 TAILLE_CUMUL = 12         # px, « Cmb » / « AGG » dans cette case
+# v30 (le joueur : drapeaux des sélections bien plus petits que les logos de clubs) : FM met le drapeau de
+# TeamIcon24px en .nation-flag-small-16px (16 x 10 px) ; règle « .CL_LOGO .nation-flag-small-16px » / « #NationFlag »
+# dans la feuille intégrée -> drapeau DRAPEAU_L x DRAPEAU_H (proportions 1,6 des drapeaux de FM), centré comme le logo
+CL_LOGO = "uipicker-score-logo"
+DRAPEAU_L = 34            # px (boîte du logo élargie à cette largeur, case LOGO + 12 inchangée)
+DRAPEAU_H = 21            # px (logo de club : 24)
 # v21 en jeu (2026-11-12) : crash natif à l'ouverture du match (ContinuePanel) -> v22 sans fondus pour isoler
 FONDUS = False            # True = fondus du maillot (SIGradient sur KitForMatch : SUSPECT du crash v21)
 FONDU = 28                # % de la bande couvert par chaque fondu
@@ -138,7 +144,9 @@ FN_DEGRADE = "9f6121106098fd4478470df83d3e70ee"   # couleur (chemin) + opacité 
 FONDU_CHEMIN ="team.KitForMatch.BackgroundColour"   # lu dans le BindingRemapper de l'équipe (team = match.HomeTeam…)
 # =====================================================================================================
 
-VERSION = "uipicker-score-dispo-v29"   # changer la disposition -> augmenter le numéro
+VERSION = "uipicker-score-dispo-v30"   # changer la disposition -> augmenter le numéro
+# v30 : drapeaux des sélections à la taille des logos de clubs ; cumul « 2 - 1 Cmb » centré dans sa case (FM : marge
+# haute 12 px sur le score, « Cmb » 10 px de haut = score trop bas, « Cmb » trop haut)
 # v29 : cumul aller-retour dans une case de largeur fixe (CUMUL_B), une ligne, fond couleur du skin
 # v28 : maquette B plus étroite (bande 296, noms 74 : sigles 3 lettres partout)
 # v27 : sans thème (ou cases pas choisies) = couleur des cases de FM #232735, plus le violet
@@ -535,6 +543,29 @@ def _fondu(t, gsrc, g, remap, bande, index, cote):
     t.styles.style(t, d, {"width": {"unit": 2, "value": 100.0}, "height": {"unit": 2, "value": 100.0}})
 
 
+def _regle_drapeau(t):
+    """v30 : feuille intégrée attachée à la racine + « .CL_LOGO .nation-flag-small-16px » et « .CL_LOGO #NationFlag »
+    = DRAPEAU_L x DRAPEAU_H (FM : 16 x 10 dans TeamIcon24px) ; comme entete_tuile.regle_bouton_agent"""
+    racine = t.children(t.tt["m_VisualTree"]["rid"])[0]
+    ref = {"m_FileID": 0, "m_PathID": t.tt["inlineSheet"]["m_PathID"]}
+    feuilles = t.elem(racine).setdefault("m_Stylesheets", [])
+    if ref not in feuilles:
+        feuilles.append(ref)
+    sh = t.styles.sh
+    if any(p.get("m_Value") == CL_LOGO for r in sh["m_Rules"] for cs in r.get("m_ComplexSelectors") or []
+           for s in cs["m_Selectors"] for p in s["m_Parts"]):
+        return
+    taille = [(sm.PROPRIETES[k][0], "", [(3, {"unit": 1, "value": float(v)})])
+              for k, v in (("width", DRAPEAU_L), ("height", DRAPEAU_H), ("min-width", DRAPEAU_L),
+                           ("min-height", DRAPEAU_H))]
+    for cible, typ, spec in (("nation-flag-small-16px", 3, 1000), ("NationFlag", 6, 1100)):
+        idx = t.styles.add_rule(taille)
+        sh["m_Rules"][idx]["m_ComplexSelectors"] = [
+            {"m_Specificity": spec, "ruleIndex": idx, "m_Selectors": [
+                {"m_Parts": [{"m_Value": CL_LOGO, "m_Type": 3}], "m_PreviousRelationship": 0},
+                {"m_Parts": [{"m_Value": cible, "m_Type": typ}], "m_PreviousRelationship": 2}]}]   # 2 = descendant
+
+
 def _disposer_b(t):
     """v21, maquette B : une ligne [compétition + temps sur la couleur du skin][bande : logo nom score nom logo,
     fondus du maillot aux 2 bouts] dans tous les modes d'affichage"""
@@ -662,14 +693,19 @@ def _disposer_b(t):
         t.elem(r)["m_RuleIndex"] = -1
         st.style(t, r, {"width": LOGO + 12, "min-width": LOGO + 12, "flex-shrink": 0, "align-items": "center",
                         "justify-content": "center"})
-        boite = plain(t, r, 0, [])
+        boite = plain(t, r, 0, [CL_LOGO])
         t.elem(boite)["m_RuleIndex"] = -1
-        st.style(t, boite, {"width": LOGO, "height": LOGO, "min-width": LOGO, "min-height": LOGO, "flex-shrink": 0,
-                            "margin-left": 6, "margin-right": 6, "align-items": "center", "justify-content": "center"})
+        lb = max(LOGO, DRAPEAU_L)
+        marge = (LOGO + 12 - lb) // 2
+        st.style(t, boite, {"width": lb, "height": LOGO, "min-width": lb, "min-height": LOGO, "flex-shrink": 0,
+                            "margin-left": marge, "margin-right": marge, "align-items": "center",
+                            "justify-content": "center"})
         lg = t.clone(logo_src, boite, src=src)
         sm.no_styles(t, lg)
-        st.style(t, lg, {"width": LOGO_FM, "height": LOGO_FM, "flex-shrink": 0})
+        st.style(t, lg, {"width": max(LOGO_FM, DRAPEAU_L), "height": LOGO_FM, "flex-shrink": 0,
+                         "justify-content": "center", "align-items": "center"})
     copy_usings(t, src, logo_src)
+    _regle_drapeau(t)
     msgs = []
     if g is not None:   # en premier dans la bande : sous les logos / noms / score
         _fondu(t, gsrc, g, rh, bande, 0, "dom")
@@ -723,15 +759,25 @@ def _disposer_b(t):
             if _typ(t, r).endswith("SIText"):
                 _cls(t, r, retirer=["padding-horizontal-", "margin-right-", "text-colours-brand-fm-ultra-violet"])
                 agg = t.parent.get(r) != cumul and t.parent.get(t.parent.get(r)) == cumul   # « Cmb » / « AGG »
-                st.style(t, r, dict(contour, **{"font-size": TAILLE_CUMUL if agg else TAILLE_TEMPS,
+                # v30 : chiffres comme le score du milieu (taille, 2 px de chaque côté, DECALE_SCORE) ; « Cmb » sur
+                # toute la hauteur (FM : 10 px = collé en haut), 1 px plus bas (pied aligné sur les chiffres)
+                st.style(t, r, dict(contour, **{"font-size": TAILLE_CUMUL if agg else TAILLE_SCORE,
                                                 "color": texte_skin, "white-space": "nowrap", "flex-shrink": 0,
+                                                "height": HAUT, "min-height": 0, "position": "relative",
+                                                "top": DECALE_SCORE + (1 if agg else 0),
                                                 "margin-top": 0, "margin-bottom": 0, "margin-right": 0,
-                                                "margin-left": 4 if agg else 0, "padding-left": 1,
-                                                "padding-right": 1}))
+                                                "margin-left": 4 if agg else 0, "padding-top": 0,
+                                                "padding-bottom": 0, "padding-left": 0 if agg else 2,
+                                                "padding-right": 0 if agg else 2}))
             elif _typ(t, r) == "UnityEngine.UIElements.VisualElement":
                 _cls(t, r, retirer=["row-direction-", "padding-horizontal-"])
+                # v30 : + margin-top 0 (FM 12 px sur la ligne du score : « 2 - 1 » trop bas en v29)
                 st.style(t, r, dict(zero, **{"flex-direction": "row", "align-items": "center",
-                                             "justify-content": "center", "height": HAUT}))
+                                             "justify-content": "center", "height": HAUT, "min-height": 0,
+                                             "margin-top": 0, "margin-bottom": 0, "padding-top": 0,
+                                             "padding-bottom": 0, "position": "relative",
+                                             # v30 : FM #232735 en dur (rectangle sombre si cases d'une autre couleur)
+                                             "background-color": (0, 0, 0, 0)}))
     return msgs + ["tableau de score sur une ligne : compétition et temps sur la couleur du skin"
                    + (", fondus des maillots" if g is not None else "")
                    + (" (contour des chiffres)" if OUTLINE_B else "")]

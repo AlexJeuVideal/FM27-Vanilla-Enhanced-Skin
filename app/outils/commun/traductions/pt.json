@@ -172,6 +172,7 @@
 "1064": "As ferramentas do skin precisam do Python 3.8 a 3.14 (não 3.15, recente demais): instale python3.14 e python3.14-venv com o gerenciador de pacotes da sua distribuição (pode manter o outro) e tente novamente.",
 "1065": "Partida ao vivo (formações)",
 "1066": "Campo da partida: o selo da posição fica amarelo após um cartão, gols e assistências ao lado do nome",
+"1603": "Campo da partida: o selo da posição fica amarelo após um cartão, gols e assistências ao lado do nome; barra inferior reduzida: a posição fica amarela após um cartão",
 "1067": "Clica numa posição para escolher a sua cor (campo e caixas das tabelas). « ↺ FM » repõe a do FM. Não faz parte dos temas: ficam como estão até as mudares aqui.",
 "1068": "Clube > História do clube, palmarés da página do clube",
 "1069": "Palmarés: a imagem do troféu por cima de cada competição (pack FMVE Trophies, como a Sala de troféus)",

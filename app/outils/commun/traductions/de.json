@@ -172,6 +172,7 @@
 "1064": "Die Werkzeuge des Skins brauchen Python 3.8 bis 3.14 (nicht 3.15, zu neu): installiere python3.14 und python3.14-venv mit dem Paketmanager deiner Distribution (die andere Version kannst du behalten) und versuche es erneut.",
 "1065": "Live-Spiel (Aufstellungen)",
 "1066": "Spielfeld im Match: Positionsplakette wird nach einer Gelben Karte gelb, Tore und Vorlagen neben dem Namen",
+"1603": "Spielfeld im Match: Positionsplakette wird nach einer Gelben Karte gelb, Tore und Vorlagen neben dem Namen; reduzierte untere Leiste: Position wird nach einer Gelben Karte gelb",
 "1067": "Klicke auf eine Position, um ihre Farbe zu wählen (Spielfeld und Kästchen der Tabellen). « ↺ FM » stellt die von FM wieder her. Nicht Teil der Themen: Sie bleiben, wie sie sind, bis du sie hier änderst.",
 "1068": "Verein > Vereinsgeschichte, Erfolge der Vereinsseite",
 "1069": "Erfolge: das Trophäenbild über jedem Wettbewerb (Pack FMVE Trophies, wie im Trophäenraum)",
