@@ -6,6 +6,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.13 (24 novembre 2026)
+
+**Mise à jour de FM**
+- **Compatible avec la mise à jour de FM27 du 24 novembre** : toutes les fonctions ont été vérifiées sur les nouveaux fichiers du jeu. Plus d'alerte « autre mise à jour du jeu » dans l'app. Réinstalle le skin après la mise à jour du jeu (FM fermé).
+
 ### v2.12 (24 novembre 2026)
 
 **Match**
@@ -1256,6 +1261,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.13 (24 November 2026)
+
+**FM update**
+- **Compatible with the 24 November FM27 update**: every feature was checked against the new game files. No more "different game update" warning in the app. Reinstall the skin after the game update (FM closed).
 
 ### v2.12 (24 November 2026)
 
