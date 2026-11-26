@@ -280,7 +280,7 @@ EQUIPES_DROITE = 24           # px : marge au bord droit (v40 : 0 = collé au bo
 EQUIPES_STYLE_LIGNE = "tabbed-grid-layout-tab-button-container-flex-start-extra-tab-flex-end"   # v39 (classe FM)
 # =====================================================================================================
 
-VERSION = f"40{SUFFIXE}"   # langue : suffixe -en ; v34 : vue de la mini-liste changée (LISTE_VUE) ; v35 : équipes
+VERSION = f"41{SUFFIXE}"   # v41 : mini-listes du staff, largeur des colonnes réglable à la main ; v34 : vue de la mini-liste changée (LISTE_VUE) ; v35 : équipes
                            # (pas affichées : drapeau du champ à 0) ; v36 : ExtraTabRowButtonTemplate_UxmlAttributeFlags 1
                            # (toujours rien) ; v37 : racine BindingExpect au lieu de BindingRoot (VU, s'affiche) ;
                            # v38 : boutons = onglets FM en texte (VU : bons, mais morts, collés aux onglets) ;
@@ -962,7 +962,8 @@ def mini_liste(t, src, parent, g):
     sd["name"], sd["name_UxmlAttributeFlags"] = f"{PREFIXE}Liste{g}", 1
     sd["Binding"]["m_direct"]["Path"]["m_path"] = f"team.Staff{g}SubGroup.StaffSubGroupPersonList"
     sd["InitFunction"] = copy.deepcopy(src.init_vue)   # notre vue, sans menu des vues
-    for cle, val in (("ViewDropdownName", ""), ("SortedColumn", ""), ("AllowColumnResizing", 0),
+    # v41 (le joueur, 2026-11-26) : largeur des colonnes réglable à la main (AllowColumnResizing 1 ; avant : 0)
+    for cle, val in (("ViewDropdownName", ""), ("SortedColumn", ""), ("AllowColumnResizing", 1),
                      ("SelectionCellID", LISTE_SELECTION)):   # v31 : pas de case de sélection
         sd[cle], sd[f"{cle}_UxmlAttributeFlags"] = val, 1   # v32 : sans le drapeau, FM ignore le réglage (vu v31)
     t.styles.style(t, tab, {"flex-grow": 1, "flex-shrink": 1, "min-height": 0, "min-width": 0,
@@ -1087,14 +1088,16 @@ def poser_vue(retirer=False):
         o.save_typetree(orig)
         nb._dirty.add(VUES)
         return f"{LISTE_VUE} : remise d'origine"
-    if colonnes_vue(tt) == LISTE_COLONNES:
+    import colonnes_reglables as cr   # v41 : colonnes réductibles jusqu'à 16 px (largeur réglable à la main)
+    cfg = tt["m_tableView"]["m_tableConfig"]
+    if colonnes_vue(tt) == LISTE_COLONNES and cr.minimums_petits(copy.deepcopy(cfg)) == cfg:
         return None
     source = hp.original(VUES, objs[LISTE_VUE_SOURCE]) or objs[LISTE_VUE_SOURCE].read_typetree()
     par_id = {c["m_columnID"]: c for c in source["m_tableView"]["m_tableConfig"]}
     if any(c not in par_id for c in LISTE_COLONNES):
         return f"{LISTE_VUE_SOURCE} : colonnes inattendues (introuvable)"
     tt["m_tableView"] = copy.deepcopy(source["m_tableView"])
-    tt["m_tableView"]["m_tableConfig"] = [copy.deepcopy(par_id[c]) for c in LISTE_COLONNES]
+    tt["m_tableView"]["m_tableConfig"] = cr.minimums_petits([copy.deepcopy(par_id[c]) for c in LISTE_COLONNES])
     o.save_typetree(tt)
     nb._dirty.add(VUES)
     return f"{LISTE_VUE} : colonnes {', '.join(LISTE_COLONNES)} (mini-liste du staff)"

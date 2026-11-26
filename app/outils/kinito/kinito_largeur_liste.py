@@ -134,11 +134,36 @@ import sauvegarde_originaux as backup  # noqa: E402
 import arbre as sm  # noqa: E402
 from hierarchie_pyramide import typ, ouvrir  # noqa: E402
 from notes_installations import first, decode_args, encode_args  # noqa: E402
+import colonnes_reglables as cr  # noqa: E402  (v12, modif d'Alex : largeur des colonnes réglable à la main)
+import entrainement_vues_perso as vp  # noqa: E402  (v13, modif d'Alex : vues perso de la vue Détails)
+_GUID_VP = None   # v13 : GUID de la collection des vues perso (lu dans ui-tableviews par cmd_appliquer / cmd_retirer)
+
+
+VUES_PERSO = False   # v14 : essai des vues perso (largeurs gardées) débranché, liste vide en jeu
+
+
+def _vp_absent(t):
+    return not any(vp._a_nous(t, r) for r in t.walk()) and not any(vp.collection_citee(t, r, _guid_vp())
+                                                                   for r in tableaux(t))
+
+
+def _guid_vp():
+    global _GUID_VP
+    if _GUID_VP is None:
+        _GUID_VP = vp.guid_collection(UnityPy.load(VUES)) or ""
+    return _GUID_VP
 
 # =====================================================================================================
 #  RÉGLAGES (changer un réglage -> augmenter VERSION)
 # =====================================================================================================
-VERSION = 11  # v11 (Kinito, 08/11/2026) : la v10 d'Alex (vues Petit / Normal hors de SetPieceTakerList*) + la v10
+VERSION = 14  # v14 (MODIF D'ALEX, 2026-11-26) : vues perso DÉBRANCHÉES (VUES_PERSO = False) : vues en jeu, liste
+#               Détails VIDE (entrainement_vues_perso v1 et v2), sans erreur dans Player.log. Mis de côté ; appliquer
+#               retire ce que v13 avait posé (collection rendue d'origine, rien de vp dans l'écran).
+#               v13 (MODIF D'ALEX, 2026-11-26, le joueur : « les vues ont pas l'air de se save ») : la vue Détails en
+#               vues perso (largeurs gardées) : entrainement\entrainement_vues_perso.py (collection, tableaux, menu)
+#               v12 (MODIF D'ALEX, 2026-11-26, le joueur : « régler la largeur à la main sur toutes nos vues ») : les
+#               tableaux de la vue Détails (celui de FM et nos copies) en AllowColumnResizing 1 (colonnes_reglables)
+#               v11 (Kinito, 08/11/2026) : la v10 d'Alex (vues Petit / Normal hors de SetPieceTakerList*) + la v10
 #               de Kinito (vue Résumé triée par la note, tri gardé), réunies : les deux étaient numérotées 10
 #               v10 (Alex, 2026-11-06) : vues Petit / Normal hors de SetPieceTakerList* (voir TABLEAUX)
 #               v6 (15/10) : un tableau par taille de texte en mode Large (22 caractères au nom en Petit, Normal, Grand)
@@ -564,12 +589,16 @@ def poser(t, src):
     sr["SortedColumn"], sr["SortedColumn_UxmlAttributeFlags"] = TRI_COLONNE, 1
     sr["SortAscending"], sr["SortAscending_UxmlAttributeFlags"] = TRI_CROISSANT, 1
     sr["SharedPersistenceID"], sr["SharedPersistenceID_UxmlAttributeFlags"] = PARTAGE_RESUME, 1
+    msgs = poser_tableaux(t, src)
+    cr.deverrouiller(t, tableaux(t))   # v12 : après les copies (toutes réglables)
+    if VUES_PERSO and not any("introuvable" in m for m in msgs):   # v13 : vues perso (après les copies : elles aussi)
+        msgs += vp.poser(t, t.tt, tableaux(t), _guid_vp())
     return [f"tableau Détails trié au départ par la note à l'entraînement, la meilleure en haut (FM : par poste)",
             f"tableau Résumé trié au départ par la note, la meilleure en haut, et son tri gardé "
             f"(SharedPersistenceID {PARTAGE_RESUME})",
             f"liste de gauche (vue Détails), en mode Large : {LARGEUR_AUTRES.split('-')[1]} % de l'écran (texte "
             f"Petit, Normal, Grand), {LARGEUR_PLUS_GRAND.split('-')[1]} % (texte Plus grand) ; en Medium et Small : "
-            f"30 % de FM"] + poser_tableaux(t, src)
+            f"30 % de FM", "largeur des colonnes réglable à la main (vue Détails)"] + msgs
 
 
 def tableau_details(t):
@@ -753,7 +782,7 @@ def tableaux_a_jour(t):
     for cle, (_, guid, *_r) in TABLEAUX.items():
         c = first(t, lambda r: t.name(r) == nom_tableau(cle, True))
         if c is None or typ(t, c) != "StreamedTable" or t.name(t.parent[c]) != nom_tableau(cle) \
-                or vue_citee(t, c) != guid:
+                or (vue_citee(t, c) != guid and not (VUES_PERSO and vp.collection_citee(t, c, _guid_vp()))):   # v13 : vues perso
             return False
     return True
 
@@ -776,7 +805,15 @@ def rendre_tableau(t):
 def retirer(t):
     """nos éléments retirés (par nom ; notre variable, par sa variable) ; les classes du bloc de la liste rendues
     d'après l'original ; True si quelque chose a changé"""
-    fait = rendre_tableau(t)   # v5 : le tableau de FM rendu à sa place AVANT que notre boîte parte (avec nos copies)
+    # v13 : vues perso retirées d'abord (le tableau de FM retrouve sa vue fixe : poser_tableaux la vérifie)
+    tab = tableau_details(t)
+    o = ouvrir(ECRAN, depart_original=True)
+    to = o and tableau_details(o[3])
+    champs = {k: copy.deepcopy(o[3].sd(to).get(k)) for k in vp.CHAMPS} if to is not None else None
+    fait = vp.retirer(t, tab, champs)
+    fait = rendre_tableau(t) or fait   # v5 : le tableau de FM rendu à sa place AVANT que notre boîte parte
+    tab = tableau_details(t)
+    fait = (tab is not None and cr.reverrouiller(t, [tab])) or fait   # v12 : largeur de FM (fixe)
     fait = retirer_racines(t) or fait
     for r in nos_variables(t):   # la donnée du composant (liste m_components du parent), puis l'élément
         partis = set(donnees_composant(t, r))
@@ -828,7 +865,9 @@ def a_jour(t):
             and all(t.parent.get(r) == b for r in marques(t) if t.name(r) in noms_bloc())
             and [t.parent.get(r) for r in nos_variables(t)] == [b]
             and all(len(donnees_composant(t, r)) == 1 for r in nos_variables(t))
-            and CLASSE_FM not in (t.elem(b).get("m_Classes") or []) and tri_a_jour(t) and tableaux_a_jour(t))
+            and CLASSE_FM not in (t.elem(b).get("m_Classes") or []) and tri_a_jour(t) and tableaux_a_jour(t)
+            and cr.tous_reglables(t, tableaux(t))
+            and (vp.a_jour(t, tableaux(t), _guid_vp()) if VUES_PERSO else _vp_absent(t)))
 
 
 # ---------- v2 : les colonnes (fabrique ui-tablefactories, vue ui-tableviews) ----------
@@ -926,7 +965,7 @@ def vue_voulue(cfg):
             m = c["m_columnMetadata"]
             m["m_widthOverride"] = float(larg[c["m_columnID"]])
             m["m_minWidthOverride"] = float(min(larg[c["m_columnID"]], MIN_COLONNE))
-    return cfg
+    return cr.minimums_petits(cfg)   # v12 (modif d'Alex) : toutes les colonnes réductibles à 16 px
 
 
 def vue_a_jour(env):
@@ -989,6 +1028,7 @@ def vue_tableau_voulue(ev, cle):
                 m = c["m_columnMetadata"]
                 m["m_widthOverride"] = float(largeurs[c["m_columnID"]])
                 m["m_minWidthOverride"] = float(min(largeurs[c["m_columnID"]], MIN_COLONNE))
+        cr.minimums_petits(tv["m_tableConfig"])   # v12 (modif d'Alex) : toutes les colonnes réductibles à 16 px
         return tv
     return None
 
@@ -1051,7 +1091,8 @@ def cmd_appliquer():
         print(f"[Kinito] Largeur de la liste : {ECRAN} introuvable (renommé par une mise à jour ?), ignoré")
         return
     ef, ev = UnityPy.load(FABRIQUES), UnityPy.load(VUES)
-    if a_jour(o[3]) and fabrique_a_jour(ef) and vue_a_jour(ev) and vues_tableaux_a_jour(ev):
+    if a_jour(o[3]) and fabrique_a_jour(ef) and vue_a_jour(ev) and vues_tableaux_a_jour(ev) \
+            and (vp.collection_a_jour(ev) if VUES_PERSO else vp.collection_d_origine(ev)):
         print("[Kinito] Largeur de la liste : déjà appliqué")
     else:
         # v2 : les colonnes. La fabrique d'abord : la vue cite ses colonnes (jamais la vue sans elles) ; v5 : les vues
@@ -1073,7 +1114,19 @@ def cmd_appliquer():
                       + " avant la note ; largeurs (Medium, Small) : "
                       + ", ".join(f"{k} {w}" for k, w in poids(LARGEURS).items()))
         vt = vues_tableaux_poser(ev)   # v5
-        if v or vt:
+        if not VUES_PERSO:   # v14 : collection rendue d'origine
+            vc = vp.collection_retirer(ev)
+            if vc:
+                print(f"{vp.COLLECTION} : remise d'origine")
+        else:
+            vc = vp.collection_poser(ev) if vt is not None else None   # v13 : collection des vues perso (cite la vue)
+        if not VUES_PERSO:
+            pass
+        elif vc is None and vt is not None:
+            print(f"[Kinito] Largeur de la liste : collection {vp.COLLECTION} introuvable : vues perso pas posées")
+        elif vc:
+            print(f"[Kinito] Largeur de la liste : {vp.COLLECTION} : vue Détails, vues perso possibles")
+        if v or vt or vc:
             ecrire_bundle(ev, VUES)
         if vt is None:
             print(f"[Kinito] Largeur de la liste : vues {', '.join(n for n, *_ in TABLEAUX.values())} ou {VUE} "
@@ -1110,8 +1163,10 @@ def cmd_retirer():
         print(f"{ECRAN} : liste de gauche rendue à sa largeur de FM (30 %), nos éléments retirés")
         fait = True
     ev = UnityPy.load(VUES)   # la vue d'abord (elle cite les colonnes de la fabrique), APRÈS l'écran (v5)
-    v, vt = vue_retirer(ev), vues_tableaux_retirer(ev)
-    if v or vt:
+    v, vt, vc = vue_retirer(ev), vues_tableaux_retirer(ev), vp.collection_retirer(ev)   # v13 : la collection aussi
+    if vc:
+        print(f"{vp.COLLECTION} : remise d'origine")
+    if v or vt or vc:
         ecrire_bundle(ev, VUES)
         if v:
             print(f"{VUE} : nos colonnes retirées, largeurs de FM rendues")

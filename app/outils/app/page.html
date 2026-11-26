@@ -1020,6 +1020,9 @@ const TXT = {
             "Each switch installs or removes one feature in the game files (FM closed). Choice 1 reinstalls all the enabled ones."],
   optionsSous: ["En plus du skin de base. Les options du skin, elles, sont sous chaque fonction, dans sa catégorie (le fond des pages : dans Couleurs).",
                 "On top of the base skin. The skin's options are under each feature, in its category (page background: in Colours)."],
+  // 2026-11-26 (le joueur) : largeurs réglables à la main, pas gardées (essai des vues perso débranché)
+  largeursInfo: ["Largeur des colonnes : sur les tableaux ajoutés ou modifiés par le skin, tu peux régler la largeur des colonnes à la main (en tirant le bord d'un en-tête). Pour l'instant, elle n'est pas gardée : en quittant l'écran, FM remet les largeurs prévues par le skin.",
+                 "Column widths: on the tables added or changed by the skin, you can resize the columns by hand (drag the edge of a header). For now, the width is not kept: when you leave the screen, FM puts back the widths set by the skin."],
   fondSous: ["Une couleur pour le fond de toutes les pages du jeu. Sans couleur, le fond de FM est gardé (choix de base).",
              "One colour for the background of every page in the game. Without one, FM's background is kept (default)."],
   fondFM: ["Fond de FM (pas de couleur)", "FM background (no colour)"],
@@ -1988,7 +1991,7 @@ function rangerPourApp(e) {
 }
 const ORDRE_FONCTIONS = [
   "vues_alexjeuvideal", "colonnes_separateur", "colonne_personnalite", "colonne_temperament", "tactiques_forme_valeur",
-  "rapport_recrutement_fm24", "recherches_ciblees", "club_infobulle_offres",
+  "rapport_recrutement_fm24", "recherches_ciblees", "recruteurs_colonnes", "club_infobulle_offres",
   "effectif_equipes", "effectif_boutons_entrainement", "effectif_repos_equipe", "dynamique_vue_ensemble",
   "hierarchie_pyramide", "cercles_amis_cartes", "etat_esprit_fm24", "jeunes_candidats_fm24",
   "fiche_joueur_plus", "fiche_contexte_equipe", "tuile_forme", "fiche_ordre_tuiles", "tuile_carriere", "tuile_blessures", "style_mediatique", "temperament_infos",
@@ -2434,6 +2437,7 @@ function blocOption(o, fonctionActive) {
 function pageOptions() {
   // les options du skin sont sous leur fonction (pages des catégories, Couleurs) ; ici seulement Kinito
   return [el("h1", {}, t("pageOptions")), el("p", { class: "sous-titre" }, t("optionsSous")),
+    el("p", { class: "option-aide" }, t("largeursInfo")),
     // vues d'AlexJeuVideal : dans « Vues et colonnes des tableaux » depuis le 2026-11-09 (CAT_APP) ; section si jamais il en reste
     ...(fonctionsDe("vues").length ? [el("h2", {}, t("vuesTitre")), el("p", { class: "sous-titre" }, t("vuesSous")),
       el("div", { class: "liste" }, ...fonctionsDe("vues").map(carteFonction))] : []),

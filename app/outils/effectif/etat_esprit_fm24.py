@@ -13,7 +13,8 @@ négatif = content, positif = mécontent ; Entraînement : autre échelle, -111 
 mise en infobulle ; Entraînement : « Satisfait »… affiché).
 
 Modèles (ce script est leur seul propriétaire : appliquer repart des originaux, retirer les remet) : 5 cellules FM
-inutilisées (catalogue Addressables, citées par aucun bundle), réécrites en cases (CELLULES).
+inutilisées (catalogue Addressables, citées par aucun bundle), réécrites en cases (CELLULES) ; et (2026-11-26)
+SquadHappinessPlayerTableBlock : son tableau en largeur de colonnes réglable à la main (BLOC).
 
 Bundles des tableaux :
 - ui-tableviews : seule la vue ClubSquadHappinessTable change (refaite depuis sa liste d'origine ; retirer la remet).
@@ -274,7 +275,9 @@ def vue_voulue(cfg_actuel):
         m["m_titleTranslationIdOverride"] = {"GameID": 0}
         cfg.insert(pos, c)
         pos += 1
-    return cfg
+    # 2026-11-26 (le joueur) : toutes les colonnes réductibles jusqu'à 16 px (largeur réglable à la main, voir BLOC)
+    import colonnes_reglables as cr
+    return cr.minimums_petits(cfg)
 
 
 # ----------------------------------------------------------------------------------- cases (modèles)
@@ -468,6 +471,62 @@ def cases_retirer():
         nb.save_all()
 
 
+# ------------------------------------------------- tableau : largeur des colonnes réglable (2026-11-26)
+# Le joueur (2026-11-26) : « régler la largeur à la main sur toutes nos vues ». Le tableau de la vue est dans
+# SquadHappinessPlayerTableBlock (seul StreamedTable du modèle, fabrique PlayerTableFactory ; aucun autre script n'y
+# touche) : AllowColumnResizing 1 (colonnes_reglables). Appliquer repart de l'original, retirer le remet.
+BLOC = "SquadHappinessPlayerTableBlock"
+FABRIQUE_GUID = "49c25af415c53814d8d3ed658d867204"   # PlayerTableFactory
+
+
+def _tableaux_bloc(t):
+    from hierarchie_pyramide import typ
+    return [r for r in t.walk() if typ(t, r) == "StreamedTable"
+            and (t.sd(r).get("FactoryAsset") or {}).get("m_AssetGUID") == FABRIQUE_GUID]
+
+
+def bloc_appliquer():
+    import colonnes_reglables as cr
+    from hierarchie_pyramide import ouvrir
+    o = ouvrir(BLOC)
+    if o is None:
+        print(f"{BLOC} : introuvable, largeur des colonnes pas touchée")
+        return
+    rs = _tableaux_bloc(o[3])
+    if len(rs) == 1 and cr.tous_reglables(o[3], rs):
+        print(f"{BLOC} : largeur des colonnes déjà réglable")
+        return
+    o = ouvrir(BLOC, depart_original=True)
+    bundle, obj, tt, t = o
+    rs = _tableaux_bloc(t)
+    if len(rs) != 1:
+        print(f"{BLOC} : {len(rs)} tableaux trouvés (1 attendu), largeur des colonnes pas touchée")
+        return
+    cr.deverrouiller(t, rs)
+    t.finish()
+    obj.save_typetree(tt)
+    nb._dirty.add(bundle)
+    nb.save_all()
+    print(f"{BLOC} : largeur des colonnes réglable à la main")
+
+
+def bloc_retirer():
+    import colonnes_reglables as cr
+    import hierarchie_pyramide as hp
+    o = hp.ouvrir(BLOC)
+    if o is None or not any(cr.reglable(o[3], r) for r in _tableaux_bloc(o[3])):
+        return
+    bundle, obj, tt, t = o
+    orig = hp.original(bundle, obj)
+    if orig is None:
+        print(f"{BLOC} : pas de sauvegarde d'origine, rien fait")
+        return
+    obj.save_typetree(orig)
+    nb._dirty.add(bundle)
+    nb.save_all()
+    print(f"{BLOC} : remis d'origine")
+
+
 # ----------------------------------------------------------------------------------- commandes
 
 def cmd_appliquer():
@@ -494,6 +553,8 @@ def cmd_appliquer():
         ecrire(VUES, env)
     else:
         print(f"{VUE} : déjà appliqué")
+    # 4. le tableau : largeur des colonnes réglable à la main
+    bloc_appliquer()
     if not DRY_RUN:
         with open(MARKER, "w", encoding="utf-8") as f:
             json.dump({"actif": True}, f)
@@ -515,6 +576,7 @@ def cmd_retirer():
     if fabrique_retirer(env):
         ecrire(FABRIQUES, env)
     cases_retirer()
+    bloc_retirer()
     print("Vue État d'esprit d'origine remise, nos colonnes et cases retirées.")
 
 
@@ -530,6 +592,11 @@ def cmd_etat():
         m = o and marques(o[3])
         print(f"case {k} ({nom}) :", ("à jour" if any(o[3].name(r) == NOM_CASE for r in m) else "ANCIENNE version")
               if m else "d'origine")
+    import colonnes_reglables as cr
+    from hierarchie_pyramide import ouvrir as ouvrir_bloc
+    o = ouvrir_bloc(BLOC)
+    print(f"{BLOC} :", "introuvable" if o is None else "largeur des colonnes réglable"
+          if cr.tous_reglables(o[3], _tableaux_bloc(o[3])) else "d'origine")
     print("réapplication automatique après mise à jour (menu, choix 1) :", "oui" if os.path.exists(MARKER) else "non")
 
 

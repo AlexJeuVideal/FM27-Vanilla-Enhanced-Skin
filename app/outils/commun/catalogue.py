@@ -425,6 +425,11 @@ FONCTIONS = {
     "recherches_ciblees": dict(cat="recrutement",   # 2026-11-05, liste du 04/11 point 2
                                fr="Recherches ciblées : tête du joueur, vues personnalisables (Insérer colonne)",
                                en="Recruitment focuses: player face, custom views (Insert column)"),
+    "recruteurs_colonnes": dict(cat="recrutement",   # 2026-11-26, demande du joueur (captures des deux fenêtres)
+                                fr="Recruteur / Analyste affecté : largeur et ordre des colonnes réglables, clic "
+                                   "droit sur les en-têtes, 2 colonnes de plus",
+                                en="Assigned Scout / Analyst: resizable and movable columns, right click on the "
+                                   "headers, 2 more columns"),
     # 2026-11-10, le joueur (à la place d'une carte du monde) ; styles écrits par couleurs_interface (son marqueur)
     "connaissance_couleurs": dict(cat="recrutement",   # de base le 2026-11-14 (le joueur ; tuile encore WIP)
                                   fr="WIP Niveaux de connaissance en couleurs, du rouge (basique) au vert (inégalée) : "
@@ -617,6 +622,8 @@ OU = {
                        "Other matches of the day, competition results, calendar, match summary"),
     "rencontres_stade_spectateurs": ("Calendrier > Rencontres", "Calendar > Fixtures"),
     "recherches_ciblees": ("Recrutement > Recherches ciblées", "Scouting > Recruitment Focuses"),
+    "recruteurs_colonnes": ("Recrutement > Recherches ciblées > Recruteur / Analyste affecté",
+                            "Scouting > Recruitment Focuses > Assigned Scout / Analyst"),
     "connaissance_couleurs": ("Recrutement > Recrutement > tuile Connaissance du monde",
                               "Scouting > Scouting > World Knowledge tile"),
     "selection_top50": ("Boîte de réception / Actualités (messages NXGN, top 50 mondial)",
@@ -670,6 +677,7 @@ ORDRE_SKIN = [
     "entete_fiche", "staff_fiche", "entrainement_individuel_boutons", "fiche_joueur_plus",
     "match_haut", "theme_fond", "colonne_personnalite",
     "recherches_ciblees",   # après colonne_personnalite (son menu recopie celui de la Base de données)
+    "recruteurs_colonnes",   # seul sur RecruitmentFocusAssignScoutAnalystDialog et ses 2 vues : n'importe où
     "colonne_temperament",   # après colonne_personnalite (placée après Personnalité) et recherches_ciblees
     "finances_tuile_unique", "graphes_finances",
     "graphes_attributs",
@@ -763,7 +771,12 @@ SUIVANTS = {
     # menus Insérer colonne recopiés de l'original (ou ui-tableviews remis d'origine au retrait de
     # colonne_personnalite) : la rubrique Séparateur est remise dessus
     # + colonne_temperament : placée après Personnalité ; remise si ui-tableviews / le menu repart de l'original
-    "colonne_personnalite": ["colonne_temperament", "colonnes_separateur"],
+    # + recruteurs_colonnes : ses 2 vues, dans ui-tableviews remis d'origine au retrait de colonne_personnalite
+    # + entrainement_individuel_equipes (2026-11-26) : 26.15 v13 met la vue Détails dans la collection
+    #   PlayerIndividualTrainingTableCollection-PhoneLandscape (ui-tableviews) ; remise d'origine, l'écran la citerait
+    #   avec les vues du téléphone
+    "colonne_personnalite": ["colonne_temperament", "colonnes_separateur", "recruteurs_colonnes",
+                             "entrainement_individuel_equipes"],
     "recherches_ciblees": ["colonne_temperament", "colonnes_separateur"],
     "kinito_capitaines_vues": ["colonnes_separateur"],
     "rencontres_stade_spectateurs": ["colonnes_separateur"],

@@ -6,6 +6,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.14 (26 novembre 2026)
+
+**Recrutement**
+- **Recherches ciblées : fenêtres Recruteur affecté et Analyste affecté déverrouillées** : largeur et ordre des colonnes réglables, clic droit sur les en-têtes. 2 colonnes de plus : Analyse des données et Connaissances tactiques pour les recruteurs, Jugement du potentiel et Adaptabilité pour les analystes.
+
+**Tableaux**
+- **Largeur des colonnes réglable à la main sur les tableaux ajoutés ou modifiés par le skin** (État d'esprit, mini-listes du staff, Enregistrement MLS / A-League, Entraînement individuel...) : tire le bord d'un en-tête. Une colonne peut être réduite presque à fond sans disparaître. Pour l'instant, la largeur n'est pas gardée : en quittant l'écran, FM remet celle prévue par le skin.
+
 ### v2.13 (24 novembre 2026)
 
 **Mise à jour de FM**
@@ -1261,6 +1269,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.14 (26 November 2026)
+
+**Scouting**
+- **Recruitment Focuses: Assigned Scout and Assigned Analyst windows unlocked**: resizable and movable columns, right click on the headers. 2 more columns: Analysing Data and Tactical Knowledge for scouts, Judging Player Potential and Adaptability for analysts.
+
+**Tables**
+- **Column widths can be resized by hand on the tables added or changed by the skin** (Happiness, staff mini lists, MLS / A-League registration, individual training...): drag the edge of a header. A column can be shrunk almost all the way without disappearing. For now, the width is not kept: when you leave the screen, FM puts back the width set by the skin.
 
 ### v2.13 (24 November 2026)
 

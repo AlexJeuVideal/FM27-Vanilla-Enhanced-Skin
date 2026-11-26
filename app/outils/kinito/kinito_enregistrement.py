@@ -82,6 +82,7 @@ import sauvegarde_originaux as backup  # noqa: E402
 import arbre as sm  # noqa: E402
 from hierarchie_pyramide import typ, ouvrir  # noqa: E402
 from notes_installations import first, decode_args, encode_args  # noqa: E402
+import colonnes_reglables as cr  # noqa: E402  (MODIF D'ALEX 2026-11-26 : largeur réglable sur les 4 tableaux du bloc)
 
 # =====================================================================================================
 #  RÉGLAGES (changer un réglage -> augmenter VERSION)
@@ -446,14 +447,32 @@ def vues_origine():
     return {tt["m_Name"]: meta(tt) for _, tt in vues_avec_colonne(original(VUES))}
 
 
+# MODIF D'ALEX (2026-11-26, le joueur : « une taille minimum vraiment petite partout ») : les AUTRES colonnes de ces
+# vues au minimum de colonnes_reglables (16 px) ; la colonne « Enr. » garde LARGEUR_COLONNE. Retirer rend les minimums
+# de l'original.
+def autres_petites(tt):
+    """True si un minimum a changé"""
+    cfg = [c for c in tt["m_tableView"]["m_tableConfig"] if c["m_columnID"] != COLONNE]
+    avant = [c["m_columnMetadata"]["m_minWidthOverride"] for c in cfg]
+    cr.minimums_petits(cfg)
+    return avant != [c["m_columnMetadata"]["m_minWidthOverride"] for c in cfg]
+
+
+def minimums_origine():
+    return {tt["m_Name"]: {c["m_columnID"]: c["m_columnMetadata"]["m_minWidthOverride"]
+                           for c in tt["m_tableView"]["m_tableConfig"]} for _, tt in vues_avec_colonne(original(VUES))}
+
+
 def vues_poser(env):
     origines = vues_origine()
     change, n = False, 0
     for o, tt in vues_avec_colonne(env):
         m = meta(tt)
         voulu = surcharges_voulues(origines.get(tt["m_Name"], m))
-        if any(m[k] != v for k, v in voulu.items()):
-            m.update(voulu)
+        fait = any(m[k] != v for k, v in voulu.items())
+        m.update(voulu)
+        fait = autres_petites(tt) or fait
+        if fait:
             o.save_typetree(tt)
             change, n = True, n + 1
     return change, n
@@ -461,12 +480,21 @@ def vues_poser(env):
 
 def vues_retirer(env):
     origines = vues_origine()
+    mins = minimums_origine()
     change = False
     for o, tt in vues_avec_colonne(env):
         m, mo = meta(tt), origines.get(tt["m_Name"])
+        fait = False
         if mo is not None and any(m[k] != mo[k] for k in ("m_widthOverride", "m_minWidthOverride")):
             for k in ("m_widthOverride", "m_minWidthOverride"):
                 m[k] = mo[k]
+            fait = True
+        for c in tt["m_tableView"]["m_tableConfig"]:
+            v = mins.get(tt["m_Name"], {}).get(c["m_columnID"])
+            if c["m_columnID"] != COLONNE and v is not None and c["m_columnMetadata"]["m_minWidthOverride"] != v:
+                c["m_columnMetadata"]["m_minWidthOverride"] = v
+                fait = True
+        if fait:
             o.save_typetree(tt)
             change = True
     return change
@@ -477,6 +505,7 @@ def vues_a_jour(env):
     vues = list(vues_avec_colonne(env))
     return bool(vues) and all(
         all(meta(tt)[k] == v for k, v in surcharges_voulues(origines.get(tt["m_Name"], meta(tt))).items())
+        and not autres_petites(copy.deepcopy(tt))
         for _, tt in vues)
 
 
@@ -760,6 +789,9 @@ def bloc_poser(t, tt, src):
     for tb in sans:
         sd = t.sd(tb)
         sd["AllowColumnReordering"], sd["AllowColumnReordering_UxmlAttributeFlags"] = 0, 1
+    # MODIF D'ALEX (2026-11-26, le joueur : « régler la largeur à la main sur toutes nos vues ») : largeur réglable
+    # aussi sur MLS et A-League (club et sélection l'avaient déjà ; sûr sans collection, voir SANS_DEPLACEMENT)
+    cr.deverrouiller(t, tabs)
     # la zone cachée : un SIVisible de FM sur V_ACTIF (enfants reliés seulement visible), sans place ni clics
     z = recopier(t, src.tvi, src.visible, porteur, NOM_ZONE)
     sd = t.sd(z)
@@ -823,7 +855,8 @@ def bloc_a_jour(t):
     return ({NOM_ZONE, NOM_LISTE, NOM_FERMER, NOM_ENVELOPPE, NOM_SUPERPOSE, f"{NOM_SUPERPOSE}-actif"} <= noms
             and variables_a_jour(t)
             and all((t.sd(tb).get("SelectedItemsBinding") or {}).get("m_path") == V_SELECTION for tb in tableaux(t))
-            and all(t.sd(tb).get("AllowColumnReordering") == 0 for tb in tableaux(t) if t.name(tb) in SANS_DEPLACEMENT))
+            and all(t.sd(tb).get("AllowColumnReordering") == 0 for tb in tableaux(t) if t.name(tb) in SANS_DEPLACEMENT)
+            and cr.tous_reglables(t, tableaux(t)))
 
 
 # ---------- 3. les deux modèles à nous (refaits depuis leur original) ----------
