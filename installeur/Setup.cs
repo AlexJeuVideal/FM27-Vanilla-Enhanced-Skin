@@ -6,8 +6,9 @@
 // Désinstallation : ce même .exe copié dans le dossier (DESINSTALLEUR), lancé avec /desinstaller.
 // Setup unique (v1.68) : à l'ouverture, regarde la dernière Release GitHub (même dépôt / token que mise_a_jour.py,
 // ressource maj.txt posée par fabriquer.py) ; si elle est plus récente que la version embarquée, son zip est
-// téléchargé (sha256 vérifié) et installé à la place ; python\ vient toujours du Setup. Échec / hors ligne : version
-// embarquée.
+// téléchargé (sha256 vérifié) et installé à la place. Échec / hors ligne : version embarquée.
+// v2.17 : app Rust (outils\app\fm27-serveur.exe), plus de Python dans le Setup (python\ d'une ancienne installation
+// laissé tel quel).
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -196,7 +197,8 @@ static class Installation
         string moi = Assembly.GetExecutingAssembly().Location;
         if (!string.Equals(Path.GetFullPath(moi), Path.GetFullPath(desinst), StringComparison.OrdinalIgnoreCase))
             File.Copy(moi, desinst, true);
-        string lanceur = Path.Combine(dossier, Programme.LANCEUR);
+        // raccourcis : l'app Rust directement (pas de fenêtre de .bat), sinon le lanceur
+        string lanceur = Lanceur(dossier);
         string icone = Path.Combine(dossier, @"outils\app\icone.ico");
         string bur = Programme.Raccourci(Environment.SpecialFolder.DesktopDirectory);
         string dem = Programme.Raccourci(Environment.SpecialFolder.Programs);
@@ -261,6 +263,12 @@ static class Installation
         return n;
     }
 
+    public static string Lanceur(string dossier)
+    {
+        string app = Path.Combine(dossier, APP);
+        return File.Exists(app) ? app : Path.Combine(dossier, Programme.LANCEUR);
+    }
+
     static void CreerRaccourci(string lnk, string cible, string dossier, string icone)
     {
         Type t = Type.GetTypeFromProgID("WScript.Shell");
@@ -269,7 +277,7 @@ static class Installation
         r.TargetPath = cible;
         r.WorkingDirectory = dossier;
         r.IconLocation = icone + ",0";
-        r.WindowStyle = 7;   // fenêtre du .bat réduite (il se ferme tout de suite)
+        r.WindowStyle = cible.EndsWith(".bat") ? 7 : 1;   // fenêtre du .bat réduite (il se ferme tout de suite)
         r.Description = Programme.NOM;
         r.Save();
     }
@@ -279,12 +287,15 @@ static class Installation
         try { if (File.Exists(f)) File.Delete(f); } catch (IOException) { } catch (UnauthorizedAccessException) { }
     }
 
-    // Python 3.14 livré dans le Setup (dossier python\, v1.21) : rien à installer ; sinon même recherche que
-    // « Lancer - Launch.bat » : pyw ou pythonw dans le PATH
+    // v2.17 : l'app est un programme Rust (outils\app\fm27-serveur.exe), plus besoin de Python
+    public const string APP = @"outils\app\fm27-serveur.exe";
+
+    // l'app peut s'ouvrir : app Rust dans le Setup ; avant : Python 3.14 livré (python\, v1.21), sinon même recherche
+    // que « Lancer - Launch.bat » : pyw ou pythonw dans le PATH
     public static bool PythonPresent()
     {
         using (ZipArchive z = Ouvrir())
-            if (z.GetEntry("python/pythonw.exe") != null) return true;
+            if (z.GetEntry(APP.Replace('\\', '/')) != null || z.GetEntry("python/pythonw.exe") != null) return true;
         string[] noms = { "pyw.exe", "pythonw.exe" };
         foreach (string d in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(';'))
         {
@@ -766,9 +777,10 @@ class Fenetre : Form
         installer.Enabled = true;
         if (ouvrir.Checked && Installation.PythonPresent())
         {
-            ProcessStartInfo p = new ProcessStartInfo(Path.Combine(dossier, Programme.LANCEUR));
+            string l = Installation.Lanceur(dossier);
+            ProcessStartInfo p = new ProcessStartInfo(l);
             p.WorkingDirectory = dossier;
-            p.WindowStyle = ProcessWindowStyle.Minimized;
+            p.WindowStyle = l.EndsWith(".bat") ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal;
             p.UseShellExecute = true;
             try { Process.Start(p); } catch (Exception) { }
         }

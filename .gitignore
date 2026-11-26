@@ -3,6 +3,10 @@ __pycache__/
 # construits par GitHub Actions / built by GitHub Actions
 installeur/python/
 moteur_rust/target/
+rust/*/target/
+app/outils/app/fm27-serveur.exe
+app/outils/app/fm27-serveur-linux
+app/outils/app/fm27-serveur-mac
 app/outils/moteur_rust/UnityPy/_core.pyd
 app/outils/moteur_rust/UnityPy/_core.abi3.so
 app/outils/moteur_rust/UnityPy/_mac/_core.abi3.so

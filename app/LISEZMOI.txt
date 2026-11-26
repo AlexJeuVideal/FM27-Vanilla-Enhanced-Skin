@@ -13,18 +13,12 @@ l'application le voit et te le redemande.)
 1. Ferme FM.
 2. Double-clic sur "Lancer - Launch.bat" : l'application s'ouvre.
 3. Premiere fois : l'application te guide, etape par etape :
-   langue, outils (1 a 2 minutes, internet requis), dossier du jeu
-   (le plus souvent trouve tout seul), couleur du fond (facultatif),
-   puis installation du skin. Quand elle dit "C'est pret", lance FM.
-
-Si Python n'est pas trouve : installe Python 3.14 (pas 3.15, trop recent pour
-le skin) depuis https://www.python.org/downloads/release/python-3148/
-("Windows installer (64-bit)") en cochant "Add python.exe to PATH", puis
-relance "Lancer - Launch.bat".
+   langue, dossier du jeu (le plus souvent trouve tout seul), couleur du
+   fond (facultatif), puis installation du skin. Quand elle dit "C'est
+   pret", lance FM. Rien d'autre a installer (plus besoin de Python).
 
 Linux (FM27 par Steam + Proton) : lance "Lancer - Launch.sh" au lieu du .bat
 (clic droit > Executer, ou dans un terminal : sh "Lancer - Launch.sh").
-Il faut python3 et python3-venv (gestionnaire de paquets de ta distribution).
 Lance FM une fois avant : l'app trouve alors son dossier Proton toute seule.
 
 Mac (FM27 par Steam) :
@@ -35,8 +29,7 @@ Mac (FM27 par Steam) :
    autorise l'ouverture de "Lancer - Launch.command", entre ton mot de passe
    et continue l'installation.
 3. Une fenetre du Terminal s'ouvre avec l'app : laisse-la ouverte pendant que
-   tu utilises l'app. Au premier lancement, elle prepare son propre Python
-   (1 a 2 minutes, internet requis) : rien a installer.
+   tu utilises l'app. Rien a installer.
 Si l'app dit que macOS bloque l'ecriture dans FM :
   a. Clique "Ouvrir les Reglages" : dans "Gestion des apps", active Terminal.
   b. macOS propose de quitter le Terminal : accepte.
@@ -55,8 +48,8 @@ Tout enlever : dans Steam, clic droit sur FM > Proprietes > Fichiers installes >
 
 Le dossier "backups" garde les fichiers d'origine du jeu : ne le supprime pas.
 
-Licence : MIT (voir LICENSE.txt), AlexJeuVideal et Kinito ; moteur rapide :
-TonyBoy. Logiciels d'autres auteurs : THIRD_PARTY_NOTICES.txt.
+Licence : MIT (voir LICENSE.txt), AlexJeuVideal et Kinito ; moteur rapide et
+base de l'app : TonyBoy. Logiciels d'autres auteurs : THIRD_PARTY_NOTICES.txt.
 Merci a TonyBoy (FM27 Turbo) pour le moteur rapide, a AlexMorak pour le pack
 d'images, a FM Scout pour le fix des vrais noms.
 
@@ -77,18 +70,12 @@ already contains this skin, the app sees it and asks you again.)
 1. Close FM.
 2. Double-click "Lancer - Launch.bat": the app opens.
 3. First time: the app guides you, step by step:
-   language, tools (1 to 2 minutes, internet required), game folder
-   (usually found automatically), background colour (optional),
-   then the skin install. When it says "All set", start FM.
-
-If Python is not found: install Python 3.14 (not 3.15, too new for the skin)
-from https://www.python.org/downloads/release/python-3148/
-("Windows installer (64-bit)"), ticking "Add python.exe to PATH", then run
-"Lancer - Launch.bat" again.
+   language, game folder (usually found automatically), background colour
+   (optional), then the skin install. When it says "All set", start FM.
+   Nothing else to install (Python is no longer needed).
 
 Linux (FM27 through Steam + Proton): run "Lancer - Launch.sh" instead of the
 .bat (right-click > Run, or in a terminal: sh "Lancer - Launch.sh").
-You need python3 and python3-venv (your distribution's package manager).
 Start FM once before: the app then finds its Proton folder by itself.
 
 Mac (FM27 through Steam):
@@ -99,8 +86,7 @@ Mac (FM27 through Steam):
    "Lancer - Launch.command" to open, enter your password and carry on with
    the install.
 3. A Terminal window opens with the app: keep it open while you use the app.
-   The first time, it sets up its own Python (1 to 2 minutes, internet
-   needed): nothing to install.
+   Nothing to install.
 If the app says macOS blocks writing into FM:
   a. Click "Open Settings": in "App Management", turn on Terminal.
   b. macOS offers to quit Terminal: accept.
@@ -119,8 +105,8 @@ Remove everything: in Steam, right-click FM > Properties > Installed Files >
 
 The "backups" folder keeps the original game files: do not delete it.
 
-License: MIT (see LICENSE.txt), AlexJeuVideal and Kinito; fast engine:
-TonyBoy. Software by other authors: THIRD_PARTY_NOTICES.txt.
+License: MIT (see LICENSE.txt), AlexJeuVideal and Kinito; fast engine and app
+base: TonyBoy. Software by other authors: THIRD_PARTY_NOTICES.txt.
 Thanks to TonyBoy (FM27 Turbo) for the fast engine, to AlexMorak for the
 images pack, to FM Scout for the real names fix.
 

@@ -6,6 +6,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.17 (26 novembre 2026)
+
+**App**
+- **L'app est maintenant un vrai programme, écrit en Rust : plus de Python** : activer, retirer ou installer une fonction est beaucoup plus rapide (souvent 5 à 15 fois plus vite ; par exemple l'entraînement individuel : 1,6 s au lieu de 29 s). Toutes les fonctions et tous tes réglages sont les mêmes, le jeu reçoit exactement les mêmes fichiers. Merci à TonyBoy pour sa base Rust (FM27 Turbo).
+- **Installation plus légère** : le Setup Windows n'embarque plus Python, et les raccourcis ouvrent directement l'app.
+- **Linux et Mac** : un seul programme à ouvrir, plus de téléchargement de Python au premier lancement. Le Mac n'a pas encore été testé sur un vrai Mac : dis-nous sur le Discord si ça marche chez toi.
+- **La mise à jour automatique continue de marcher** : elle passe toute seule à la version Rust et garde tes réglages. Si l'app te propose ensuite de réinstaller le skin, ce n'est pas obligatoire pour cette version.
+
 ### v2.16 (26 novembre 2026)
 
 **Tactiques**
@@ -1287,6 +1295,14 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.17 (26 November 2026)
+
+**App**
+- **The app is now a real program, written in Rust: no more Python**: enabling, removing or installing a feature is much faster (often 5 to 15 times faster; for example individual training: 1.6 s instead of 29 s). All features and all your settings stay the same, and the game gets exactly the same files. Thanks to TonyBoy for his Rust base (FM27 Turbo).
+- **Lighter install**: the Windows Setup no longer ships Python, and the shortcuts open the app directly.
+- **Linux and Mac**: a single program to open, no more Python download on first start. The Mac version has not been tested on a real Mac yet: tell us on the Discord if it works for you.
+- **Automatic updates keep working**: they switch to the Rust version on their own and keep your settings. If the app then offers to reinstall the skin, it is not required for this version.
 
 ### v2.16 (26 November 2026)
 

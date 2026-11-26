@@ -1,5 +1,5 @@
-# Construit une version complète depuis ce dépôt : moteur Rust (Windows, Linux, Mac), Setup Windows (+ Python embarqué),
-# zips Linux / Mac ; fait signer le Setup par SignPath (si configuré) ; prépare la Release en BROUILLON, texte tiré des
+# Construit une version complète depuis ce dépôt : moteur Rust (Windows, Linux, Mac), app Rust (rust/serveur, les trois
+# systèmes), Setup Windows, zips Linux / Mac ; fait signer l'app et le Setup par SignPath (si configuré) ; prépare la Release en BROUILLON, texte tiré des
 # NOTES (à relire et publier à la main sur GitHub).
 # Builds a full release from this repository; the Release is created as a DRAFT, to be reviewed and published by hand.
 #
@@ -66,6 +66,50 @@ jobs:
           $env:CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS = "-C link-arg=-undefined -C link-arg=dynamic_lookup"
           cargo zigbuild --release --locked --target universal2-apple-darwin
           Copy-Item target/universal2-apple-darwin/release/lib_core.dylib "$d/_mac/_core.abi3.so"
+
+      # v2.17 : l'app (rust/serveur, base FM27 Turbo de TonyBoy) : Windows, Linux (glibc 2.28), Mac (universal2,
+      # macOS 11+) -> app/outils/app ; jamais de binaire dans le dépôt
+      - name: App Rust (Windows, Linux, Mac)
+        shell: pwsh
+        working-directory: rust/serveur
+        run: |
+          $env:FM27_VERSION = "${{ steps.version.outputs.version }}".TrimStart("v")
+          $d = "../../app/outils/app"
+          cargo build --release --locked --bin fm27-serveur
+          Copy-Item target/release/fm27-serveur.exe "$d/fm27-serveur.exe"
+          $env:CARGO_ZIGBUILD_ZIG_PATH = python -c "import ziglang, os; print(os.path.join(os.path.dirname(ziglang.__file__), 'zig.exe'))"
+          cargo zigbuild --release --locked --target x86_64-unknown-linux-gnu.2.28 --bin fm27-serveur
+          Copy-Item target/x86_64-unknown-linux-gnu/release/fm27-serveur "$d/fm27-serveur-linux"
+          $env:MACOSX_DEPLOYMENT_TARGET = "11.0"
+          cargo zigbuild --release --locked --target universal2-apple-darwin --bin fm27-serveur
+          Copy-Item target/universal2-apple-darwin/release/fm27-serveur "$d/fm27-serveur-mac"
+          Get-ChildItem $d -Filter "fm27-serveur*"
+
+      - name: App Windows non signée (artefact)
+        id: app_brute
+        if: ${{ env.SIGNPATH_API_TOKEN != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: app/outils/app/fm27-serveur.exe
+          if-no-files-found: error
+
+      - name: Signature SignPath de l'app
+        if: ${{ env.SIGNPATH_API_TOKEN != '' }}
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: FM27-Vanilla-Enhanced-Skin
+          signing-policy-slug: release-signing
+          github-artifact-id: ${{ steps.app_brute.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: app_signee
+
+      - name: App signée à la place de la brute
+        if: ${{ env.SIGNPATH_API_TOKEN != '' }}
+        shell: pwsh
+        run: Copy-Item app_signee/fm27-serveur.exe app/outils/app/ -Force
 
       - name: Setup + zips
         shell: pwsh

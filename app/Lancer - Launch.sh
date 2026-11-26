@@ -3,6 +3,13 @@
 # reste (langue, outils Python dans .venv, dossier du jeu, installation). Copie a la racine du dossier de partage.
 # Linux launcher (FM27 run through Proton / Steam): opens the app in the background; the app does everything else.
 cd "$(dirname "$0")" || exit 1
+# v2.17 : l'app est un programme (Rust), plus besoin de Python
+if [ -f "outils/app/fm27-serveur-linux" ]; then
+  chmod 755 "outils/app/fm27-serveur-linux" 2>/dev/null
+  mkdir -p backups
+  nohup "outils/app/fm27-serveur-linux" >>backups/app.log 2>&1 &
+  exit 0
+fi
 PY=""
 if [ -x ".venv/bin/python" ]; then
   PY=".venv/bin/python"

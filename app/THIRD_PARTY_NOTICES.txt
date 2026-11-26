@@ -7,8 +7,16 @@ Le skin utilise ou livre les logiciels suivants. Chacun garde sa licence ;
 merci a leurs auteurs.
 
 
-1. Python (Windows Setup: python\ folder ; Mac: python/ folder, downloaded on
-   first start from python-build-standalone)
+0. The app (outils/app/fm27-serveur.exe, fm27-serveur-linux, fm27-serveur-mac)
+   is written in Rust, from TonyBoy's FM27 Turbo engine (fm27-core, used with
+   his permission). The Rust crates built into it and their license texts are
+   listed in « THIRD_PARTY_LICENSES - Rust.txt ».
+   L'app est ecrite en Rust, a partir du moteur FM27 Turbo de TonyBoy (avec son
+   accord) ; ses bibliotheques et leurs licences : « THIRD_PARTY_LICENSES -
+   Rust.txt ».
+
+1. Python (no longer shipped since v2.17; still on older installs: python\
+   folder of the old Windows Setup, python/ folder downloaded on Mac)
    Copyright (c) 2001 Python Software Foundation. All rights reserved.
    License: Python Software Foundation License (PSF-2.0). Full text: LICENSE.txt
    inside the python folder, or https://docs.python.org/3/license.html

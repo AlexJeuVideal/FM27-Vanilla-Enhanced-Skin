@@ -21,12 +21,14 @@ IGNORES = ("__pycache__", "app.log", "Journal - Log.txt")   # journal : celui d'
 # v1.87 : chaque fichier du zip / du Setup porte la date de fabrication, jamais celle du disque (un
 # fichier pas retouché depuis longtemps montrerait sa vieille date une fois dézippé / installé)
 MAINTENANT = time.localtime()[:6]
+APPS = ("fm27-serveur.exe", "fm27-serveur-linux", "fm27-serveur-mac")
 
 
 def ajouter(z, p, nom):
     zi = zipfile.ZipInfo.from_file(p, nom)
     zi.date_time, zi.compress_type = MAINTENANT, zipfile.ZIP_DEFLATED
-    if nom.endswith((".sh", ".command")):   # lanceurs Linux / Mac : exécutables une fois dézippés (rwxr-xr-x)
+    # lanceurs et app Rust Linux / Mac : exécutables une fois dézippés (rwxr-xr-x)
+    if nom.endswith((".sh", ".command") + APPS[1:]):
         zi.create_system, zi.external_attr = 3, (0o100755 << 16)
     with open(p, "rb") as f:
         z.writestr(zi, f.read())
@@ -46,6 +48,10 @@ def main(argv):
         shutil.rmtree(sortie)   # « Release vX.XX » : refait en entier
     os.makedirs(sortie, exist_ok=True)
     exe = os.path.join(sortie, nom + " Setup.exe")
+    # v2.17 : les trois apps Rust (compilées : maj_partage ici, release.yml sur GitHub)
+    manque = [n for n in APPS if not os.path.isfile(os.path.join(partage, "outils", "app", n))]
+    if manque:
+        sys.exit("app Rust absente de outils\\app : " + ", ".join(manque))
     fichiers = []
     for d, sous, fs in os.walk(partage):
         sous[:] = [s for s in sous if s not in IGNORES]
@@ -64,19 +70,10 @@ def main(argv):
     shutil.copy2(zrelease, os.path.join(sortie, complet + " - Mac.zip"))
     with tempfile.TemporaryDirectory() as tmp:
         payload = os.path.join(tmp, "payload.zip")   # Setup : contenu du dossier à la racine
-        # + Python 3.14 embarqué (python_embarque.py) dans le Setup seulement : le zip (mise à jour auto) ne le
-        # retélécharge pas, mise_a_jour.py garde le dossier python\ tel quel
-        emb = os.path.join(ICI, "python")
-        if not os.path.exists(os.path.join(emb, "python.exe")):
-            subprocess.run([sys.executable, os.path.join(ICI, "python_embarque.py")], check=True)
+        # v2.17 : app Rust, plus de Python embarqué dans le Setup (python_embarque.py n'est plus utilisé)
         with zipfile.ZipFile(payload, "w", zipfile.ZIP_DEFLATED) as z:
             for p in fichiers:
                 ajouter(z, p, os.path.relpath(p, partage).replace(os.sep, "/"))
-            for d, sous, fs in os.walk(emb):
-                sous[:] = [s for s in sous if s != "__pycache__"]
-                for fi in fs:
-                    p = os.path.join(d, fi)
-                    ajouter(z, p, "python/" + os.path.relpath(p, emb).replace(os.sep, "/"))
         # Setup unique (v1.68) : dépôt + token lus dans mise_a_jour.py (jamais recopiés à la main) -> ressource maj.txt
         with open(os.path.join(partage, "outils", "commun", "mise_a_jour.py"), encoding="utf-8") as f:
             src = f.read()

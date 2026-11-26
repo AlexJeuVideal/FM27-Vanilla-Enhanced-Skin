@@ -9,6 +9,13 @@ cd "$(dirname "$0")" || exit 1
 xattr -dr com.apple.quarantine . >/dev/null 2>&1
 mkdir -p backups
 
+# v2.17 : l'app est un programme (Rust, Mac Intel et Apple Silicon), plus besoin de Python
+if [ -f "outils/app/fm27-serveur-mac" ]; then
+  chmod 755 "outils/app/fm27-serveur-mac" 2>/dev/null
+  echo "FM27 Vanilla Enhanced Skin : l'app s'ouvre (laisse cette fenetre ouverte) / the app is opening (keep this window open)"
+  exec "outils/app/fm27-serveur-mac"
+fi
+
 # --- Python embarque (v1.87) : Python 3.14.8 autonome (python-build-standalone), fige comme celui du Setup Windows ---
 PYE="python/bin/python3"
 TAG="20261020"

@@ -1,0 +1,36 @@
+[package]
+name = "fm27-serveur"
+version = "0.1.0"
+edition = "2024"
+description = "Serveur local du skin FM27 en Rust (etat, notes, traductions) : remplace serveur.py"
+
+[lib]
+name = "fm27_serveur"
+path = "src/lib.rs"
+
+[[bin]]
+name = "fm27-serveur"
+path = "src/main.rs"
+
+[dev-dependencies]
+flate2 = "1"
+
+[dependencies]
+fm27-core = { path = "../core" }
+serde_json = "1"
+flate2 = "1"
+# packs graphiques (logos, visages) partagés avec l'app
+fm27-packs = { path = "../packs" }
+# vrais noms : zip du fix de FM Scout ; sigles : lang_db.dat (trames zstd)
+zip = { version = "2", default-features = false, features = ["deflate"] }
+zstd = "0.13"
+sha2 = "0.10"
+# MAJ auto : Releases GitHub en https (rustls, sans OpenSSL : se compile pour Linux / Mac)
+ureq = { version = "2", default-features = false, features = ["tls", "json"] }
+
+[build-dependencies]
+# icône + propriétés du .exe Windows (build.rs)
+winresource = "0.1"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"

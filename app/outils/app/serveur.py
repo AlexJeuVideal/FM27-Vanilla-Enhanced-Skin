@@ -14,16 +14,43 @@ Quitter, ou ARRET_SANS_PAGE secondes sans nouvelle de la page.
 Mise à jour de l'app (commun\\mise_a_jour.py, en sommeil tant que son DEPOT est vide) : vérifiée au lancement, bandeau
 sur l'accueil ; installée par une tâche, puis l'app redémarre sur le même port (--port) et la page se recharge.
 
-Usage : serveur.py [--sans-fenetre] [--port N]
+Usage : serveur.py [--sans-fenetre] [--port N] [--python]
 """
+import os
+import sys
+
+
+def _app_rust():
+    """v2.17 : l'app est en Rust (fm27-serveur-*, à côté de ce fichier) ; ce fichier lui passe la main (anciens
+    lanceurs, MAJ auto d'avant qui relance `serveur.py --port N`). --python : garder ce serveur (dossier de travail)."""
+    ici = os.path.dirname(os.path.abspath(__file__))
+    nom = {"win32": "fm27-serveur.exe", "darwin": "fm27-serveur-mac"}.get(sys.platform, "fm27-serveur-linux")
+    exe = os.path.join(ici, nom)
+    if "--python" in sys.argv or not os.path.isfile(exe):
+        return
+    racine = os.path.dirname(os.path.dirname(ici))
+    args = [exe, "--skin", racine] + [a for a in sys.argv[1:] if a != "--python"]
+    if os.name == "nt":
+        import subprocess
+        subprocess.Popen(args, cwd=racine, creationflags=0x08000000, close_fds=True,
+                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        sys.exit(0)
+    try:
+        os.chmod(exe, 0o755)
+    except OSError:
+        pass
+    os.chdir(racine)
+    os.execv(exe, args)
+
+
+_app_rust()
+
 import codecs
 import json
-import os
 import re
 import secrets
 import shutil
 import subprocess
-import sys
 import threading
 import time
 import webbrowser

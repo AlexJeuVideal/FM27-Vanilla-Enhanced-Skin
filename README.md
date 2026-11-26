@@ -23,7 +23,10 @@ Free code signing provided by [SignPath.io](https://signpath.io), certificate by
 
 ## Contenu du dépôt / Repository content
 
-- `app/` — l'app et les scripts du skin (Python) / the app and the skin's scripts (Python)
+- `app/` — page de l'app, données et scripts du skin / the app page, data and skin scripts
+- `rust/` — l'app (Rust, à partir de FM27 Turbo de TonyBoy, avec son accord) : `serveur/` = programme de l'app
+  (Windows, Linux, Mac), `core/` = toutes les fonctions du skin / the app (Rust, from TonyBoy's FM27 Turbo, with his
+  permission)
 - `installeur/` — fabrication du Setup Windows et des zips / builds the Windows Setup and the zips
 - `moteur_rust/` — moteur rapide de lecture / écriture des fichiers de FM (Rust, from FM27 Turbo by TonyBoy) / fast
   engine to read / write FM's files
@@ -37,8 +40,9 @@ Football Manager belongs to Sports Interactive / SEGA.
 
 ## Licence / License
 
-[MIT](LICENSE) — AlexJeuVideal and Kinito ; Rust engine: TonyBoy. Third-party software:
-[app/THIRD_PARTY_NOTICES.txt](app/THIRD_PARTY_NOTICES.txt).
+[MIT](LICENSE) — AlexJeuVideal and Kinito ; Rust engine and app base: TonyBoy. Third-party software:
+[app/THIRD_PARTY_NOTICES.txt](app/THIRD_PARTY_NOTICES.txt), Rust crates:
+[app/THIRD_PARTY_LICENSES - Rust.txt](<app/THIRD_PARTY_LICENSES - Rust.txt>).
 
 ## Code signing policy
 
@@ -48,11 +52,10 @@ Free code signing provided by SignPath.io, certificate by SignPath Foundation:
 ## Vie privée / Privacy
 
 L'app ne collecte rien et n'envoie aucune donnée personnelle. Elle se connecte seulement à GitHub (recherche de mise à
-jour au démarrage, téléchargement d'une nouvelle version), et la première fois à python.org / PyPI / GitHub pour ses
-outils Python. Les liens (YouTube, Twitch, Discord, X) ne s'ouvrent que si on clique dessus.
+jour au démarrage, téléchargement d'une nouvelle version). Les liens (YouTube, Twitch, Discord, X) ne s'ouvrent que si
+on clique dessus.
 The app collects nothing and sends no personal data. It only connects to GitHub (update check at startup, downloading
-a new version), and the first time to python.org / PyPI / GitHub for its Python tools. Links (YouTube, Twitch, Discord,
-X) only open when clicked.
+a new version). Links (YouTube, Twitch, Discord, X) only open when clicked.
 
 ## Merci / Thanks
 
