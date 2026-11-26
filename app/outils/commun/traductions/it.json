@@ -1568,5 +1568,8 @@
 "996": "Portale e calendario",
 "997": "Portale: calendario",
 "998": "Osservazione e contratti",
-"999": "Scuro morbido"
+"999": "Scuro morbido",
+"1608": "Osservatore / analista assegnato: viste personalizzate (tutte le info dello staff in Inserisci colonna), larghezza e ordine delle colonne regolabili",
+"1609": "Allenamento individuale: squadre del club (link in Grande, pulsanti in Medio / Piccolo), scheda Rapporto allenamento, pollici, lista più larga in Grande (con Kinito). Vista Dettagli personalizzabile: larghezze salvate e clic destro > Inserisci colonna (Rapporti con i media compresi: la vecchia opzione è stata tolta, aggiungila a mano)",
+"1610": "Larghezza delle colonne: nelle tabelle aggiunte o modificate dalla skin puoi regolare la larghezza delle colonne a mano (trascina il bordo di un'intestazione). Nelle tabelle con viste personalizzate (Allenamento individuale, Osservatore / analista assegnato…) viene salvata, e il clic destro > Inserisci colonna ti fa scegliere le colonne. Nelle altre non ancora: lasciando la schermata, FM rimette le larghezze della skin."
 }

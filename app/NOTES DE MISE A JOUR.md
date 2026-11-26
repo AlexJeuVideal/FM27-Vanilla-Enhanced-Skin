@@ -6,6 +6,15 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.15 (26 novembre 2026)
+
+**Recrutement**
+- **Recruteur affecté / Analyste affecté : vues personnalisables**, comme la Base de données : un menu des vues en haut à droite de chaque tableau, et toutes les infos du staff dans le clic droit > Insérer colonne (attributs, club, contrat, général, stats, tactique, transferts...). Le 1er groupe du menu reprend les colonnes de base de la fenêtre : une colonne supprimée par erreur peut toujours être remise. La fenêtre est aussi plus large.
+
+**Entraînement**
+- **Entraînement individuel : la vue Détails devient entièrement personnalisable** : les largeurs de colonnes que tu règles sont gardées, et le clic droit sur les en-têtes > Insérer colonne propose toutes les colonnes de l'écran (Personnalité, Rapports avec les médias, pouces...). Une colonne retirée par erreur se remet de la même façon.
+- **L'option « Entraînement individuel, colonnes du tableau » est retirée** : elle n'est plus utile puisque tu choisis maintenant tes colonnes toi-même. La vue de base reste « Personnalité seule » ; si tu avais choisi « Personnalité + Rapports avec les médias », ajoute la colonne à la main (clic droit > Insérer colonne).
+
 ### v2.14 (26 novembre 2026)
 
 **Recrutement**
@@ -1269,6 +1278,15 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.15 (26 November 2026)
+
+**Scouting**
+- **Assigned Scout / Assigned Analyst: custom views**, like the Player Database: a views menu at the top right of each table, and all staff info in right click > Insert column (attributes, club, contract, general, stats, tactical, transfers...). The menu's 1st group holds the window's base columns: a column removed by mistake can always be put back. The window is also wider.
+
+**Training**
+- **Individual training: the Details view is now fully customisable**: the column widths you set are kept, and right click on the headers > Insert column offers every column of the screen (Personality, Media Handling, thumbs...). A column removed by mistake is put back the same way.
+- **The "Individual training, table columns" option is removed**: it is no longer needed now that you choose your columns yourself. The base view stays "Personality only"; if you had chosen "Personality + Media Handling", add the column by hand (right click > Insert column).
 
 ### v2.14 (26 November 2026)
 

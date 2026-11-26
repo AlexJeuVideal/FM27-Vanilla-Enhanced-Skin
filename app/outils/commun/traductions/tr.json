@@ -1568,5 +1568,8 @@
 "996": "Portal ve takvim",
 "997": "Portal: takvim",
 "998": "Gözlemleme ve sözleşmeler",
-"999": "Yumuşak koyu"
+"999": "Yumuşak koyu",
+"1608": "Atanan gözlemci / analist: özel görünümler (Sütun ekle'de tüm personel bilgileri), sütun genişliği ve sırası ayarlanabilir",
+"1609": "Bireysel antrenman: kulüp takımları (Büyük'te bağlantılar, Orta / Küçük'te düğmeler), Antrenman raporu sekmesi, başparmaklar, Büyük'te daha geniş liste (Kinito ile). Özelleştirilebilir Ayrıntılar görünümü: genişlikler kaydedilir ve sağ tık > Sütun ekle (Medya ilişkileri dahil: eski seçenek kaldırıldı, elle ekle)",
+"1610": "Sütun genişliği: skin'in eklediği veya değiştirdiği tablolarda sütun genişliğini elle ayarlayabilirsin (bir başlığın kenarını sürükle). Özel görünümlü tablolarda (Bireysel antrenman, Atanan gözlemci / analist…) kaydedilir ve sağ tık > Sütun ekle ile sütunlarını seçebilirsin. Diğerlerinde henüz değil: ekrandan çıkınca FM skin'in genişliklerini geri koyar."
 }

@@ -304,9 +304,14 @@ FONCTIONS = {
     "entrainement_individuel_equipes": dict(cat="entrainement", textes=True,   # + Kinito 26.14, 26.15 (2026-11-12)
                                             fr="Entraînement individuel : équipes du club (liens en Large, boutons en "
                                                "Medium / Small), onglet Rapport d'entraînement, pouces, liste plus "
-                                               "large en Large (avec Kinito)",
+                                               "large en Large (avec Kinito). Vue Détails personnalisable : largeurs "
+                                               "gardées et clic droit > Insérer colonne (Rapports médias compris : "
+                                               "l'ancienne option a été retirée, ajoute-la à la main)",
                                             en="Individual training: club teams (links in Large, buttons in Medium / "
-                                               "Small), Training report tab, thumbs, wider list in Large (with Kinito)"),
+                                               "Small), Training report tab, thumbs, wider list in Large (with Kinito). "
+                                               "Custom Details view: widths kept and right click > Insert column "
+                                               "(Media Handling included: the old option was removed, add it by "
+                                               "hand)"),
     "entrainement_individuel_boutons": dict(cat="entrainement",   # + Kinito 26.16 (2026-11-12)
                                             fr="Entraînement individuel : Féliciter / Critiquer / Rapport à côté des "
                                                "onglets, terrain des postes agrandi (avec Kinito)",
@@ -426,10 +431,10 @@ FONCTIONS = {
                                fr="Recherches ciblées : tête du joueur, vues personnalisables (Insérer colonne)",
                                en="Recruitment focuses: player face, custom views (Insert column)"),
     "recruteurs_colonnes": dict(cat="recrutement",   # 2026-11-26, demande du joueur (captures des deux fenêtres)
-                                fr="Recruteur / Analyste affecté : largeur et ordre des colonnes réglables, clic "
-                                   "droit sur les en-têtes, 2 colonnes de plus",
-                                en="Assigned Scout / Analyst: resizable and movable columns, right click on the "
-                                   "headers, 2 more columns"),
+                                fr="Recruteur / Analyste affecté : vues personnalisables (toutes les infos du "
+                                   "staff dans Insérer colonne), largeur et ordre des colonnes réglables",
+                                en="Assigned Scout / Analyst: custom views (all staff info in Insert column), "
+                                   "resizable and movable columns"),
     # 2026-11-10, le joueur (à la place d'une carte du monde) ; styles écrits par couleurs_interface (son marqueur)
     "connaissance_couleurs": dict(cat="recrutement",   # de base le 2026-11-14 (le joueur ; tuile encore WIP)
                                   fr="WIP Niveaux de connaissance en couleurs, du rouge (basique) au vert (inégalée) : "
@@ -677,7 +682,6 @@ ORDRE_SKIN = [
     "entete_fiche", "staff_fiche", "entrainement_individuel_boutons", "fiche_joueur_plus",
     "match_haut", "theme_fond", "colonne_personnalite",
     "recherches_ciblees",   # après colonne_personnalite (son menu recopie celui de la Base de données)
-    "recruteurs_colonnes",   # seul sur RecruitmentFocusAssignScoutAnalystDialog et ses 2 vues : n'importe où
     "colonne_temperament",   # après colonne_personnalite (placée après Personnalité) et recherches_ciblees
     "finances_tuile_unique", "graphes_finances",
     "graphes_attributs",
@@ -687,6 +691,8 @@ ORDRE_SKIN = [
     "attributs_tout_cocher", "nation_drapeau_seul", "suspensions_noms_courts",
     "tuile_forme", "fiche_ordre_tuiles", "tuile_carriere", "fiche_contexte_equipe",
     "moral_icone_seule",
+    "recruteurs_colonnes",   # v3 : après moral_icone_seule (qui refait ui-tablefactories depuis l'original : sa
+    # fabrique) ; seul sur RecruitmentFocusAssignScoutAnalystDialog, ses 2 vues et ses 2 collections
     "rencontres_place_championnat",
     "cercles_amis_cartes", "dynamique_vue_ensemble", "etat_esprit_fm24",
     "entrainement_pouces", "staff_fm24", "entrainement_equipes", "effectif_boutons_entrainement",
@@ -758,7 +764,9 @@ SUIVANTS = {
     "entrainement_pouces": ["entrainement_individuel_equipes"],
     # + rencontres_stade_spectateurs : sa version Kinito (kinito_rencontres_vues) a sa colonne « kinito-selection »
     # dans ui-tablefactories (sans elle : plantage du tableau)
-    "moral_icone_seule": ["entrainement_individuel_equipes", "kinito_enregistrement", "rencontres_stade_spectateurs"],
+    # + recruteurs_colonnes v3 (2026-11-26) : sa fabrique RecruitmentFocusStaffTableFactory (173 colonnes du staff)
+    "moral_icone_seule": ["entrainement_individuel_equipes", "kinito_enregistrement", "rencontres_stade_spectateurs",
+                          "recruteurs_colonnes"],
     # vue FM Guru (option fiche_fmguru) : refaite par-dessus ce que ces fonctions remettent dans la fiche joueur
     # (attributs_tout_cocher : le tableau d'attributs qu'elle recopie)
     # (fiche_joueur_plus : sa copie du tableau d'attributs pour le mode Large, refaite quand le modèle change)

@@ -1568,5 +1568,8 @@
 "996": "Portal und Kalender",
 "997": "Portal: Kalender",
 "998": "Scouting und Verträge",
-"999": "Weiches Dunkel"
+"999": "Weiches Dunkel",
+"1608": "Zugewiesener Scout / Analyst: eigene Ansichten (alle Mitarbeiter-Infos unter Spalte einfügen), Spaltenbreite und -reihenfolge einstellbar",
+"1609": "Individualtraining: Teams des Vereins (Links in Groß, Schaltflächen in Mittel / Klein), Tab Trainingsbericht, Daumen, breitere Liste in Groß (mit Kinito). Anpassbare Detailansicht: Breiten werden gespeichert und Rechtsklick > Spalte einfügen (Umgang mit Medien inklusive: die alte Option wurde entfernt, füge sie von Hand hinzu)",
+"1610": "Spaltenbreite: In den vom Skin hinzugefügten oder geänderten Tabellen kannst du die Spaltenbreite von Hand einstellen (Rand eines Spaltenkopfs ziehen). In Tabellen mit eigenen Ansichten (Individualtraining, Zugewiesener Scout / Analyst…) wird sie gespeichert, und Rechtsklick > Spalte einfügen lässt dich deine Spalten wählen. In den anderen noch nicht: Beim Verlassen des Bildschirms setzt FM die Breiten des Skins wieder ein."
 }

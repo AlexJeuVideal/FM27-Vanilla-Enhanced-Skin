@@ -139,7 +139,7 @@ import entrainement_vues_perso as vp  # noqa: E402  (v13, modif d'Alex : vues pe
 _GUID_VP = None   # v13 : GUID de la collection des vues perso (lu dans ui-tableviews par cmd_appliquer / cmd_retirer)
 
 
-VUES_PERSO = False   # v14 : essai des vues perso (largeurs gardées) débranché, liste vide en jeu
+VUES_PERSO = True   # v15 (v14 : False, liste vide en jeu ; cause trouvée, voir entrainement_vues_perso v3)
 
 
 def _vp_absent(t):
@@ -156,7 +156,13 @@ def _guid_vp():
 # =====================================================================================================
 #  RÉGLAGES (changer un réglage -> augmenter VERSION)
 # =====================================================================================================
-VERSION = 14  # v14 (MODIF D'ALEX, 2026-11-26) : vues perso DÉBRANCHÉES (VUES_PERSO = False) : vues en jeu, liste
+VERSION = 17  # v17 (MODIF D'ALEX, 2026-11-26) : option medias_entrainement retirée (avec_medias() = False : vue de
+#               base sans Rapports médias, ajoutable par Insérer colonne)
+#               v16 (MODIF D'ALEX, 2026-11-26) : v15 VUE (liste affichée) ; menu Insérer colonne des vues perso
+#               (entrainement_vues_perso v4 : Rapports médias ajoutable même avec l'option « sans »)
+#               v15 (MODIF D'ALEX, 2026-11-26) : vues perso REBRANCHÉES (VUES_PERSO = True) avec
+#               entrainement_vues_perso v3 (cause de la liste vide trouvée : le menu écrit « selectedView »)
+#               v14 (MODIF D'ALEX, 2026-11-26) : vues perso DÉBRANCHÉES (VUES_PERSO = False) : vues en jeu, liste
 #               Détails VIDE (entrainement_vues_perso v1 et v2), sans erreur dans Player.log. Mis de côté ; appliquer
 #               retire ce que v13 avait posé (collection rendue d'origine, rien de vp dans l'écran).
 #               v13 (MODIF D'ALEX, 2026-11-26, le joueur : « les vues ont pas l'air de se save ») : la vue Détails en
@@ -311,9 +317,9 @@ for _k, _v in {"position": (131102, 7), "width": (131105, 3), "height": (131087,
 
 # ---------- outils ----------
 def avec_medias():
-    """v7 : option medias_entrainement (« avec » = choix de base)"""
-    import options
-    return options.get("medias_entrainement") == "avec"
+    """v7 : option medias_entrainement ; v17 (MODIF D'ALEX, 2026-11-26) : option RETIRÉE (vues perso : Rapports médias
+    s'ajoute par Insérer colonne) -> vue de base = son ancien choix de base « sans »"""
+    return False
 
 
 def colonnes_vue():
@@ -1092,7 +1098,7 @@ def cmd_appliquer():
         return
     ef, ev = UnityPy.load(FABRIQUES), UnityPy.load(VUES)
     if a_jour(o[3]) and fabrique_a_jour(ef) and vue_a_jour(ev) and vues_tableaux_a_jour(ev) \
-            and (vp.collection_a_jour(ev) if VUES_PERSO else vp.collection_d_origine(ev)):
+            and (vp.collection_a_jour(ev, ef) if VUES_PERSO else vp.collection_d_origine(ev)):
         print("[Kinito] Largeur de la liste : déjà appliqué")
     else:
         # v2 : les colonnes. La fabrique d'abord : la vue cite ses colonnes (jamais la vue sans elles) ; v5 : les vues
@@ -1105,12 +1111,14 @@ def cmd_appliquer():
         else:
             if f:
                 ecrire_bundle(ef, FABRIQUES)
+                # v16 : rechargée (read_typetree rend l'ancien arbre) : le menu Insérer colonne des vues perso la lit
+                ef = UnityPy.load(ef.file.save(packer="original"))
             v = vue_poser(ev)
             if v is None:
                 print(f"[Kinito] Largeur de la liste : vue {VUE} ou sa colonne {AVANT} introuvable : vue pas touchée")
             else:
                 print(f"[Kinito] Largeur de la liste : colonnes Personnalité"
-                      + (" et Rapports médias" if avec_medias() else " (Rapports médias enlevée : option)")
+                      + (" et Rapports médias" if avec_medias() else " (Rapports médias : par Insérer colonne)")
                       + " avant la note ; largeurs (Medium, Small) : "
                       + ", ".join(f"{k} {w}" for k, w in poids(LARGEURS).items()))
         vt = vues_tableaux_poser(ev)   # v5
@@ -1119,7 +1127,7 @@ def cmd_appliquer():
             if vc:
                 print(f"{vp.COLLECTION} : remise d'origine")
         else:
-            vc = vp.collection_poser(ev) if vt is not None else None   # v13 : collection des vues perso (cite la vue)
+            vc = vp.collection_poser(ev, ef) if vt is not None else None   # v13 (v16 : + menu Insérer colonne)
         if not VUES_PERSO:
             pass
         elif vc is None and vt is not None:

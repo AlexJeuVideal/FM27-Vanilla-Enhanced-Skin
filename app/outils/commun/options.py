@@ -155,15 +155,9 @@ OPTIONS = {
                  "The view of the player instructions window on first opening; after that, the game keeps the last "
                  "one you clicked."),
     },
-    # 2026-11-12 (le joueur) : lu par kinito_largeur_liste (26.15, lancé par entrainement_individuel_equipes) ; « sans » :
-    # vues du tableau Détails sans la colonne, sa place au nom et à Personnalité ; 2026-11-12 (le joueur) : « sans » =
-    # choix de base, libellés Personnalité seule / Personnalité + Rapports médias
-    "medias_entrainement": {
-        "titre": ("Entraînement individuel, colonnes du tableau", "Individual training, table columns"),
-        "valeurs": [("sans", ("Personnalité seule", "Personality only")),
-                    ("avec", ("Personnalité + Rapports avec les médias", "Personality + Media Handling"))],
-        "script": "entrainement_individuel_equipes",
-    },
+    # medias_entrainement (2026-11-12) RETIRÉE le 2026-11-26 (le joueur : « maintenant c'est full custom ») : la vue
+    # Détails de l'entraînement individuel a des vues perso (Insérer colonne propose Rapports médias) ; vue de base =
+    # l'ancien choix de base « sans » (Personnalité seule), voir kinito_largeur_liste.avec_medias
     # 2026-11-05 (le joueur) : lu par entete_fiche (entete_tuile) ; « tuile » = nouvel en-tête en grande tuile
     # (largeurs fixes, polygone, statut), choix de base depuis le 2026-11-05 (le joueur, + FORCES) ; « fm » = en-tête
     # de FM retouché comme avant. En premier (ordre de l'app, 2026-11-07) : il commande les options « sans_effet »

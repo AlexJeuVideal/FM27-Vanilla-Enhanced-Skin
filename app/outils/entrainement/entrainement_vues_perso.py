@@ -35,7 +35,16 @@ import hierarchie_pyramide as hp  # noqa: E402
 from hierarchie_pyramide import typ, ouvrir  # noqa: E402
 from notes_installations import decode_args, encode_args  # noqa: E402
 
-VERSION = 2   # v2 (2026-11-26) : v1 VUE EN JEU : liste VIDE (menu présent, « Détails », aucune ligne ni en-tête). Cause
+VERSION = 4   # v4 (2026-11-26) : v3 VUE EN JEU (liste affichée). Le joueur : « Rapports médias » ajoutable dans les vues
+# perso même quand l'option medias_entrainement est sur « sans » (la vue de base reste sans) : la collection a un menu
+# « Insérer colonne » (groupe « Détaillé » = les colonnes de la fabrique de l'entraînement, dont personality et
+# media-handling, toujours dans la fabrique ; + séparateurs si colonnes_separateur est actif)
+# v3 (2026-11-26) : CAUSE de la liste vide TROUVÉE (relevé, pas deviné) : le modèle TableViewDropdown attend
+# un paramètre « selectedView » (BindingExpect) et y écrit la vue choisie (SIDropdown.SelectionValueBinding =
+# selectedView) ; notre variable s'appelait autrement, le tableau n'avait jamais de vue. Comme FM pour le menu des
+# favoris de la Base de données (#shortlist-view-dropdown-remapper : selectedView -> selectedViewShortlist), le menu est
+# mis dans un BindingRemapper selectedView -> VAR. (Même chose chez Kinito : rapports_vues v3 vidait son tableau.)
+# v2 (2026-11-26) : v1 VUE EN JEU : liste VIDE (menu présent, « Détails », aucune ligne ni en-tête). Cause
 # trouvée : la vue Détails est un sous-composant (ComponentElement dans #ViewContent) ; VAR / PRET étaient déclarées sur
 # la racine de l'écran, hors de sa portée. v2 : déclarées dans le composant de la vue Détails (celui qui contient #Header
 # et les tableaux), délai posé dedans. Et demande du joueur : menu des vues INVISIBLE (« on va jamais l'utiliser ») : il
@@ -49,12 +58,16 @@ VAR_CAPITAINES = "selectedView"
 SOURCE_MENU_ALIAS = "TableViewDropdown"
 MENU_RECHERCHE = "bd30edffabc96284cbfee63884ed3d7f"       # ContextMenuData de la recherche de joueurs
 FABRIQUE = "576f87703a70f31439d7cab20456e517"            # PlayerIndividualTrainingTableFactory
+FABRIQUE_NOM = "PlayerIndividualTrainingTableFactory"
 VAR = "uipickervueindiv"
 PRET = "uipickervueindivprete"
 DELAI = 0.5
 PREFIXE = "UIPickerVuesIndiv"
 NOM_ENVELOPPE = f"{PREFIXE}-menu-v{VERSION}"
 NOM_DELAI = f"{PREFIXE}-delai-v{VERSION}"
+NOM_REMAP = f"{PREFIXE}-remap-v{VERSION}"
+SOURCE_REMAP = ("PersonSearchTableTopSection", "shortlist-view-dropdown-remapper")   # BindingRemapper de FM
+VAR_MENU = "selectedView"   # le nom que le modèle TableViewDropdown lit et écrit
 VUES = os.path.join(nb.AA, "ui-tableviews_assets_all.bundle")
 TYPE_VUE = 1513318467
 NOM_VUE = 43280   # texte FM « Détaillé » (onglet #TabDetailed de l'écran, DebugDisplay « Detailed »)
@@ -85,7 +98,47 @@ def guid_collection(env):
     return None
 
 
-def collection_voulue(env):
+REFTYPE = {"class": "SIDropdownElement`1[[System.String, mscorlib]]", "ns": "SI.Bindable", "asm": "SI.Bindable"}
+CACHEES = {"selector", "kinito-selecteur-invisible"}   # colonnes de sélection, pas à proposer
+
+
+def _entree(nom, valeur, texte, enfants=None):
+    return {"debug_name": "", "name": nom, "ChildList": enfants or [], "Disable": 0, "AddSpacerBefore": 0,
+            "DisplayValue": {"GameID": texte}, "PropertyValue": valeur, "Requirement": {"m_FileID": 0, "m_PathID": 0}}
+
+
+def menu_colonnes(tt, ef):
+    """v4 : menu « Insérer colonne » de la collection : les colonnes de la fabrique (ef, déjà à jour)"""
+    fab = None
+    for o in ef.objects:
+        if o.type.name == "MonoBehaviour":
+            try:
+                if o.peek_name() == FABRIQUE_NOM:
+                    fab = o.read_typetree()
+                    break
+            except Exception:
+                continue
+    if fab is None:
+        return False
+    try:
+        import colonnes_separateur as cs
+    except Exception:
+        cs = None
+    refs = []
+    for r in fab["m_rowData"]:
+        g = r["m_translationID"]["GameID"]
+        if r["m_id"] in CACHEES or g <= 0 or (cs and cs.a_nous(r["m_id"])):
+            continue
+        refs.append({"rid": len(refs) + 1, "type": dict(REFTYPE), "data": _entree(r["m_id"], r["m_id"], g)})
+    tt["m_contextMenuData"] = [_entree("Detailed", "", NOM_VUE, [{"rid": x["rid"]} for x in refs])]
+    tt.setdefault("references", {"version": 2, "RefIds": []})
+    tt["references"]["RefIds"] = refs
+    if cs and cs.actif():
+        cs.menu_voulu(tt)
+    return True
+
+
+def collection_voulue(env, ef=None):
     """(objet, typetree voulu) ; None si un morceau manque"""
     m = _monos(env)
     if not all(n in m for n in (COLLECTION, VUE, SOURCE_COLLECTION)):
@@ -105,17 +158,19 @@ def collection_voulue(env):
     tt["m_customViewDisplayName"] = copy.deepcopy(src["m_customViewDisplayName"])
     tt["m_customViewNamePrefix"] = copy.deepcopy(src["m_customViewNamePrefix"])
     tt["m_contextMenuData"] = []
+    if ef is not None and not menu_colonnes(tt, ef):   # v4
+        return None
     return o, tt
 
 
-def collection_a_jour(env):
-    x = collection_voulue(env)
+def collection_a_jour(env, ef=None):
+    x = collection_voulue(env, ef)
     return x is not None and x[0].read_typetree() == x[1]
 
 
-def collection_poser(env):
+def collection_poser(env, ef=None):
     """True si changé ; None si introuvable"""
-    x = collection_voulue(env)
+    x = collection_voulue(env, ef)
     if x is None:
         return None
     o, tt = x
@@ -171,13 +226,17 @@ class Sources:
             if ok == 2:
                 f["m_inputs"]["m_variable"]["m_argumentBytes"] = encode_args(args)
                 self.init = f
+        o2 = ouvrir(SOURCE_REMAP[0], depart_original=True)   # v3
+        self.tr = o2 and o2[3]
+        self.remap = self.tr and next((r for r in self.tr.walk() if self.tr.name(r) == SOURCE_REMAP[1]
+                                       and typ(self.tr, r) == "BindingRemapper"), None)
         import kinito_capitaines_vues as kcv   # SIVisible / SIDelayEvent de FM et format des événements (lus seulement)
         self.kcv = kcv
         self.k = kcv.Sources()
 
     def manque(self):
         return [n for n, v in (("tableau des Capitaines", self.init), ("menu des vues", self.menu),
-                               ("déclaration du menu", self.using)) if v is None] + \
+                               ("déclaration du menu", self.using), ("remapper", self.remap)) if v is None] + \
             ([] if self.k.ok() else ["SIVisible / SIDelayEvent de FM"])
 
 
@@ -204,6 +263,20 @@ def _composant_vue(t, header):
 
 def _tous_vars(t):
     return [d for d in (_vars(t, r) for r in t.walk()) if d is not None]
+
+
+def remapper(t, src, parent, nom, var, index=None):
+    """v3 : BindingRemapper de FM (vidé) sous parent : le menu des vues lit / écrit selectedView, renvoyé vers var"""
+    rm = t.clone(src.remap, parent, index=index, src=src.tr)
+    for x in list(t.children(rm)):
+        t.remove(x)
+    src.kcv._parent_id(t, rm)
+    src.kcv._nommer(t, rm, nom)
+    t.elem(rm)["m_Classes"], t.elem(rm)["m_RuleIndex"] = [], -1
+    sd = t.sd(rm)
+    sd["Mappings"] = [{"m_serialisedType": 0, "from": VAR_MENU, "to": {"m_path": var}, "type": {"id": 0}}]
+    sd["Mappings_UxmlAttributeFlags"] = 1
+    return rm
 
 
 def _a_nous(t, r):
@@ -261,7 +334,8 @@ def poser(t, tt, tableaux, guid):
     sd["AlwaysInstantiate"], sd["AlwaysInstantiate_UxmlAttributeFlags"] = 1, 1
     t.elem(env)["m_Classes"], t.elem(env)["m_RuleIndex"] = [], -1
     t.styles.style(t, env, CACHE)   # v2 : menu là mais invisible (taille 0, contenu rogné, transparent)
-    m = t.clone(src.menu, env, src=src.tc)
+    rm = remapper(t, src, env, NOM_REMAP, VAR)   # v3 : selectedView (nom fixe du menu) -> VAR
+    m = t.clone(src.menu, rm, src=src.tc)
     k._parent_id(t, m)
     ovr = t.elem(m)["m_SerializedDataOverride"]
     fait = 0
@@ -297,7 +371,7 @@ def a_jour(t, tableaux, guid):
     noms = [t.name(r) for r in t.walk()]
     return (bool(tableaux) and all(collection_citee(t, r, guid) and t.sd(r).get("ViewDropdownName") == "ViewDropdown"
                                    for r in tableaux)
-            and NOM_ENVELOPPE in noms and NOM_DELAI in noms and len(_menu(t)) == 1 and bool(cv)
+            and NOM_ENVELOPPE in noms and NOM_DELAI in noms and NOM_REMAP in noms and len(_menu(t)) == 1 and bool(cv)
             and any(v.get("m_name") == VAR for v in cv[1].get("ReferenceVariables") or []))
 
 
@@ -305,7 +379,9 @@ def retirer(t, tableau_fm, champs_fm):
     """nos éléments retirés, nos variables, et le tableau de FM rendu (champs_fm : ses champs d'origine) ; True si
     changé"""
     fait = False
-    for r in [r for r in t.walk() if _a_nous(t, r)]:
+    # v4 : seulement nos éléments du haut (le remapper de la v3 est DANS l'enveloppe : le retirer après elle plantait)
+    hauts = [r for r in t.walk() if _a_nous(t, r) and not (t.parent.get(r) is not None and _a_nous(t, t.parent[r]))]
+    for r in hauts:
         if r in t.parent:
             t.remove(r)
             fait = True
