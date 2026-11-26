@@ -1,0 +1,4 @@
+# Exe Windows sans VCRUNTIME140.dll (runtime C intégré) : sinon « VCRUNTIME introuvable »
+# chez les joueurs sans le Visual C++ Redistributable.
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]

@@ -337,7 +337,7 @@ pub fn moral_icone_colonnes(a: &mut Atelier) -> Result<Vec<(String, String, Vec<
 
 /// Fonctions dont des colonnes vivent dans ui-tablefactories, dans l'ordre où moral_icone_seule (propriétaire du
 /// bundle, qui repart de l'original) les réapplique (`colonnes_etat_esprit` puis `colonne_staff` du Python).
-pub const MORAL_AUTRES: [&str; 9] = [
+pub const MORAL_AUTRES: [&str; 10] = [
     "etat_esprit_fm24",
     "entrainement_pouces",
     "tactiques_forme_valeur",
@@ -346,6 +346,7 @@ pub const MORAL_AUTRES: [&str; 9] = [
     "saison_presentation",
     "colonnes_separateur",
     "colonne_temperament",
+    "etoiles_staff", // Rust seulement (2026-11-26)
     "staff_fm24",
 ];
 
@@ -366,6 +367,7 @@ pub fn moral_reappliquer_autres(
             "colonnes_separateur" => !separateur_fabriques_appliquer(a)?.is_empty(),
             "nation_drapeau_seul" => crate::nation::fabrique_appliquer(a, orig, nation)?,
             "colonne_temperament" => crate::temperament::fabrique_appliquer(a, false)?,
+            "etoiles_staff" => crate::etoiles_staff::fabrique_appliquer(a, false)?,
             "saison_presentation" => crate::saison::fabrique_appliquer(a)?,
             "etat_esprit_fm24" => crate::etat_esprit::fabrique_appliquer(a)?,
             "entrainement_pouces" => crate::pouces::fabrique_appliquer(a)?.unwrap_or(false),

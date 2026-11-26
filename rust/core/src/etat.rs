@@ -72,7 +72,7 @@ mod tests {
     #[test]
     fn catalogue_engendre() {
         assert_eq!(CATEGORIES.len(), 21); // skin v2.11 : competition
-        assert_eq!(FONCTIONS.len(), 84);
+        assert_eq!(FONCTIONS.len(), 87); // skin v2.18 (+ etoiles_staff)
         assert!(FONCTIONS.iter().all(|f| CATEGORIES.iter().any(|c| c.id == f.cat)));
     }
 

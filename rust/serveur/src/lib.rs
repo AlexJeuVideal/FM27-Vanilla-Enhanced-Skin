@@ -37,7 +37,8 @@ pub(crate) const LANGUES_NOMS: [(&str, &str); 12] = [
 ];
 
 /// Fonctions dont le script est porté en Rust (servies par ce serveur).
-const PORTES: [&str; 84] = [
+const PORTES: [&str; 85] = [
+    "etoiles_staff", // Rust seulement (2026-11-26)
     "kinito_cartes_jeunes",
     "colonne_personnalite",
     "suspensions_noms_courts",
@@ -1054,6 +1055,9 @@ impl Serveur {
         }
         if nom == "colonne_temperament" {
             return self.action_temperament(&jeu, type_action == "appliquer");
+        }
+        if nom == "etoiles_staff" {
+            return self.action_etoiles_staff(&jeu, type_action == "appliquer");
         }
         if nom == "saison_presentation" {
             return self.action_saison(&jeu, type_action == "appliquer");
@@ -4155,6 +4159,71 @@ impl Serveur {
         }
     }
 
+    /// `etoiles_staff` (Rust seulement) : appliquer = cellule (depuis l'original), colonnes de NonPlayerTableFactory,
+    /// groupe du menu de la recherche de staff (nom dans la langue du skin), marqueur ; retirer = menu, colonnes,
+    /// cellule.
+    fn action_etoiles_staff(&self, jeu: &std::path::Path, appliquer: bool) -> (u16, Value) {
+        use fm27_core::{etoiles_staff as es, separateur, Atelier};
+        const FABRIQUES: &str = "ui-tablefactories_assets_all.bundle";
+        const VUES: &str = "ui-tableviews_assets_all.bundle";
+        let outil = fm27_core::Outil::nouveau(&self.skin, jeu, es::MARQUEUR, es::MARQUEUR, &[]);
+        let g = &outil.gardien;
+        let groupe = self.texte_skin(es::GROUPE.0, es::GROUPE.1);
+        let faire = || -> fm27_core::typetree::Result<Vec<String>> {
+            let chemins: Vec<std::path::PathBuf> = separateur::VTA.iter().map(|b| jeu.join(b)).collect();
+            let mut ateliers =
+                chemins.iter().map(|c| Atelier::ouvrir(c)).collect::<fm27_core::typetree::Result<Vec<_>>>()?;
+            let originaux: Vec<Option<Atelier>> = chemins
+                .iter()
+                .map(|c| Some(g.backup_path(c)).filter(|p| p.is_file()).and_then(|p| Atelier::ouvrir(&p).ok()))
+                .collect();
+            let tableau = |b: &str, f: &dyn Fn(&mut Atelier) -> fm27_core::typetree::Result<bool>| {
+                let c = jeu.join(b);
+                let mut a = Atelier::ouvrir(&c)?;
+                let n = f(&mut a)?;
+                if n {
+                    a.sauver_dans(&c, g)?;
+                }
+                Ok::<bool, fm27_core::typetree::Error>(n)
+            };
+            let mut msgs = Vec::new();
+            if appliquer {
+                let issue = es::cellule_appliquer(&mut ateliers, &originaux)?;
+                msgs.push(issue.message(es::CELLULE));
+                if !issue.ok() {
+                    return Err(fm27_core::typetree::Error(msgs.join(" ; ")));
+                }
+                for (a, c) in ateliers.iter_mut().zip(&chemins) {
+                    a.sauver_dans(c, g)?;
+                }
+                let f = tableau(FABRIQUES, &|a| es::fabrique_appliquer(a, false))?;
+                msgs.push(format!("{} : {}", es::FABRIQUE, if f { "9 colonnes étoiles posées" } else { "colonnes déjà en place" }));
+                let m = tableau(VUES, &|a| es::menu_appliquer(a, Some(&groupe)))?;
+                msgs.push(format!("{} : {}", es::MENU, if m { "groupe ajouté" } else { "groupe déjà en place" }));
+                outil.marquer()?;
+            } else {
+                outil.desmarquer()?;
+                if tableau(VUES, &|a| es::menu_appliquer(a, None))? {
+                    msgs.push(format!("{} : groupe retiré", es::MENU));
+                }
+                if tableau(FABRIQUES, &|a| es::fabrique_appliquer(a, true))? {
+                    msgs.push(format!("{} : colonnes retirées", es::FABRIQUE));
+                }
+                if let Some(m) = es::cellule_retirer(&mut ateliers, &originaux)? {
+                    msgs.push(m);
+                }
+                for (a, c) in ateliers.iter_mut().zip(&chemins) {
+                    a.sauver_dans(c, g)?;
+                }
+            }
+            Ok(msgs)
+        };
+        match faire() {
+            Ok(msgs) => (200, json!({"message": "ok", "details": msgs})),
+            Err(e) => (400, json!({"message": e.to_string()})),
+        }
+    }
+
     /// `moral_icone_seule` (script v2.11), propriétaire de ui-tablefactories. Appliquer : départ de l'original si le
     /// jeu contient encore notre dernière écriture (sinon du bundle actuel), colonnes des autres fonctions actives
     /// refaites, puis Moral / Satisfaction en icône seule ; texte de PlayerHappinessCell caché. Retirer : original
@@ -4362,10 +4431,16 @@ impl Serveur {
                 // MAJ auto : vérifiée au lancement (l'exécutable seul ; pas les tests ni le banc)
                 portee.spawn(|| self.maj_verifier());
             }
+            // un fil par connexion (ThreadingHTTPServer de serveur.py) + délai de lecture : une connexion muette
+            // (préconnexion du navigateur) ou une requête lente ne bloque plus les autres (v2.17 : app figée puis
+            // arrêtée au bout de ARRET_SANS_PAGE, « L'app ne répond plus »)
             for flux in listener.incoming() {
                 match flux {
                     Ok(mut s) => {
-                        let _ = self.traiter(&mut s);
+                        portee.spawn(move || {
+                            let _ = s.set_read_timeout(Some(std::time::Duration::from_secs(30)));
+                            let _ = self.traiter(&mut s);
+                        });
                     }
                     Err(_) => continue,
                 }
@@ -4471,7 +4546,7 @@ mod tests {
         let (base, s) = serveur_banc("etat");
         let e = s.etat();
         assert_eq!(e["langue"], "en");
-        assert_eq!(e["fonctions"].as_array().unwrap().len(), 86); // skin v2.17
+        assert_eq!(e["fonctions"].as_array().unwrap().len(), 87); // skin v2.18 (+ etoiles_staff)
         assert_eq!(e["categories"].as_array().unwrap().len(), 21);
         // serveur.py installe() : une empreinte écrite dans backups (pas un marqueur)
         assert_eq!(e["installation"]["installe"], false);
@@ -4503,7 +4578,7 @@ mod tests {
         assert_eq!(code, 200);
         assert!(corps.contains("\"fonctions\""));
         let v: Value = serde_json::from_str(&corps).unwrap();
-        assert_eq!(v["fonctions"].as_array().unwrap().len(), 86); // skin v2.17
+        assert_eq!(v["fonctions"].as_array().unwrap().len(), 87); // skin v2.18 (+ etoiles_staff)
         assert_eq!(v["options"].as_array().unwrap().len(), 23); // skin v2.17 (medias_entrainement retirée)
         assert!(v["fonctions"][0].get("options").is_some());
         let fmguru = v["options"]

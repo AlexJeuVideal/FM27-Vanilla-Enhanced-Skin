@@ -6,6 +6,16 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.18 (26 novembre 2026)
+
+**App**
+- **Correction : l'app ne s'ouvrait pas sur certains PC Windows** (message « VCRUNTIME140.dll introuvable ») : elle n'a plus besoin du Visual C++ Redistributable de Microsoft.
+- **Correction : l'app pouvait se figer** (bandeau « L'app ne répond plus », « Vérification... » qui ne finit pas, boutons sans effet, Quitter qui ne ferme rien), puis se fermer toute seule au bout de 3 minutes, parfois en plein milieu de l'installation. L'app répond maintenant à plusieurs demandes à la fois, comme avant la v2.17.
+
+**Staff**
+- **Recherche de staff : les étoiles d'entraînement de chaque atelier, pour tout le staff, même hors de ton club** : clic droit sur les en-têtes > Insérer colonne > groupe « Étoiles staff ». 9 colonnes, dans l'ordre de l'écran Affectations des entraîneurs (Tactique offensive, Technique offensive, Tactique défensive, Technique défensive, Tactique de possession, Technique avec le ballon, Gardien, Condition physique, Coups de pied arrêtés), avec les étoiles dorées du jeu. Le calcul est celui du jeu : mêmes étoiles que dans Affectations pour un entraîneur qui s'occupe d'un seul atelier (FM en retire quand il en a plusieurs).
+- **Tri au clic sur l'en-tête** (du plus haut au plus bas, puis l'inverse). FM ne sait trier que sur un attribut du membre du staff, pas sur un calcul : le tri se fait sur l'attribut qui compte le plus dans l'atelier (Gardien pour Gardien, Offensif pour la Tactique offensive...). Deux membres du staff proches sur cet attribut peuvent donc être rangés dans le désordre de leurs étoiles.
+
 ### v2.17 (26 novembre 2026)
 
 **App**
@@ -1295,6 +1305,16 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.18 (26 November 2026)
+
+**App**
+- **Fix: the app would not open on some Windows PCs** ("VCRUNTIME140.dll was not found" message): it no longer needs Microsoft's Visual C++ Redistributable.
+- **Fix: the app could freeze** ("The app is not responding" banner, "Checking..." that never ends, buttons doing nothing, Quit not closing anything), then close by itself after 3 minutes, sometimes in the middle of the installation. The app now answers several requests at once, as before v2.17.
+
+**Staff**
+- **Staff search: the training stars of each coaching category, for all staff, even outside your club**: right click on the headers > Insert column > "Staff stars" group. 9 columns, in the order of the Coaching Assignments screen (Attacking Tactical, Attacking Technical, Defending Tactical, Defending Technical, Possession Tactical, Possession Technical, Goalkeeping, Fitness, Set Pieces), with the game's gold stars. The calculation is the game's own: same stars as in Coaching Assignments for a coach working on a single category (FM removes some when the coach has several).
+- **Sort by clicking the header** (highest to lowest, then the reverse). FM can only sort on one of the staff member's attributes, not on a calculation: the sort uses the attribute that counts most in the category (Goalkeeping for Goalkeeping, Attacking for Attacking Tactical...). Two staff members close on that attribute can therefore end up out of order of their stars.
 
 ### v2.17 (26 November 2026)
 

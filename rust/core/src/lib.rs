@@ -88,6 +88,7 @@ pub mod tables;
 pub mod tactiques_boutons;
 pub mod tactiques_efficacite_small;
 pub mod temperament;
+pub mod etoiles_staff;
 pub mod temperament_infos;
 pub mod texture;
 pub mod theme_fond;

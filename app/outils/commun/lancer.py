@@ -78,6 +78,10 @@ def nettoyer_guru():
 def lancer(nom, *args):
     """lance un script dans son propre processus (un passage par modèle) ; renvoie son code"""
     sys.stdout.flush()
+    if not os.path.exists(chemin_script(nom)):   # fonction écrite en Rust seulement (2026-11-26 : etoiles_staff)
+        print(T(f"{nom} : fonction de l'app seulement (Rust), ignorée ici",
+                f"{nom}: app-only feature (Rust), skipped here"), flush=True)
+        return 0
     return subprocess.run([sys.executable, chemin_script(nom)] + list(args)).returncode
 
 

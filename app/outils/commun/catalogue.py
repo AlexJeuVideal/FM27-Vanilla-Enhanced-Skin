@@ -159,6 +159,28 @@ FONCTIONS = {
     "staff_fiche": dict(cat="staff",
                         fr="Fiche et infobulle staff : médias + réputation sous Personnalité",
                         en="Staff profile and tooltip: media + reputation under Personality"),
+    # 2026-11-26 : en Rust seulement (pas de script Python : app seule) ; textes : nom du groupe du menu
+    "etoiles_staff": dict(cat="staff", textes=True,
+                          fr="Recherche de staff : groupe « Étoiles staff » dans Insérer colonne. Étoiles "
+                             "d'entraînement par atelier, comme l'écran Affectations des entraîneurs, pour TOUT le staff "
+                             "(même hors du club). Clic sur le titre : tri du plus haut au plus bas, puis l'inverse",
+                          en="Staff search: « Staff stars » group in Insert column. Training stars per category, like "
+                             "the Coach Assignments screen, for ALL staff (even outside your club). Click the header: "
+                             "sorted highest to lowest, then the reverse",
+                          aide=("Pourquoi un membre du staff avec plus d'étoiles peut être rangé en dessous : FM ne "
+                                "sait trier que sur un chiffre du membre du staff, pas sur un calcul. Le tri se fait "
+                                "donc sur l'attribut qui compte le plus dans l'atelier (x6 : Offensif pour la Tactique "
+                                "offensive, Gardien pour Gardien...). Les étoiles, elles, ajoutent l'attribut x3 et "
+                                "Motiver + Détermination + Autorité (x2) : à attribut x6 égal ou proche, ceux-là ne "
+                                "départagent pas. Les étoiles sont celles d'un entraîneur sur un seul atelier : FM en "
+                                "enlève s'il en a plusieurs (charge de travail).",
+                                "Why a staff member with more stars can be listed below: FM can only sort on one of "
+                                "the staff member's numbers, not on a calculation. So the sort uses the attribute that "
+                                "counts most for the category (x6: Attacking for Attacking Tactical, Goalkeeping for "
+                                "Goalkeeping...). The stars also add the x3 attribute and Motivating + Determination + "
+                                "Authority (x2): when the x6 attribute is equal or close, those don't decide the order. "
+                                "The stars are those of a coach on a single category: FM lowers them when he has "
+                                "several (workload).")),
     "couleurs_staff_comme_joueurs": dict(cat="staff", marqueur="couleurs_staff",
                                          fr="Couleurs des notes du staff = celles des joueurs",
                                          en="Staff rating colours = player attribute colours"),
@@ -598,6 +620,8 @@ OU = {
     "staff_fm24": ("Club > Staff", "Club > Staff"),
     "staff_fiche": ("Fiche staff, survol d'un membre du staff", "Staff profile, hovering a staff member"),
     "couleurs_staff_comme_joueurs": ("Fiche staff, Club > Staff", "Staff profile, Club > Staff"),
+    "etoiles_staff": ("Recrutement > Recrutement du staff (clic droit > Insérer colonne)",
+                      "Scouting > Staff Recruitment (right click > Insert column)"),
     "club_bandeau_installations": ("Club > Vue d'ensemble", "Club > Overview"),
     "club_page_bas": ("Club > Vue d'ensemble", "Club > Overview"),
     "salle_trophees": ("Club > Vue d'ensemble", "Club > Overview"),
@@ -698,6 +722,7 @@ ORDRE_SKIN = [
     "attributs_tout_cocher", "nation_drapeau_seul", "suspensions_noms_courts",
     "tuile_forme", "fiche_ordre_tuiles", "tuile_carriere", "fiche_contexte_equipe",
     "moral_icone_seule",
+    "etoiles_staff",   # Rust seulement : après moral_icone_seule (qui refait ui-tablefactories ; il la rappelle aussi)
     "recruteurs_colonnes",   # v3 : après moral_icone_seule (qui refait ui-tablefactories depuis l'original : sa
     # fabrique) ; seul sur RecruitmentFocusAssignScoutAnalystDialog, ses 2 vues et ses 2 collections
     "rencontres_place_championnat",
@@ -791,9 +816,10 @@ SUIVANTS = {
     # + entrainement_individuel_equipes (2026-11-26) : 26.15 v13 met la vue Détails dans la collection
     #   PlayerIndividualTrainingTableCollection-PhoneLandscape (ui-tableviews) ; remise d'origine, l'écran la citerait
     #   avec les vues du téléphone
+    # + etoiles_staff (2026-11-26) : son groupe au menu de la recherche de staff (ui-tableviews)
     "colonne_personnalite": ["colonne_temperament", "colonnes_separateur", "recruteurs_colonnes",
-                             "entrainement_individuel_equipes"],
-    "recherches_ciblees": ["colonne_temperament", "colonnes_separateur"],
+                             "entrainement_individuel_equipes", "etoiles_staff"],
+    "recherches_ciblees": ["colonne_temperament", "colonnes_separateur", "etoiles_staff"],
     "kinito_capitaines_vues": ["colonnes_separateur"],
     "rencontres_stade_spectateurs": ["colonnes_separateur"],
     # la tuile unique réécrit FinanceOverviewGraphsBlock depuis l'original : les points des courbes sont refaits dessus
@@ -850,6 +876,8 @@ ESSAIS = ["essai_noms_installations", "essai_retour_entrainement", "essai_ids_at
           "essai_continuer_club",     # 2026-11-11 : bouton Continuer à la couleur du club (comme FM24)
           "essai_selection_top50",    # 2026-11-13 : devenu recrutement\selection_top50 ; gardé pour retirer l'essai
           "essai_salle_honneurs"]     # 2026-11-15 : Honneurs du club = salle des trophées (fond IA + étagères)
+# (essai_etoiles_staff v1-v10 : devenu la fonction etoiles_staff le 2026-11-26, en Rust seulement ; script supprimé ;
+#  la fonction réécrit par-dessus la cellule, les colonnes et le groupe de l'essai)
 # (essai_echelle_1080p : devenu affichage\echelle_1080p.py le 2026-11-12, script supprimé ; la fonction coupée
 #  enlève au choix 1 un patch de GameAssembly.dll resté ; ses v1 / v2 (boutons, scène) déjà remises chez le joueur)
 # (essai_competition_vue : devenu competition\competition_vue.py le 2026-11-20 (v31), script supprimé ; même préfixe
