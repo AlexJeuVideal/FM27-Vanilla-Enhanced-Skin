@@ -12,6 +12,8 @@ name: Release
 on:
   push:
     tags: ["v*"]
+    # main : compilation seule (remplit le cache Rust, que les tags ne partagent pas entre eux) ; pas de release
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -22,6 +24,8 @@ jobs:
     runs-on: windows-latest
     env:
       SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+      # vraie release : tag ou lancement à la main (push sur main = compilation seule)
+      RELEASE: ${{ github.ref_type == 'tag' || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -32,6 +36,14 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-gnu,aarch64-apple-darwin,x86_64-apple-darwin
+
+      # crates déjà compilées gardées d'une fois sur l'autre (même clé pour main et les tags)
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: fm27
+          workspaces: |
+            moteur_rust -> target
+            rust/serveur -> target
 
       - name: Version
         id: version
@@ -87,7 +99,7 @@ jobs:
 
       - name: App Windows non signée (artefact)
         id: app_brute
-        if: ${{ env.SIGNPATH_API_TOKEN != '' }}
+        if: ${{ env.SIGNPATH_API_TOKEN != '' && env.RELEASE == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: app
@@ -95,7 +107,7 @@ jobs:
           if-no-files-found: error
 
       - name: Signature SignPath de l'app
-        if: ${{ env.SIGNPATH_API_TOKEN != '' }}
+        if: ${{ env.SIGNPATH_API_TOKEN != '' && env.RELEASE == 'true' }}
         uses: signpath/github-action-submit-signing-request@v1
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
@@ -107,7 +119,7 @@ jobs:
           output-artifact-directory: app_signee
 
       - name: App signée à la place de la brute
-        if: ${{ env.SIGNPATH_API_TOKEN != '' }}
+        if: ${{ env.SIGNPATH_API_TOKEN != '' && env.RELEASE == 'true' }}
         shell: pwsh
         run: Copy-Item app_signee/fm27-serveur.exe app/outils/app/ -Force
 
@@ -129,7 +141,7 @@ jobs:
           if-no-files-found: error
 
       - name: Signature SignPath
-        if: ${{ env.SIGNPATH_API_TOKEN != '' }}
+        if: ${{ env.SIGNPATH_API_TOKEN != '' && env.RELEASE == 'true' }}
         uses: signpath/github-action-submit-signing-request@v1
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
@@ -141,15 +153,17 @@ jobs:
           output-artifact-directory: signe
 
       - name: Setup signé à la place du brut
-        if: ${{ env.SIGNPATH_API_TOKEN != '' }}
+        if: ${{ env.SIGNPATH_API_TOKEN != '' && env.RELEASE == 'true' }}
         shell: pwsh
         run: Copy-Item signe/*Setup.exe dist/ -Force
 
       - name: Texte de la release (depuis les NOTES)
+        if: ${{ env.RELEASE == 'true' }}
         shell: pwsh
         run: python installeur/notes_release.py "app/NOTES DE MISE A JOUR.md" "${{ steps.version.outputs.version }}" corps.md
 
       - name: Release (brouillon / draft)
+        if: ${{ env.RELEASE == 'true' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.version }}
