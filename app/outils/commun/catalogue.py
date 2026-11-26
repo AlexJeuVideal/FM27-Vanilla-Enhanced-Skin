@@ -334,6 +334,11 @@ FONCTIONS = {
     "tactiques_boutons": dict(cat="tactiques", textes=True,   # v7 : (D) / (E) des prochains adversaires
                               fr="Boutons Effectif / Programme des rencontres à gauche de Conseil",
                               en="Squad / Fixture Schedule buttons left of Advice"),
+    "tactiques_efficacite_small": dict(cat="tactiques",   # 2026-11-26 (le joueur)
+                                       fr="Efficacité tactique dans l'espace vide sous le terrain (affichage "
+                                          "Small, hors match)",
+                                       en="Tactical Effectiveness in the empty space under the pitch (Small "
+                                          "display, outside matches)"),
     # --- Match ---
     "match_haut": dict(cat="match",
                        fr="Bandeau du haut : nouveau tableau de score à gauche (logos, couleurs des maillots), "
@@ -618,7 +623,9 @@ OU = {
                               "Inbox (youth intake message) > Youth Candidates"),
     "entrainement_equipes": ("Calendrier > Entraînement / Rencontres", "Calendar > Training / Fixtures"),
     "entrainement_individuel_equipes": _INDIV, "entrainement_individuel_boutons": _INDIV, "entrainement_pouces": _INDIV,
-    "photos_tactiques": _TACT, "tactiques_forme_valeur": _TACT, "tactiques_boutons": _TACT,    "match_haut": ("Match en direct", "Live match"), "photos_match": ("Match en direct", "Live match"),
+    "photos_tactiques": _TACT, "tactiques_forme_valeur": _TACT, "tactiques_boutons": _TACT,
+    "tactiques_efficacite_small": ("Tactiques > Positionnement de l'équipe", "Tactics > Team Shape"),
+    "match_haut": ("Match en direct", "Live match"), "photos_match": ("Match en direct", "Live match"),
     "match_cartons_buts": ("Match en direct (formations)", "Live match (formations)"),
     "match_camera_limites": ("Match en direct > Caméra", "Live match > Camera"),
     "match_vitesses": ("Match en direct > Temps forts", "Live match > Highlights"),
@@ -698,6 +705,7 @@ ORDRE_SKIN = [
     "entrainement_pouces", "staff_fm24", "entrainement_equipes", "effectif_boutons_entrainement",
     "entrainement_individuel_equipes", "prochain_match_domicile", "tactiques_forme_valeur",
     "tactiques_boutons", "effectif_equipes",
+    "tactiques_efficacite_small",   # seul écrivain de TacticalPlannerCollapsablePitchesDouble (repart de l'original)
     "effectif_repos_equipe",   # après effectif_boutons_entrainement / effectif_equipes (repartent de l'original)
     "couleurs_interface",   # après tactiques_boutons : couleurs du bandeau des Tactiques (TacticalPlannerHeader)
     "connaissance_couleurs",   # passe par couleurs_interface.ecrire_styles (même bundles de styles)

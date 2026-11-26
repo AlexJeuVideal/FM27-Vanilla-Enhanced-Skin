@@ -32,6 +32,7 @@ import noms_reels  # noqa: E402  (bases, racine_db, nom des .lnc de FM Scout)
 NOM_LNC = "UIPicker sigles 3 lettres.lnc"
 LNC_SCOUT = "FM27 Club Names by FMScout.lnc"
 CACHE = os.path.join(chemin_jeu.BACKUP_DIR, "sigles_clubs")
+CACHE_V = 3   # v2 : sigles des réserves (club de base + 2 / B) ; v3 : + U19 / U21…, nom long obligatoire
 ZSTD = b"\x28\xb5\x2f\xfd"
 TETE = b"\x03\x01tad."
 SIGLE = re.compile(r"^[^\"\r\n\t]{1,6}$")
@@ -52,22 +53,56 @@ def _table_clubs(b):
         return None
     try:
         nb = struct.unpack_from("<I", b, 8)[0]
-        p, res = 12, {}
+        p, res, fiches = 12, {}, []
         for _ in range(nb):
             cid = struct.unpack_from("<I", b, p)[0]
             p += 4
-            _, p = _chaine(b, p); p += 1          # nom long
-            _, p = _chaine(b, p); p += 1          # nom court
-            _, p = _chaine(b, p)                  # 6 lettres
+            lo, p = _chaine(b, p); p += 1         # nom long
+            co, p = _chaine(b, p); p += 1         # nom court
+            s6, p = _chaine(b, p)                 # 6 lettres
             s3, p = _chaine(b, p)                 # 3 lettres
             _, p = _chaine(b, p); p += 1          # 3 lettres alt
             _, p = _chaine(b, p); p += 4          # surnom
             _, p = _chaine(b, p)                  # nom en plus
             if s3:
                 res[cid] = s3
+            fiches.append((cid, lo, co, s6))
     except (ValueError, UnicodeDecodeError, struct.error):
         return None
-    return res if p == len(b) else None
+    if p != len(b):
+        return None
+    res.update(_reserves(fiches, res))
+    return res
+
+
+# réserve (2 / 3 / B / C / II / III) ou équipe de jeunes (U19, U-21, Under 19s, Sub-17) en fin de nom
+RESERVE = re.compile(r"^(.+?)[ /]+(2|3|B|C|II|III|(?:U|U-|Under |Sub-?)(\d{2})s?)$")
+SUFFIXE = {"II": "2", "III": "3"}
+
+
+def _reserves(fiches, res):
+    """{id réserve / jeunes: 3 premiers caractères du sigle du club de base + 2 / 3 / B / C / 19 / 21…} (4 ou 5
+    caractères) : FM montrait « 2 » seul au tableau de score pour une réserve (QRM 2 : sigle anglais « QUE »).
+    Le NOM LONG doit finir par le suffixe (« Kolding Boldklub », court « Kolding B », n'est pas une réserve) ; club de
+    base trouvé par le nom long sans suffixe, sinon le court, sinon le 6 lettres"""
+    index = [{}, {}, {}]
+    for cid, *noms in fiches:
+        if cid in res:
+            for k, n in enumerate(noms):
+                index[k].setdefault(n.casefold(), res[cid])
+    out = {}
+    for cid, *noms in fiches:
+        m = RESERVE.match(noms[0])
+        if not m:
+            continue
+        suffixe = m.group(3) or SUFFIXE.get(m.group(2), m.group(2))
+        for k, n in enumerate(noms):
+            mk = RESERVE.match(n)
+            base = mk and index[k].get(mk.group(1).casefold())
+            if base:
+                out[cid] = base[:3] + suffixe   # SRFC -> SRF2, Aarau U19 -> AAR19
+                break
+    return out
 
 
 def longueur_trame(b, j):
@@ -140,7 +175,7 @@ def sigles_de(lang_db, cache_seul=False):
     try:
         with open(p, encoding="utf-8") as f:
             c = json.load(f)
-        if c["taille"] == st.st_size and c["date"] == int(st.st_mtime):
+        if c["taille"] == st.st_size and c["date"] == int(st.st_mtime) and c.get("v") == CACHE_V:
             if c.get("echec"):
                 raise ValueError(c["echec"])
             return {int(k): v for k, v in c["sigles"].items()}
@@ -157,7 +192,8 @@ def sigles_de(lang_db, cache_seul=False):
         s, echec = {}, str(e)
     os.makedirs(CACHE, exist_ok=True)
     with open(p + ".tmp", "w", encoding="utf-8") as f:
-        json.dump({"taille": st.st_size, "date": int(st.st_mtime), "sigles": s, "echec": echec}, f, ensure_ascii=False)
+        json.dump({"v": CACHE_V, "taille": st.st_size, "date": int(st.st_mtime), "sigles": s, "echec": echec}, f,
+                  ensure_ascii=False)
     os.replace(p + ".tmp", p)
     if echec:
         raise ValueError(echec)

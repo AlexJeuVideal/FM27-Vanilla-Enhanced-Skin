@@ -6,6 +6,15 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.16 (26 novembre 2026)
+
+**Tactiques**
+- **Efficacité tactique sous le terrain (affichage Small)** : dans Positionnement de l'équipe, l'espace vide sous le terrain affiche maintenant l'efficacité de la tactique : nom, niveau global, compréhension tactique, niveau des joueurs, adhésion et infos sur le prochain match, avec leurs jauges. Hors match seulement.
+
+**Match**
+- **Sigles à 3 lettres : les équipes réserve et de jeunes ont enfin un vrai sigle au tableau de score** : contre certaines réserves, le tableau n'affichait que « 2 ». Elles prennent maintenant le sigle de leur club de base suivi du numéro ou de l'âge : QRM 2 → QRM2, Rodez 2 → RAF2, Aarau U19 → FCA19 (5 caractères au plus).
+- **Important : si tu avais posé les sigles, repose-les** : dans l'app, page « Sigles à 3 lettres (scoreboard) », clique « Refaire » (FM fermé). Sinon tu gardes l'ancienne version.
+
 ### v2.15 (26 novembre 2026)
 
 **Recrutement**
@@ -1278,6 +1287,15 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.16 (26 November 2026)
+
+**Tactics**
+- **Tactical Effectiveness under the pitch (Small display)**: in Team Shape, the empty space under the pitch now shows the tactic's effectiveness: name, overall level, tactical understanding, player ability, player buy-in and next match info, with their gauges. Outside matches only.
+
+**Match**
+- **3-letter names: reserve and youth teams finally get a real one on the scoreboard**: against some reserve teams, the scoreboard only showed « 2 ». They now take their parent club's 3-letter name followed by the team number or age: QRM 2 → QRM2, Rodez 2 → RAF2, Aarau U19 → FCA19 (5 characters at most).
+- **Important: if you had installed the 3-letter names, install them again**: in the app, « 3-letter names (scoreboard) » page, click « Redo » (FM closed). Otherwise you keep the old version.
 
 ### v2.15 (26 November 2026)
 

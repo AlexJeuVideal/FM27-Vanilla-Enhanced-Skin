@@ -1571,5 +1571,7 @@
 "999": "Oscuro suave",
 "1608": "Ojeador / analista asignado: vistas personalizadas (toda la información del personal en Insertar columna), ancho y orden de columnas ajustables",
 "1609": "Entrenamiento individual: equipos del club (enlaces en Grande, botones en Mediano / Pequeño), pestaña Informe de entrenamiento, pulgares, lista más ancha en Grande (con Kinito). Vista Detalles personalizable: anchos guardados y clic derecho > Insertar columna (Trato con los medios incluido: la antigua opción se ha quitado, añádela a mano)",
-"1610": "Ancho de columnas: en las tablas añadidas o cambiadas por el skin, puedes ajustar el ancho de las columnas a mano (arrastra el borde de un encabezado). En las tablas con vistas personalizadas (Entrenamiento individual, Ojeador / analista asignado…) se guarda, y el clic derecho > Insertar columna te deja elegir tus columnas. En las demás, todavía no: al salir de la pantalla, FM vuelve a poner los anchos del skin."
+"1610": "Ancho de columnas: en las tablas añadidas o cambiadas por el skin, puedes ajustar el ancho de las columnas a mano (arrastra el borde de un encabezado). En las tablas con vistas personalizadas (Entrenamiento individual, Ojeador / analista asignado…) se guarda, y el clic derecho > Insertar columna te deja elegir tus columnas. En las demás, todavía no: al salir de la pantalla, FM vuelve a poner los anchos del skin.",
+"1611": "Eficacia táctica en el espacio vacío bajo el campo (vista Pequeña, fuera de los partidos)",
+"1612": "Tácticas > Forma del equipo"
 }
