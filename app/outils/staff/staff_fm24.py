@@ -164,6 +164,23 @@ MENU_DIRIGEANTS = "SpeakToActionsDropdownWidgetWithDisable"
 MENU_ICONE = ("dropdown-base-regular-leading-icon-trailing-icon", "f7217175ef98e1842ae4d6813fabdf7c")
 # éléments du menu avec texte -> mêmes éléments du menu sans texte (surcharges : actions, icône ; le texte est retiré)
 MENU_IDS = {619928808: -1492516038, 1690305146: -422139700}
+# v2.19 : ids du build Windows ; ailleurs (Mac) relus par nom dans les deux modèles FM du menu (MENU_IDS en secours)
+MENU_MODELES = ("dropdown-base-regular-leading-icon-trailing-icon-label", "dropdown-base-regular-leading-icon-trailing-icon")
+MENU_NOMS = ("dropdown-base-regular-leading-icon-trailing-icon-label", "leading-icon")
+
+
+def menu_ids():
+    a, b = (ouvrir(m) for m in MENU_MODELES)
+    if a and b:
+        ta, tb = a[3], b[3]
+
+        def id_de(t, nom):
+            r = first(t, lambda r: t.name(r) == nom)
+            return None if r is None else t.elem(r).get("m_Id")
+        lus = {id_de(ta, n): id_de(tb, n) for n in MENU_NOMS}
+        if len(lus) == len(MENU_NOMS) and None not in lus and None not in lus.values():
+            return lus
+    return dict(MENU_IDS)
 # v17 (demande du 2026-11-12) : tuiles « Base de données staff » et « Affectations des entraîneurs » retirées des 3
 # onglets (la base de données reste dans la Vue d'ensemble) ; la comparaison prend leur place jusqu'au bord droit.
 # À la place : un bouton FM « Affectations des entraîneurs » à gauche des boutons du bloc des postes, préparateurs
@@ -367,6 +384,7 @@ class Sources:
         self.mt = o and o[3]
         mt = self.mt
         self.menu_vars = mt and first(mt, lambda r: typ(mt, r) == "BindingVariables")
+        self.menu_ids = menu_ids()
         o = ouvrir(MODELES[0], depart_original=True)
         self.ct = o and o[3]
         ct = self.ct
@@ -778,7 +796,7 @@ def boutons_en_haut(t, src, p, marge, affectations=False):
     dinc = next(r for r in t.walk(vars_menu) if t.elem(r).get("m_TemplateAlias"))
     surcharges = []
     for o in t.elem(winc)["m_SerializedDataOverride"]:   # celles du bloc des boutons (texte, icône, actions)
-        nouveau = MENU_IDS.get(o["m_ElementId"])
+        nouveau = src.menu_ids.get(o["m_ElementId"])
         if nouveau is None:
             continue   # le texte : le menu sans texte n'en a pas
         ref = copy.deepcopy(t.refs[o["m_SerializedData"]["rid"]])

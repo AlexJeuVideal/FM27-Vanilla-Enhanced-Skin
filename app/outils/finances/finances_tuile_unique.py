@@ -126,6 +126,17 @@ def surcharge(t, element_id):
         for ov in t.elem(r).get("m_SerializedDataOverride") or []:
             if ov.get("m_ElementId") == element_id:
                 return t.refs[ov["m_SerializedData"]["rid"]]["data"]
+    # v2.19 : ids différents sur Mac (uxmlAssetId recalculé à l'import) -> par le type de la donnée, sur le cadre tile-…
+    classe = {OV_EVENTS: "SIButton/", OV_TITRE: "SIText/"}.get(element_id)
+    if classe is None:
+        return None
+    for r in t.walk():
+        if not str(t.elem(r).get("m_TemplateAlias") or "").startswith("tile-"):
+            continue
+        trouves = [t.refs[ov["m_SerializedData"]["rid"]] for ov in t.elem(r).get("m_SerializedDataOverride") or []]
+        trouves = [x for x in trouves if (x.get("type") or {}).get("class", "").startswith(classe)]
+        if len(trouves) == 1:
+            return trouves[0]["data"]
     return None
 
 
@@ -294,8 +305,12 @@ class Tuile:
         clics = [s and surcharge(s, OV_EVENTS) for s in liens]
         clic_dettes = sd_ and surcharge(sd_, OV_EVENTS)   # page Dettes et emprunts
         noms_liens = [s and surcharge(s, OV_TITRE) for s in liens]
-        if None in (budgets, dettes, bouton, titre_budgets, clic_dettes, *clics, *noms_liens):
-            return "morceaux FM introuvables (budgets / dettes / bouton / tuiles Clauses, Sponsors)"
+        morceaux = {"Frame": budgets, DETTES: dettes, BOUTON: bouton, "titre budgets": titre_budgets,
+                    "clic dettes": clic_dettes, "clic Clauses": clics[0], "clic Sponsors": clics[1],
+                    "titre Clauses": noms_liens[0], "titre Sponsors": noms_liens[1]}
+        manque = [k for k, v in morceaux.items() if v is None]
+        if manque:
+            return f"morceaux FM introuvables ({', '.join(manque)}), ignoré"
         recrutement_vis = t.parent[self.recrutement]
         if typ(t, recrutement_vis) != "SIVisible":
             return "bouton du budget de recrutement : forme inattendue (introuvable)"

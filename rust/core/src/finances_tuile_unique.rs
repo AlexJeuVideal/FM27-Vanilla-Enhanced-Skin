@@ -83,16 +83,48 @@ fn nomme(t: &Modele, n: &str, root: Option<i64>) -> Option<i64> {
     premier(t, root, |m, r| m.nom(r) == n)
 }
 
+/// Surcharge du cadre de tuile FM : par l'id d'élément vu sur Windows, sinon (ids différents sur Mac : uxmlAssetId
+/// recalculé à l'import) par le type de la donnée (SIButton = clic du titre, SIText = texte du titre) sur l'instance
+/// du cadre (`tile-…`).
 fn surcharge(t: &Modele, element_id: i64) -> Option<Value> {
-    for r in t.parcours(None) {
-        if let Some(ovs) = t.elem(r).and_then(|e| e.get("m_SerializedDataOverride")).and_then(Value::as_list) {
-            for ov in ovs {
-                if ov.get("m_ElementId").and_then(Value::as_i64) == Some(element_id) {
-                    if let Some(rid) = ov.get("m_SerializedData").and_then(rid_de) {
-                        return t.elem(rid).cloned();
-                    }
+    let parcours = t.parcours(None);
+    let ovs_de = |r: i64| -> Vec<Value> {
+        t.elem(r)
+            .and_then(|e| e.get("m_SerializedDataOverride"))
+            .and_then(Value::as_list)
+            .map(|l| l.to_vec())
+            .unwrap_or_default()
+    };
+    for &r in &parcours {
+        for ov in ovs_de(r) {
+            if ov.get("m_ElementId").and_then(Value::as_i64) == Some(element_id) {
+                if let Some(rid) = ov.get("m_SerializedData").and_then(rid_de) {
+                    return t.elem(rid).cloned();
                 }
             }
+        }
+    }
+    let classe = match element_id {
+        OV_EVENTS => "SIButton/",
+        OV_TITRE => "SIText/",
+        _ => return None,
+    };
+    for &r in &parcours {
+        let cadre = t
+            .elem(r)
+            .and_then(|e| e.get("m_TemplateAlias"))
+            .and_then(Value::as_str)
+            .is_some_and(|a| a.starts_with("tile-"));
+        if !cadre {
+            continue;
+        }
+        let trouves: Vec<i64> = ovs_de(r)
+            .iter()
+            .filter_map(|ov| ov.get("m_SerializedData").and_then(rid_de))
+            .filter(|&rid| t.type_ref(rid).is_some_and(|c| c.starts_with(classe)))
+            .collect();
+        if let [rid] = trouves[..] {
+            return t.elem(rid).cloned();
         }
     }
     None
@@ -353,6 +385,25 @@ impl<'a> Tuile<'a> {
         let nom0 = lien0.as_ref().and_then(|o| surcharge(&o.t, OV_TITRE));
         let nom1 = lien1.as_ref().and_then(|o| surcharge(&o.t, OV_TITRE));
 
+        let manque: Vec<&str> = [
+            (sb.is_none(), BUDGETS_SOURCE),
+            (sd_o.is_none(), DETTES_SOURCE),
+            (sbt.is_none(), BOUTON_SOURCE),
+            (lien0.is_none(), LIENS[0]),
+            (lien1.is_none(), LIENS[1]),
+            (budgets.is_none(), "Frame"),
+            (dettes.is_none(), DETTES),
+            (bouton.is_none(), BOUTON),
+            (titre_budgets.is_none(), "titre budgets"),
+            (clic_dettes.is_none(), "clic dettes"),
+            (clic0.is_none(), "clic Clauses"),
+            (clic1.is_none(), "clic Sponsors"),
+            (nom0.is_none(), "titre Clauses"),
+            (nom1.is_none(), "titre Sponsors"),
+        ]
+        .into_iter()
+        .filter_map(|(m, n)| m.then_some(n))
+        .collect();
         let (
             Some(sb),
             Some(sd_o),
@@ -368,7 +419,7 @@ impl<'a> Tuile<'a> {
             Some(nom1),
         ) = (sb, sd_o, sbt, budgets, dettes, bouton, titre_budgets, clic_dettes, clic0, clic1, nom0, nom1)
         else {
-            return Ok(Some("morceaux FM introuvables (budgets / dettes / bouton / tuiles Clauses, Sponsors)".into()));
+            return Ok(Some(format!("morceaux FM introuvables ({}), ignoré", manque.join(", "))));
         };
 
         let Some(recrutement_vis) = self.o.t.parent_de(self.recrutement) else {

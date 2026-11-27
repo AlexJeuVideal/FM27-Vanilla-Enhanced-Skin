@@ -6,6 +6,12 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.19 (27 novembre 2026)
+
+**Mac**
+- **Correction : « Vue d'ensemble en une seule tuile » (Club > Finances) ne s'installait jamais sur Mac** (message « morceaux FM introuvables »). Le skin retrouvait certains morceaux de FM par des repères propres à la version Windows du jeu : il les cherche maintenant par leur nom et leur type, ce qui marche sur toutes les versions. Si un morceau manque encore, le message dit lequel.
+- **Correction : menu « Demande aux dirigeants » des écrans du staff façon FM24 sur Mac** : même cause, il pouvait perdre ses actions et son icône sans aucun message. Même correction.
+
 ### v2.18 (26 novembre 2026)
 
 **App**
@@ -1305,6 +1311,12 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.19 (27 November 2026)
+
+**Mac**
+- **Fix: "Overview in a single tile" (Club > Finances) never installed on Mac** ("FM pieces not found" message). The skin found some FM pieces through markers specific to the Windows version of the game: it now looks for them by name and type, which works on every version. If a piece is still missing, the message says which one.
+- **Fix: "Speak to the board" menu of the FM24-style staff screens on Mac**: same cause, it could lose its actions and icon without any message. Same fix.
 
 ### v2.18 (26 November 2026)
 

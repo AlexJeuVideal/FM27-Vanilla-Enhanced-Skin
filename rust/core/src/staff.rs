@@ -68,6 +68,26 @@ const BOUTONS_LIGNE: &str = "LargeResBoardActions";
 const MENU_DIRIGEANTS: &str = "SpeakToActionsDropdownWidgetWithDisable";
 const MENU_ICONE: (&str, &str) = ("dropdown-base-regular-leading-icon-trailing-icon", "f7217175ef98e1842ae4d6813fabdf7c");
 const MENU_IDS: [(i64, i64); 2] = [(619928808, -1492516038), (1690305146, -422139700)];
+/// Modèles FM derrière MENU_IDS (menu avec texte -> sans texte) et noms des éléments repris : les ids ci-dessus sont
+/// ceux du build Windows ; ailleurs (Mac) ils sont relus par nom.
+const MENU_MODELES: (&str, &str) =
+    ("dropdown-base-regular-leading-icon-trailing-icon-label", "dropdown-base-regular-leading-icon-trailing-icon");
+const MENU_NOMS: [&str; 2] = ["dropdown-base-regular-leading-icon-trailing-icon-label", "leading-icon"];
+
+/// Correspondance d'ids du menu avec texte vers le menu sans texte, lue dans les modèles FM (MENU_IDS en secours).
+fn menu_ids(l: &Lecture) -> Result<Vec<(i64, i64)>> {
+    let id_de = |t: &Modele, nom: &str| -> Option<i64> {
+        premier(t, None, |t, r| t.nom(r) == nom).and_then(|r| t.elem(r)).and_then(|e| e.get("m_Id")).and_then(Value::as_i64)
+    };
+    let (a, b) = (l.ouvrir(MENU_MODELES.0, false)?, l.ouvrir(MENU_MODELES.1, false)?);
+    if let (Some(a), Some(b)) = (a, b) {
+        let lus: Vec<(i64, i64)> = MENU_NOMS.iter().filter_map(|n| Some((id_de(&a.t, n)?, id_de(&b.t, n)?))).collect();
+        if lus.len() == MENU_NOMS.len() {
+            return Ok(lus);
+        }
+    }
+    Ok(MENU_IDS.to_vec())
+}
 const AFFECTATIONS_MONTER: i64 = 0;
 const ICONE_PREPA: &str = "game-concepts-training-general_medium";
 const TITRE_ECART: f64 = 4.0;
@@ -456,6 +476,7 @@ struct Src {
     boutons: i64,
     mt: Ouvert,
     menu_vars: i64,
+    menu_ids: Vec<(i64, i64)>,
     ct: Ouvert,
     variables: i64,
     remapper: i64,
@@ -560,6 +581,7 @@ fn sources(l: &Lecture) -> Result<std::result::Result<Src, Vec<String>>> {
         boutons: boutons.unwrap(),
         mt: mt.unwrap(),
         menu_vars: menu_vars.unwrap(),
+        menu_ids: menu_ids(l)?,
         ct: ct.unwrap(),
         variables: variables.unwrap(),
         remapper: remapper.unwrap(),
@@ -968,7 +990,7 @@ fn boutons_en_haut(t: &mut Modele, f: &mut Feuille, src: &Src, p: i64, marge: (f
     let mut nouvelles = Vec::new();
     for o in surcharges(t, winc) {
         let id = o.get("m_ElementId").and_then(Value::as_i64).unwrap_or(0);
-        let Some(&(_, nouveau)) = MENU_IDS.iter().find(|(a, _)| *a == id) else { continue };
+        let Some(&(_, nouveau)) = src.menu_ids.iter().find(|(a, _)| *a == id) else { continue };
         let Some(r_old) = rid_sd(&o) else { continue };
         let mut r = t.reference(r_old).cloned().ok_or_else(|| Error("surcharge introuvable".into()))?;
         let nr = t.nouveau_rid();
