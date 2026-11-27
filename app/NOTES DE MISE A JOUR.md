@@ -6,6 +6,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.21 (27 novembre 2026)
+
+**Mac**
+- **Correction : les « Vues d'AlexJeuVideal » ne s'installaient pas sur Mac** (message « dossier des vues de FM introuvable »). L'app cherchait les vues de FM à l'emplacement de la version Windows du jeu : elle les pose maintenant dans le bon dossier du Mac (Bibliothèque > Application Support > Sports Interactive > Football Manager 27).
+
 ### v2.20 (27 novembre 2026)
 
 **Mac**
@@ -1320,6 +1325,11 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.21 (27 November 2026)
+
+**Mac**
+- **Fix: "AlexJeuVideal's views" did not install on Mac** ("FM views folder not found" message). The app looked for FM's views where the Windows version of the game keeps them: it now puts them in the right Mac folder (Library > Application Support > Sports Interactive > Football Manager 27).
 
 ### v2.20 (27 November 2026)
 

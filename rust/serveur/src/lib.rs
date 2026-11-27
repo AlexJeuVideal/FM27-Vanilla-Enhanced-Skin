@@ -714,7 +714,8 @@ impl Serveur {
         if let Ok(p) = std::env::var("FM27_VUES") {
             return PathBuf::from(p);
         }
-        if std::env::var_os("UIPICKER_PROFIL").is_some_and(|p| !p.is_empty()) {
+        // Mac : ~/Library/Application Support/... (le chemin AppData/LocalLow ci-dessous n'existe pas sur Mac)
+        if chemin_jeu::MAC || std::env::var_os("UIPICKER_PROFIL").is_some_and(|p| !p.is_empty()) {
             return chemin_jeu::donnees_fm(self.racine_jeu().as_deref());
         }
         let profil = match std::env::var("USERPROFILE") {
