@@ -483,10 +483,24 @@ fn ecarte(p: &Path) -> PathBuf {
     PathBuf::from(s)
 }
 
-/// copie `src` sur `dst` ; l'exécutable qui tourne ne peut pas être écrasé (Windows, Linux) mais peut être renommé
+/// copie `src` sur `dst` ; l'exécutable qui tourne ne peut pas être écrasé (Windows, Linux) mais peut être renommé.
+/// Mac / Linux : copie à côté puis renommage (nouveau fichier) ; réécrit sur place, le programme en cours garde sa
+/// signature en cache chez macOS, qui tue alors la nouvelle app à son lancement (jusqu'au redémarrage du Mac).
 fn poser(src: &Path, dst: &Path) -> std::io::Result<()> {
     if let Some(p) = dst.parent() {
         std::fs::create_dir_all(p)?;
+    }
+    #[cfg(unix)]
+    {
+        let mut s = dst.as_os_str().to_owned();
+        s.push(".nouveau");
+        let tmp = PathBuf::from(s);
+        let _ = std::fs::remove_file(&tmp);
+        let r = std::fs::copy(src, &tmp).and_then(|_| std::fs::rename(&tmp, dst));
+        if r.is_ok() {
+            return Ok(());
+        }
+        let _ = std::fs::remove_file(&tmp);
     }
     match std::fs::copy(src, dst) {
         Ok(_) => Ok(()),

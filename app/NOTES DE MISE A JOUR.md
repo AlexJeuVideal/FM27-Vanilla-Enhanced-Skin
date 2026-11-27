@@ -6,6 +6,15 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 
 ## Français
 
+### v2.20 (27 novembre 2026)
+
+**Mac**
+- **Correction : après une mise à jour automatique, l'app ne se relançait pas sur Mac** (page « Ce site est inaccessible », et l'app refusait de s'ouvrir jusqu'au redémarrage du Mac). La mise à jour remplaçait le programme de l'app pendant qu'il tournait, ce que macOS bloque : elle pose maintenant un nouveau fichier à la place. Pour cette mise à jour-ci, le souci peut encore arriver une dernière fois : ferme la fenêtre et relance « Lancer - Launch.command », plus besoin de redémarrer le Mac.
+
+**App**
+- **Si l'app ne se relance pas après une mise à jour**, la page le dit et explique quoi faire, au lieu d'afficher une page d'erreur.
+- **L'écran « Recherche de mises à jour… » ne tourne plus en rond sans explication** : si l'app ne répond pas au bout de 15 secondes (souvent un antivirus qui bloque son programme), un message dit quoi faire. L'app continue toute seule dès qu'elle répond.
+
 ### v2.19 (27 novembre 2026)
 
 **Mac**
@@ -1311,6 +1320,15 @@ Installation : voir `LISEZMOI.txt` / Installation: see `LISEZMOI.txt`.
 ---
 
 ## English
+
+### v2.20 (27 November 2026)
+
+**Mac**
+- **Fix: after an automatic update, the app did not restart on Mac** ("This site can't be reached" page, and the app refused to open until the Mac was restarted). The update replaced the app's program while it was running, which macOS blocks: it now puts a new file in its place. For this update, the problem can still happen one last time: close the window and run "Lancer - Launch.command" again, no need to restart the Mac.
+
+**App**
+- **If the app does not restart after an update**, the page says so and explains what to do, instead of showing an error page.
+- **The "Checking for updates…" screen no longer spins with no explanation**: if the app does not respond after 15 seconds (often an antivirus blocking its program), a message says what to do. The app carries on by itself as soon as it responds.
 
 ### v2.19 (27 November 2026)
 

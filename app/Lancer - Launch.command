@@ -11,6 +11,10 @@ mkdir -p backups
 
 # v2.17 : l'app est un programme (Rust, Mac Intel et Apple Silicon), plus besoin de Python
 if [ -f "outils/app/fm27-serveur-mac" ]; then
+  # recopie (nouveau fichier) : apres une MAJ ancienne (v2.19 et avant) qui l'a reecrit sur place, macOS le tuait
+  # au lancement jusqu'au redemarrage du Mac
+  cp -p "outils/app/fm27-serveur-mac" "outils/app/fm27-serveur-mac.nouveau" 2>/dev/null \
+    && mv -f "outils/app/fm27-serveur-mac.nouveau" "outils/app/fm27-serveur-mac"
   chmod 755 "outils/app/fm27-serveur-mac" 2>/dev/null
   echo "FM27 Vanilla Enhanced Skin : l'app s'ouvre (laisse cette fenetre ouverte) / the app is opening (keep this window open)"
   exec "outils/app/fm27-serveur-mac"

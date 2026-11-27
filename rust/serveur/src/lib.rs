@@ -322,6 +322,16 @@ impl Serveur {
                 .stdin(std::process::Stdio::null())
                 .stdout(std::process::Stdio::null())
                 .stderr(std::process::Stdio::null());
+            // Mac / Linux : hors de la session du Terminal du lanceur (sinon sa fermeture tue la nouvelle app)
+            #[cfg(unix)]
+            unsafe {
+                use std::os::unix::process::CommandExt;
+                c.pre_exec(|| {
+                    libc::setsid();
+                    libc::signal(libc::SIGHUP, libc::SIG_IGN);
+                    Ok(())
+                });
+            }
             let _ = c.spawn();
             std::process::exit(0);
         });

@@ -484,6 +484,7 @@
   .dem-charge { display: flex; flex-direction: column; align-items: center; gap: 18px; color: var(--texte-2); }
   .dem-charge img { width: 84px; height: 84px; border-radius: 18px; }
   .dem-charge .rond { width: 26px; height: 26px; border-width: 3px; }
+  #dem-lent { max-width: 520px; margin: 0; text-align: center; line-height: 1.5; }
   .dem-maj { width: min(620px, 100%); display: flex; flex-direction: column; gap: 14px; }
   .dem-maj .dem-tete { display: flex; align-items: center; gap: 14px; }
   .dem-maj .dem-tete img { width: 56px; height: 56px; border-radius: 12px; flex: none; }
@@ -749,7 +750,8 @@
 <body>
 <div class="decor" id="decor"></div>
 <div class="demarrage" id="demarrage">
-  <div class="dem-charge"><img src="/logo.png" alt="FM VE"><div class="rond"></div><span id="dem-texte"></span></div>
+  <div class="dem-charge"><img src="/logo.png" alt="FM VE"><div class="rond"></div><span id="dem-texte"></span>
+    <p id="dem-lent" class="aide" hidden></p></div>
 </div>
 <header class="haut">
   <div class="marque">
@@ -1768,8 +1770,12 @@ Object.assign(TXT, {
   majReinstaller: ["Réinstaller le skin", "Reinstall the skin"],
   majPlusTard: ["Plus tard", "Later"],
   majRedemarre: ["Mise à jour installée : l'app redémarre…", "Update installed: the app is restarting…"],
+  majRedemarreRate: ["La mise à jour est installée, mais l'app ne s'est pas relancée toute seule. Ferme cette fenêtre et relance l'app avec ton lanceur habituel.",
+    "The update is installed, but the app did not restart by itself. Close this window and start the app again with your usual launcher."],
   // écran de démarrage (recherche de mise à jour) et page « mise à jour » avant l'app
   demVerif: ["Recherche de mises à jour…", "Checking for updates…"],
+  demLent: ["L'app ne répond pas encore. Si ça dure plus d'une minute, ton antivirus bloque sans doute le programme de l'app (fm27-serveur) : ajoute le dossier de l'app à ses exceptions, puis relance l'app. Sinon, demande sur le Discord en joignant le fichier backups\\app.log du dossier de l'app.",
+    "The app is not responding yet. If this lasts more than a minute, your antivirus is probably blocking the app's program (fm27-serveur): add the app's folder to its exceptions, then restart the app. Otherwise, ask on the Discord and attach the backups\\app.log file from the app's folder."],
   demTitre: ["Mise à jour du skin disponible", "Skin update available"],
   demVersions: ["Tu as la {l} · nouvelle version : {v}", "You have {l} · new version: {v}"],
   demDanger: ["Installe-la avant de jouer", "Install it before playing"],
@@ -2287,7 +2293,8 @@ async function redemarrer() {
     await new Promise(r => setTimeout(r, 500));
     try { const d = await (await fetch("/api/etat")).json(); if (d.lance !== avant) return location.reload(); } catch { }
   }
-  location.reload();
+  // pas de nouvelle app : un message plutôt qu'une page « site inaccessible »
+  document.querySelector(".redemarrage").textContent = t("majRedemarreRate");
 }
 
 function boutonReseau(r, mini) {
@@ -4773,17 +4780,22 @@ $("#quitter").onclick = () => E && !E.tache.fini ? avis(t("quitterTache")) : con
 
 // ---------- démarrage : chargement le temps de chercher une mise à jour, puis page « mise à jour » ou l'app ----------
 const DEMARRAGE_MAX = 10000;   // GitHub trop lent : l'app s'ouvre quand même (le bandeau de l'Accueil prend le relais)
+const DEMARRAGE_LENT = 15000;  // pas de réponse du serveur au bout de 15 s : message d'aide sous le chargement
 async function demarrage() {
   const debut = Date.now();
   LG = langueNavigateur();
   await lireTraduction();
   $("#dem-texte").textContent = t("demVerif");
+  // v2.20 : serveur muet (antivirus, disque lent…) : le dire au lieu de tourner en rond (vu chez un joueur) ;
+  // l'app continue seule s'il finit par répondre
+  const lent = setTimeout(() => { const p = $("#dem-lent"); p.textContent = t("demLent"); p.hidden = false; }, DEMARRAGE_LENT);
   await charger();
   while (E && E.maj?.etat === "verif" && Date.now() - debut < DEMARRAGE_MAX) {
     $("#dem-texte").textContent = t("demVerif");   // langue du joueur une fois l'état lu
     await new Promise(r => setTimeout(r, 400));
     await charger(false);
   }
+  clearTimeout(lent); $("#dem-lent").hidden = true;
   await new Promise(r => setTimeout(r, Math.max(0, 700 - (Date.now() - debut))));   // pas de clignotement
   if (E && E.maj?.etat === "dispo" && E.tache.fini) pageMajDemarrage();
   else if (E && E.maj_jeu && !assistant) pageMajJeu();
